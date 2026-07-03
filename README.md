@@ -1,5 +1,7 @@
 # rtime-assistant
 
+English · [中文](README.zh-CN.md)
+
 Personal assistant runtime for the `brain` knowledge system.
 
 This repository is the engineering home for the assistant services that run on
