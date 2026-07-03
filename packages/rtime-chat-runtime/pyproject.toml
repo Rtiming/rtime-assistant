@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtime-chat-runtime"
+version = "0.1.0"
+description = "Provider-neutral chat-bridge runtime primitives shared by the Feishu bridge (and the future WeChat bridge): structured run logging, run lifecycle/stop, actor access policy, per-chat debounce/lock queueing, and outbound attachment directives."
+requires-python = ">=3.11"
+dependencies = []
+
+# Pure library: no console scripts, no MCP/plugin/skill surface. It is consumed
+# in-process by apps/feishu-bridge (see that app's main.py path bootstrap and
+# docker/feishu-bridge.Dockerfile COPY). The Feishu/WeChat runner-model split
+# (claude_runner vs run_claude) is intentionally NOT in here yet — see
+# docs/maintainability-standards.zh-CN.md §三 P5.
+
+[tool.setuptools.packages.find]
+where = ["src"]

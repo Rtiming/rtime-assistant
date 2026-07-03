@@ -1,0 +1,299 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Stage an agent-contributed note into brain/_inbox/ (the sanctioned entry).
+
+Intentionally narrow. It writes ONLY under ``brain/_inbox/agent/<date>/`` — the
+single sanctioned intake entry zone (docs/brain-intake-workflow §22) — never into
+``knowledge/`` or any final brain location, never overwrites a different-content
+file, refuses material that trips the sensitive-signal filter, and never
+*finalizes* (moving inbox content into a final brain dir stays an owner-driven
+pipeline step). JSON output is metadata-only and never echoes the note body.
+
+Two phases:
+  plan   -> preview only; computes the target inbox path + a confirmation plan;
+            writes nothing.
+  stage  -> writes the note (+ a ``.intake.json`` ticket) into the inbox.
+
+The note body is read from ``--json-stdin`` so it never lands in argv / process
+listings / the gateway audit. This is the ``deploy/bin`` writer behind the
+gateway method ``lib.contribute``.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import sys
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
+
+DEFAULT_TZ = timezone(timedelta(hours=8))
+# Ported from the gateway/runtime sensitive-text filter; staging is refused on a hit.
+SENSITIVE_RE = re.compile(
+    r"(open[_-]?id|union[_-]?id|tenant[_-]?key|app[_-]?secret|api[_-]?key|token|secret|credential|"
+    r"password|passwd|私钥|密钥|验证码|身份证|银行卡|公安备案|icp|备案|ou_[A-Za-z0-9_-]{8,})",
+    re.IGNORECASE,
+)
+TICKET_SCHEMA = "rtime-intake-ticket-v1"
+SOURCE = "agent-contribute"
+MAX_BODY_BYTES = 1_000_000  # this narrow path is for notes, not bulk uploads
+
+
+def _die(message: str, code: int = 2) -> None:
+    print(f"error: {message}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def _print(data: dict[str, Any]) -> None:
+    print(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+
+
+def _default_brain_roots() -> list[Path]:
+    paths: list[Path] = []
+    env_root = os.environ.get("BRAIN_ROOT")
+    if env_root:
+        paths.append(Path(env_root).expanduser())
+    paths.extend([Path("/mnt/brain"), Path.home() / "brain", Path.home() / "OrangePi-Store" / "sync" / "brain"])
+    seen: set[str] = set()
+    unique: list[Path] = []
+    for path in paths:
+        if str(path) not in seen:
+            seen.add(str(path))
+            unique.append(path)
+    return unique
+
+
+def _brain_root(raw: str | None) -> Path:
+    if raw:
+        return Path(raw).expanduser()
+    for path in _default_brain_roots():
+        if path.exists():
+            return path
+    return _default_brain_roots()[0]
+
+
+def _now() -> datetime:
+    return datetime.now(DEFAULT_TZ)
+
+
+def _slug(text: str) -> str:
+    slug = "-".join(re.findall(r"[A-Za-z0-9一-鿿]+", text.lower()))[:48].strip("-")
+    return slug or "note"
+
+
+def _json_stdin_payload(use_stdin: bool) -> dict[str, Any]:
+    if not use_stdin:
+        return {}
+    raw = sys.stdin.read()
+    if not raw.strip():
+        _die("--json-stdin requires a JSON object on stdin")
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        _die(f"invalid JSON stdin: {exc.msg}")
+    if not isinstance(data, dict):
+        _die("JSON stdin must be an object")
+    return data
+
+
+def _gather(args: argparse.Namespace) -> tuple[str, str, str, str]:
+    payload = _json_stdin_payload(args.json_stdin)
+    title = str(payload.get("title") or args.title or "").strip()
+    text = str(payload.get("text") or payload.get("body") or args.text or "")
+    note = str(payload.get("note") or args.note or "").strip()
+    tags = payload.get("tags") or args.tags or ""
+    if isinstance(tags, list):
+        tags = ",".join(str(t) for t in tags)
+    tags = str(tags).strip()
+    if not title:
+        _die("title is required")
+    if not text.strip():
+        _die("text is required")
+    if len(text.encode("utf-8")) > MAX_BODY_BYTES:
+        _die("body too large for this narrow contribute path")
+    return title, text, note, tags
+
+
+def _sensitive_reason(title: str, text: str, note: str) -> str | None:
+    if SENSITIVE_RE.search(title) or SENSITIVE_RE.search(note):
+        return "sensitive_signal_metadata"
+    if SENSITIVE_RE.search(text):
+        return "sensitive_signal_body"
+    return None
+
+
+def _target(brain_root: Path, title: str, text: str) -> tuple[Path, Path, str, Any]:
+    today = _now().date()
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    inbox_dir = brain_root / "_inbox" / "agent" / today.isoformat()
+    target = inbox_dir / f"{today.isoformat()}-{_slug(title)}-{digest[:12]}.md"
+    return inbox_dir, target, digest, today
+
+
+def _document(title: str, text: str, note: str, tags: str, today: Any, digest: str) -> str:
+    tag_list = [t.strip() for t in tags.split(",") if t.strip()]
+    tags_yaml = "[" + ", ".join(json.dumps(t, ensure_ascii=False) for t in tag_list) + "]"
+    lines = [
+        "---",
+        f"title: {json.dumps(title, ensure_ascii=False)}",
+        f"source: {SOURCE}",
+        f"received_at: {today.isoformat()}",
+        "status: inbox",
+        f"sha256: {digest}",
+        f"tags: {tags_yaml}",
+        f"note: {json.dumps(note, ensure_ascii=False)}",
+        "---",
+        "",
+        text.rstrip() + "\n",
+    ]
+    return "\n".join(lines)
+
+
+def cmd_plan(args: argparse.Namespace) -> int:
+    title, text, note, tags = _gather(args)
+    brain_root = _brain_root(args.brain_root)
+    _inbox_dir, target, _digest, _today = _target(brain_root, title, text)
+    sensitive = _sensitive_reason(title, text, note)
+    exists = target.exists()
+    questions = [
+        "Stage this note into brain/_inbox/agent/ for owner review? It will NOT be filed "
+        "into knowledge/ — the owner curates from the inbox via the intake pipeline.",
+    ]
+    if sensitive:
+        questions.append(
+            "Sensitive signal detected — staging is blocked; the owner must handle this material manually."
+        )
+    _print(
+        {
+            "ok": True,
+            "op": "plan",
+            "action": "hold" if sensitive else ("dedupe" if exists else "stage"),
+            "auto_apply_allowed": (not sensitive) and (not exists),
+            "sensitive": bool(sensitive),
+            "sensitive_reason": sensitive,
+            "inbox_target": str(target),
+            "already_staged": exists,
+            "title": title,
+            "title_chars": len(title),
+            "body_chars": len(text),
+            "destination_scope": "brain/_inbox/agent (staging only; never knowledge/, never finalized here)",
+            "confirmation_questions": questions,
+            "next_step": (
+                "call lib.contribute op=stage to write it into the inbox"
+                if (not sensitive and not exists)
+                else ("already staged; nothing to do" if exists else "blocked: sensitive material")
+            ),
+            "privacy": {"body_returned": False},
+        }
+    )
+    return 0
+
+
+def cmd_stage(args: argparse.Namespace) -> int:
+    title, text, note, tags = _gather(args)
+    sensitive = _sensitive_reason(title, text, note)
+    if sensitive:
+        _print(
+            {
+                "ok": True,
+                "op": "stage",
+                "action": "hold",
+                "written": False,
+                "reason": sensitive,
+                "title_chars": len(title),
+                "body_chars": len(text),
+                "privacy": {"body_returned": False},
+            }
+        )
+        return 0
+
+    brain_root = _brain_root(args.brain_root)
+    if not brain_root.is_dir():
+        _die(f"brain root not found: {brain_root}")
+    inbox_dir, target, digest, today = _target(brain_root, title, text)
+    ticket_path = target.with_suffix(target.suffix + ".intake.json")
+
+    if target.exists():
+        # The filename encodes the body sha (digest[:12]), so an existing target is
+        # the same note already staged — idempotent no-op, never overwrite.
+        _print(
+            {
+                "ok": True,
+                "op": "stage",
+                "action": "dedupe",
+                "written": False,
+                "path": str(target),
+                "title_chars": len(title),
+                "body_chars": len(text),
+                "privacy": {"body_returned": False},
+            }
+        )
+        return 0
+
+    ticket = {
+        "schema": TICKET_SCHEMA,
+        "source": SOURCE,
+        "received_at": today.isoformat(),
+        "title": title,
+        "sha256": digest,
+        "size": len(text.encode("utf-8")),
+        "status": "inbox",
+        "inbox_path": str(target),
+        "ticket_path": str(ticket_path),
+        "decision": "inbox-only",
+        "redaction": {"ticket_contains_body": False, "ticket_contains_secrets": False},
+    }
+    if not args.dry_run:
+        inbox_dir.mkdir(parents=True, exist_ok=True)
+        target.write_text(_document(title, text, note, tags, today, digest), encoding="utf-8")
+        ticket_path.write_text(
+            json.dumps(ticket, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+        )
+    _print(
+        {
+            "ok": True,
+            "op": "stage",
+            "action": "stage",
+            "dry_run": bool(args.dry_run),
+            "written": not args.dry_run,
+            "path": str(target),
+            "ticket_path": str(ticket_path),
+            "status": "inbox",
+            "title": title,
+            "title_chars": len(title),
+            "body_chars": len(text),
+            "destination_scope": "brain/_inbox/agent (staging only; never knowledge/, never finalized here)",
+            "next_step": "owner reviews brain/_inbox/agent and runs the intake pipeline (m0..m6) to file it",
+            "privacy": {"body_returned": False},
+        }
+    )
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Stage an agent-contributed note into brain/_inbox (narrow, inbox-only)."
+    )
+    parser.add_argument("--brain-root", help="brain root; defaults to BRAIN_ROOT or known brain mounts")
+    sub = parser.add_subparsers(dest="command", required=True)
+    for name, func in (("plan", cmd_plan), ("stage", cmd_stage)):
+        p = sub.add_parser(name, help=f"{name} a contributed note")
+        p.add_argument("--json-stdin", action="store_true", help="read {title,text,note,tags} from stdin JSON")
+        p.add_argument("--title", default="")
+        p.add_argument("--text", default="")
+        p.add_argument("--note", default="")
+        p.add_argument("--tags", default="")
+        if name == "stage":
+            p.add_argument("--dry-run", action="store_true")
+        p.set_defaults(func=func)
+    args = parser.parse_args(argv)
+    return int(args.func(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

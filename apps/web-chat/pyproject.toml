@@ -1,0 +1,32 @@
+[project]
+name = "web-chat"
+version = "0.1.0"
+description = "Browser Q&A entry for rtime-assistant — stdlib HTTP + JSON-over-SSE, third channel on rtime-chat-runtime"
+requires-python = ">=3.11"
+license = "MIT"
+# stdlib-only HTTP layer (ThreadingHTTPServer; FastAPI is reserved for
+# apps/admin-api per docs/design/mainline-profiles-and-entries-2026-07 §5.1/§6.1).
+# The only deps are the schema-driven config + profile-consumption stack (T5b):
+# WebChatConfig is a pydantic-settings model and load_profiles() compiles the git
+# profiles/ tree via the admin-core registry — the same stack the QQ bridge uses.
+dependencies = [
+    # T5b config migration: schema-driven settings (pydantic-settings base + metadata).
+    "rtime-config>=0.1.0",
+    # T5b profile consumption: the ConfigStore + registry that compile profiles/ and
+    # resolve env>store>profile>default (lazily imported — only touched on the
+    # profile path: load_profiles() + WebChatConfig.from_profile).
+    "rtime-admin-core>=0.1.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8",
+]
+
+# Resolve rtime-config + rtime-admin-core from the sibling in-repo packages, not
+# PyPI. Path sources (not workspace): web-chat is deliberately a standalone uv
+# project with its own uv.lock (`uv run --project apps/web-chat …`), NOT a
+# workspace member — same convention as apps/qq-bridge.
+[tool.uv.sources]
+rtime-config = { path = "../../packages/rtime-config", editable = true }
+rtime-admin-core = { path = "../../packages/rtime-admin-core", editable = true }

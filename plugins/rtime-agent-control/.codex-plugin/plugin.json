@@ -1,0 +1,26 @@
+{
+  "name": "rtime-agent-control",
+  "version": "0.1.0",
+  "description": "Read-only agent control-plane diagnostics, MCP config rendering, validation planning, and tooling inventory for rtime-assistant.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Rtime Agent Control",
+    "shortDescription": "Inspect and plan rtime-assistant agent tooling and MCP configuration.",
+    "longDescription": "Rtime Agent Control provides read-only MCP and CLI surfaces for repository-owned tool inventory, MCP client config rendering, module validation planning, context-lane routing, and runtime source snapshots without mutating local services or secrets.",
+    "developerName": "rtime",
+    "category": "Developer Tools",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Check agent tooling health.",
+      "Render a standalone MCP config for rtime-agent-control.",
+      "Plan validation for the agent-control module."
+    ]
+  }
+}

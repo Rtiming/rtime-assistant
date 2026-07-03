@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rtime-reminder": {
+      "cwd": ".",
+      "command": "./scripts/rtime-reminder-mcp.sh",
+      "args": []
+    }
+  }
+}

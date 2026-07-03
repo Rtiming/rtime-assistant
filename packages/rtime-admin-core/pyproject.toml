@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtime-admin-core"
+version = "0.1.0"
+description = "P3 L1 admin core: the single pure-Python truth for reading/writing/validating a deployment's config. Schema registry over rtime-config models + a ConfigStore (path addressing, redaction, diff, validate) + change transactions (snapshot/history/rollback) + append-only audit. Every upper layer (HTTP/MCP/CLI/panel) only calls this, so their behaviour cannot drift."
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.5",
+    "pydantic-settings>=2.0",
+    "rtime-config",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.uv.sources]
+rtime-config = { workspace = true }

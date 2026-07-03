@@ -1,0 +1,29 @@
+[project]
+name = "qq-bridge"
+version = "0.1.0"
+description = "QQ (OneBot v11) bridge for rtime-assistant — reuses rtime-chat-runtime"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "aiohttp>=3.9",
+    "python-dotenv>=1.0.0",
+    # P2 config pilot: schema-driven settings (pydantic-settings base + doc export).
+    "rtime-config>=0.1.0",
+    # T2 profile consumption: the ConfigStore that resolves env>store>profile>default
+    # for the profile-aware ``QQBridgeConfig.from_profile`` path (lazily imported —
+    # only touched when RTIME_PROFILE is set).
+    "rtime-admin-core>=0.1.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=9.0",
+]
+
+# Resolve rtime-config + rtime-admin-core from the sibling in-repo packages, not
+# PyPI. Path sources (not workspace): qq-bridge is deliberately a standalone uv
+# project with its own uv.lock (`uv run --project apps/qq-bridge …`), NOT a
+# workspace member — see the root pyproject.toml [tool.uv.workspace] note.
+[tool.uv.sources]
+rtime-config = { path = "../../packages/rtime-config", editable = true }
+rtime-admin-core = { path = "../../packages/rtime-admin-core", editable = true }

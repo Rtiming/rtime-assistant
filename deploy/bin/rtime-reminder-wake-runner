@@ -1,0 +1,232 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Run a scheduled assistant wake task and return metadata-only JSON."""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+from datetime import datetime, timedelta, timezone
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+
+DEFAULT_REPO = str(Path.home() / "rtime-assistant")
+DEFAULT_ENV_FILE = str(Path.home() / ".config/rtime-assistant/docker.env")
+DEFAULT_COMPOSE = "compose.prod.yml"
+DEFAULT_TZ = timezone(timedelta(hours=8))
+PASSTHROUGH_ENV = {
+    "RTIME_REMINDER_WAKE_ECHO",
+    "RTIME_REMINDER_WAKE_ECHO_TEXT",
+}
+BRIDGE_IMPORT_PATHS = [
+    ".",
+    "/app/apps/feishu-bridge",
+    "/workspace/rtime-assistant/apps/feishu-bridge",
+    str(Path.home() / "rtime-assistant/apps/feishu-bridge"),
+]
+
+
+def _print(data: dict[str, Any]) -> int:
+    print(json.dumps(data, ensure_ascii=False, sort_keys=True))
+    return 0 if data.get("ok") else 1
+
+
+def _load_payload() -> dict[str, Any]:
+    raw = sys.stdin.read()
+    if not raw.strip():
+        return {}
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        return {"_error": f"invalid JSON payload: {exc.msg}"}
+    if not isinstance(data, dict):
+        return {"_error": "payload must be a JSON object"}
+    return data
+
+
+def _ensure_bridge_import_path() -> None:
+    for raw_path in BRIDGE_IMPORT_PATHS:
+        path = Path(raw_path).resolve()
+        if (path / "claude_runner.py").exists() and str(path) not in sys.path:
+            sys.path.insert(0, str(path))
+
+
+def _parse_due_beijing(raw: str) -> datetime | None:
+    text = str(raw or "").strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        value = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=DEFAULT_TZ)
+    return value.astimezone(DEFAULT_TZ)
+
+
+def _prompt_with_trigger_metadata(raw_prompt: str, payload: dict[str, Any]) -> str:
+    lines = ["[定时唤醒元数据]"]
+    due = str(payload.get("due") or "").strip()
+    message = str(payload.get("message") or "").strip()
+    reminder_id = str(payload.get("id") or "").strip()
+    now = datetime.now(DEFAULT_TZ)
+    due_beijing = _parse_due_beijing(due)
+    if reminder_id:
+        lines.append(f"提醒ID：{reminder_id}")
+        lines.append(f"reminder_id: {reminder_id}")
+    lines.append(f"current_beijing_datetime: {now.isoformat(timespec='seconds')}")
+    lines.append(f"today_beijing_date: {now.date().isoformat()}")
+    if due_beijing:
+        lines.append(f"due_beijing: {due_beijing.isoformat(timespec='seconds')}")
+    if due:
+        lines.append(f"本次计划触发时间（原始due）：{due}")
+    if message:
+        lines.append(f"提醒标题：{message}")
+    lines.extend(["", "[登记时任务提示]", raw_prompt])
+    return "\n".join(lines)
+
+
+def _outside(args: argparse.Namespace, payload: dict[str, Any]) -> int:
+    repo = Path(os.environ.get("RTIME_REMINDER_WAKE_REPO", DEFAULT_REPO))
+    env_file = os.environ.get("RTIME_REMINDER_WAKE_ENV_FILE", DEFAULT_ENV_FILE)
+    compose_file = os.environ.get("RTIME_REMINDER_WAKE_COMPOSE", DEFAULT_COMPOSE)
+    timeout = str(args.timeout)
+    exec_options = ["-T"]
+    for key in sorted(PASSTHROUGH_ENV):
+        value = os.environ.get(key)
+        if value is not None:
+            exec_options.extend(["-e", f"{key}={value}"])
+    cmd = [
+        "docker",
+        "compose",
+        "--env-file",
+        env_file,
+        "-f",
+        compose_file,
+        "exec",
+        *exec_options,
+        "feishu-bridge",
+        "rtime-reminder-wake-runner",
+        "--inside",
+        "--timeout",
+        timeout,
+    ]
+    if args.cwd:
+        cmd.extend(["--cwd", args.cwd])
+    if args.model:
+        cmd.extend(["--model", args.model])
+    if args.permission_mode:
+        cmd.extend(["--permission-mode", args.permission_mode])
+    proc = subprocess.run(
+        cmd,
+        cwd=repo,
+        input=json.dumps(payload, ensure_ascii=False),
+        capture_output=True,
+        text=True,
+        timeout=args.timeout + 30,
+        check=False,
+    )
+    if proc.returncode != 0:
+        try:
+            data = json.loads(proc.stdout or "{}")
+        except json.JSONDecodeError:
+            data = {}
+        if isinstance(data, dict) and data:
+            data.setdefault("ok", False)
+            data.setdefault("error", "wake container run failed")
+            data["returncode"] = proc.returncode
+            data["stderr_chars"] = len(proc.stderr or "")
+            return _print(data)
+        return _print(
+            {
+                "ok": False,
+                "error": "wake container run failed",
+                "returncode": proc.returncode,
+                "stderr_chars": len(proc.stderr or ""),
+                "stdout_chars": len(proc.stdout or ""),
+            }
+        )
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return _print({"ok": False, "error": "wake runner returned non-JSON output"})
+    return _print(data)
+
+
+async def _inside_async(args: argparse.Namespace, payload: dict[str, Any]) -> dict[str, Any]:
+    raw_prompt = str(payload.get("prompt") or payload.get("message") or "").strip()
+    if not raw_prompt:
+        return {"ok": False, "error": "prompt is required", "prompt_chars": 0}
+    if os.environ.get("RTIME_REMINDER_WAKE_ECHO") == "1":
+        return {
+            "ok": True,
+            "text": os.environ.get("RTIME_REMINDER_WAKE_ECHO_TEXT", "wake ok"),
+            "prompt_chars": len(raw_prompt),
+            "mode": "echo",
+        }
+
+    _ensure_bridge_import_path()
+
+    from claude_runner import run_claude
+    from tool_policy import add_runtime_policy_hints, allowed_tools_for_text, disallowed_tools_for_text
+
+    cwd = args.cwd or str(payload.get("cwd") or os.environ.get("DEFAULT_CWD") or "/mnt/brain")
+    model = args.model or str(payload.get("model") or "")
+    permission_mode = args.permission_mode or str(payload.get("permission_mode") or os.environ.get("PERMISSION_MODE") or "default")
+    prompt = _prompt_with_trigger_metadata(raw_prompt, payload)
+    enriched = add_runtime_policy_hints(prompt)
+    full_text, session_id, fallback = await asyncio.wait_for(
+        run_claude(
+            enriched,
+            cwd=cwd,
+            model=model or None,
+            permission_mode=permission_mode,
+            allowed_tools=allowed_tools_for_text(prompt),
+            disallowed_tools=disallowed_tools_for_text(prompt),
+        ),
+        timeout=args.timeout,
+    )
+    return {
+        "ok": True,
+        "text": full_text,
+        "output_chars": len(full_text or ""),
+        "prompt_chars": len(raw_prompt),
+        "session_id_present": bool(session_id),
+        "used_fresh_session_fallback": bool(fallback),
+    }
+
+
+def _inside(args: argparse.Namespace, payload: dict[str, Any]) -> int:
+    if payload.get("_error"):
+        return _print({"ok": False, "error": payload["_error"]})
+    try:
+        data = asyncio.run(_inside_async(args, payload))
+    except Exception as exc:
+        data = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+    return _print(data)
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Run a scheduled rtime assistant wake task.")
+    parser.add_argument("--inside", action="store_true", help="run directly in the feishu-bridge container")
+    parser.add_argument("--timeout", type=int, default=int(os.environ.get("RTIME_REMINDER_WAKE_TIMEOUT", "300")))
+    parser.add_argument("--cwd")
+    parser.add_argument("--model")
+    parser.add_argument("--permission-mode")
+    args = parser.parse_args(argv)
+    payload = _load_payload()
+    if args.inside or os.environ.get("RTIME_REMINDER_WAKE_DIRECT") == "1":
+        return _inside(args, payload)
+    return _outside(args, payload)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

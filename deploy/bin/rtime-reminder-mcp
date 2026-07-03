@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Small MCP wrapper around rtime-reminder-register."""
+
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+
+PROTOCOL_VERSION = "2025-11-25"
+SERVER_NAME = "rtime-reminder"
+SERVER_VERSION = "0.1.0"
+
+
+def _register_tool() -> str:
+    configured = os.environ.get("RTIME_REMINDER_REGISTER")
+    if configured:
+        return configured
+    found = shutil.which("rtime-reminder-register")
+    if found:
+        return found
+    sibling = Path(__file__).with_name("rtime-reminder-register")
+    return str(sibling)
+
+
+def _json(data: Any) -> str:
+    return json.dumps(data, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+
+
+def _tool_result(data: dict[str, Any], *, is_error: bool = False) -> dict[str, Any]:
+    return {
+        "content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True)}],
+        "structuredContent": data,
+        "isError": is_error,
+    }
+
+
+def _schema(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "properties": properties,
+        "required": required or [],
+        "additionalProperties": False,
+    }
+
+
+def _tools() -> list[dict[str, Any]]:
+    path_arg = {"type": "string", "description": "Optional reminders JSONL path."}
+    add_props = {
+        "due": {"type": "string"},
+        "message": {"type": "string"},
+        "mode": {"type": "string", "enum": ["notify", "wake"]},
+        "prompt": {"type": "string"},
+        "repeat": {"type": "string", "enum": ["none", "hourly", "daily", "weekly"]},
+        "target": {"type": "string"},
+        "cwd": {"type": "string"},
+        "model": {"type": "string"},
+        "permission_mode": {"type": "string"},
+        "path": path_arg,
+        "dry_run": {"type": "boolean"},
+    }
+    return [
+        {
+            "name": "reminder.add",
+            "title": "Add Reminder",
+            "description": "Append a pending rtime Feishu reminder. Prefer reminder.notify or reminder.wake for new calls.",
+            "inputSchema": _schema(add_props, ["due", "message"]),
+        },
+        {
+            "name": "reminder.notify",
+            "title": "Schedule Fixed Message",
+            "description": "Schedule a fixed, self-contained Feishu message without waking the assistant model. Use only when no trigger-time reasoning or context is needed.",
+            "inputSchema": _schema(
+                {
+                    "due": {"type": "string"},
+                    "message": {"type": "string"},
+                    "repeat": {"type": "string", "enum": ["none", "hourly", "daily", "weekly"]},
+                    "target": {"type": "string"},
+                    "path": path_arg,
+                    "dry_run": {"type": "boolean"},
+                },
+                ["due", "message"],
+            ),
+        },
+        {
+            "name": "reminder.wake",
+            "title": "Schedule Assistant Wake",
+            "description": "Schedule an independent assistant run and send its result to Feishu. Prefer this for context-dependent, study/exam, travel, project, completion-check, advice, summary, or judgment reminders.",
+            "inputSchema": _schema(
+                {
+                    "due": {"type": "string"},
+                    "message": {"type": "string"},
+                    "prompt": {"type": "string"},
+                    "repeat": {"type": "string", "enum": ["none", "hourly", "daily", "weekly"]},
+                    "target": {"type": "string"},
+                    "cwd": {"type": "string"},
+                    "model": {"type": "string"},
+                    "permission_mode": {"type": "string"},
+                    "path": path_arg,
+                    "dry_run": {"type": "boolean"},
+                },
+                ["due", "message", "prompt"],
+            ),
+        },
+        {
+            "name": "reminder.list",
+            "title": "List Reminders",
+            "description": "List reminder metadata without returning message bodies or target values.",
+            "inputSchema": _schema(
+                {
+                    "status": {"type": "string", "enum": ["pending", "done", "cancelled", "failed"]},
+                    "limit": {"type": "integer"},
+                    "path": path_arg,
+                }
+            ),
+        },
+        {
+            "name": "reminder.cancel",
+            "title": "Cancel Reminder",
+            "description": "Mark a reminder cancelled by id.",
+            "inputSchema": _schema({"id": {"type": "string"}, "path": path_arg}, ["id"]),
+        },
+    ]
+
+
+def _run_register(args: list[str]) -> dict[str, Any]:
+    proc = subprocess.run(
+        [_register_tool(), *args],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if proc.returncode != 0:
+        return {"ok": False, "error": proc.stderr.strip() or proc.stdout.strip(), "returncode": proc.returncode}
+    try:
+        return json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return {"ok": False, "error": "register tool returned non-JSON output"}
+
+
+def _call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    path = arguments.get("path")
+    prefix = ["--path", str(path)] if path else []
+    if name in {"reminder.add", "reminder.notify", "reminder.wake"}:
+        mode = str(arguments.get("mode") or "notify")
+        if name == "reminder.notify":
+            mode = "notify"
+        if name == "reminder.wake":
+            mode = "wake"
+        args = [
+            *prefix,
+            "add",
+            "--due",
+            str(arguments.get("due", "")),
+            "--message",
+            str(arguments.get("message", "")),
+            "--mode",
+            mode,
+            "--repeat",
+            str(arguments.get("repeat") or "none"),
+        ]
+        if arguments.get("prompt"):
+            args.extend(["--prompt", str(arguments["prompt"])])
+        if arguments.get("target"):
+            args.extend(["--target", str(arguments["target"])])
+        if arguments.get("cwd"):
+            args.extend(["--cwd", str(arguments["cwd"])])
+        if arguments.get("model"):
+            args.extend(["--model", str(arguments["model"])])
+        if arguments.get("permission_mode"):
+            args.extend(["--permission-mode", str(arguments["permission_mode"])])
+        if arguments.get("dry_run"):
+            args.append("--dry-run")
+        return _run_register(args)
+    if name == "reminder.list":
+        args = [*prefix, "list"]
+        if arguments.get("status"):
+            args.extend(["--status", str(arguments["status"])])
+        if arguments.get("limit"):
+            args.extend(["--limit", str(arguments["limit"])])
+        return _run_register(args)
+    if name == "reminder.cancel":
+        return _run_register([*prefix, "cancel", "--id", str(arguments.get("id", ""))])
+    return {"ok": False, "error": f"unknown tool: {name}"}
+
+
+def _response(request_id: Any, result: dict[str, Any]) -> dict[str, Any]:
+    return {"jsonrpc": "2.0", "id": request_id, "result": result}
+
+
+def _error(request_id: Any, code: int, message: str) -> dict[str, Any]:
+    return {"jsonrpc": "2.0", "id": request_id, "error": {"code": code, "message": message}}
+
+
+def _handle(message: dict[str, Any]) -> dict[str, Any] | None:
+    request_id = message.get("id")
+    method = message.get("method")
+    if method == "notifications/initialized":
+        return None
+    if method == "initialize":
+        return _response(
+            request_id,
+            {
+                "protocolVersion": message.get("params", {}).get("protocolVersion", PROTOCOL_VERSION),
+                "capabilities": {"tools": {"listChanged": False}},
+                "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
+                "instructions": (
+                    "Use rtime reminder tools for Feishu phone reminders. Do not use Claude Code Cron tools "
+                    "for these reminders. Use reminder.notify only for literal fixed messages. Use "
+                    "reminder.wake for reminders that depend on conversation context, study/exam state, "
+                    "travel timing, project status, completion checks, advice, summaries, or judgment; "
+                    "make the wake prompt self-contained because it runs in a fresh assistant task."
+                ),
+            },
+        )
+    if method == "tools/list":
+        return _response(request_id, {"tools": _tools()})
+    if method == "tools/call":
+        params = message.get("params") or {}
+        name = params.get("name")
+        arguments = params.get("arguments") or {}
+        if not isinstance(arguments, dict):
+            return _error(request_id, -32602, "Invalid params")
+        data = _call_tool(str(name), arguments)
+        return _response(request_id, _tool_result(data, is_error=not bool(data.get("ok"))))
+    if method == "ping":
+        return _response(request_id, {})
+    if method == "shutdown":
+        return _response(request_id, {})
+    return _error(request_id, -32601, f"Method not found: {method}")
+
+
+def main() -> int:
+    for line in sys.stdin:
+        if not line.strip():
+            continue
+        try:
+            message = json.loads(line)
+            response = _handle(message)
+        except Exception as exc:  # pragma: no cover - defensive MCP boundary
+            response = _error(None, -32000, f"{type(exc).__name__}: {exc}")
+        if response is not None:
+            print(_json(response), flush=True)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

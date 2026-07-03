@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rtime 助手 Obsidian 预览</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      :root {
+        --background-primary: #f8f8f6;
+        --background-primary-alt: #eef4f7;
+        --background-secondary: #ffffff;
+        --background-modifier-border: #d9dedb;
+        --background-modifier-hover: #edf1ef;
+        --interactive-accent: #2f6f73;
+        --text-on-accent: #ffffff;
+        --text-normal: #202524;
+        --text-muted: #62706d;
+        --text-faint: #9aa5a2;
+        --color-blue: #2563eb;
+        --color-green: #2f855a;
+        --color-orange: #c05621;
+        --color-purple: #7c3aed;
+        --color-red: #dc2626;
+        --font-ui-medium: 14px;
+        --font-ui-small: 13px;
+        --font-ui-smaller: 12px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background: #e7ebe8;
+        color: var(--text-normal);
+      }
+
+      .preview-shell {
+        display: grid;
+        grid-template-columns: minmax(380px, 1fr) 410px;
+        height: 100vh;
+      }
+
+      .preview-note {
+        padding: 24px;
+        overflow: auto;
+        background: #fbfaf7;
+        border-right: 1px solid var(--background-modifier-border);
+      }
+
+      .preview-note-inner {
+        max-width: 780px;
+        margin: 0 auto;
+      }
+
+      .preview-note h1 {
+        margin: 0 0 12px;
+        font-size: 28px;
+        letter-spacing: 0;
+      }
+
+      .preview-note p,
+      .preview-note li {
+        line-height: 1.7;
+      }
+
+      .preview-highlight {
+        padding: 1px 4px;
+        border-radius: 4px;
+        background: #dfeee9;
+      }
+
+      .preview-settings {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+        padding: 6px 8px;
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 8px;
+        background: var(--background-secondary);
+        color: var(--text-muted);
+        font-size: var(--font-ui-smaller);
+      }
+
+      .preview-settings select {
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 6px;
+        background: var(--background-primary);
+        color: var(--text-normal);
+      }
+
+      .preview-sidebar {
+        min-width: 0;
+        background: var(--background-primary);
+      }
+
+      .preview-icon svg {
+        width: 16px;
+        height: 16px;
+        stroke-width: 2;
+      }
+
+      @media (max-width: 860px) {
+        .preview-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-note {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="preview-shell">
+      <section class="preview-note">
+        <div class="preview-note-inner">
+          <div class="preview-settings">
+            <span data-i18n="settingsLabel">设置页语言</span>
+            <select id="preview-language" aria-label="界面语言">
+              <option value="zh-CN">简体中文</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <h1 data-i18n="noteTitle">高温超导线圈文献笔记</h1>
+          <p data-i18n="noteLead">
+            这是一条模拟的 Obsidian 当前笔记。右侧助手会携带当前路径、选区、标题、标签、链接和截断正文到本地 rtime endpoint。
+          </p>
+          <p>
+            <span data-i18n="selectedPrefix">选中文本：</span>
+            <span class="preview-highlight" data-i18n="selectedText">
+              机器人辅助绕制需要把材料、工艺窗口和检测数据追溯到具体文献、页码或 DocPack 锚点。
+            </span>
+          </p>
+          <h2 data-i18n="openQuestions">待确认问题</h2>
+          <ul>
+            <li data-i18n="questionOne">写报告章节前应先链接哪些笔记？</li>
+            <li data-i18n="questionTwo">哪些结论还缺少页级证据？</li>
+            <li data-i18n="questionThree">哪些 DocPack 输出需要优先复核？</li>
+          </ul>
+        </div>
+      </section>
+      <aside class="preview-sidebar">
+        <div class="rtime-assistant-root">
+          <div class="rtime-assistant-header">
+            <div class="rtime-assistant-brand">
+              <span class="rtime-assistant-brand-icon preview-icon" data-icon="bot"></span>
+              <div class="rtime-assistant-title-wrap">
+                <div class="rtime-assistant-title" data-i18n="title">Rtime 助手</div>
+                <div class="rtime-assistant-subtitle" data-i18n="subtitle">本地知识库侧边助手</div>
+                <div class="rtime-assistant-endpoint">127.0.0.1:8765/api/obsidian/chat</div>
+              </div>
+            </div>
+            <div class="rtime-assistant-status is-ready" id="preview-status">
+              <span class="rtime-assistant-status-dot"></span>
+              <span class="rtime-assistant-status-text" data-i18n="ready">就绪</span>
+            </div>
+          </div>
+
+          <div class="rtime-assistant-modebar">
+            <button class="rtime-assistant-icon-button">
+              <span class="rtime-assistant-button-icon preview-icon" data-icon="text"></span>
+              <span class="rtime-assistant-button-label" data-i18n="selection">选区</span>
+            </button>
+            <button class="rtime-assistant-icon-button is-active">
+              <span class="rtime-assistant-button-icon preview-icon" data-icon="file"></span>
+              <span class="rtime-assistant-button-label" data-i18n="note">当前笔记</span>
+            </button>
+            <button class="rtime-assistant-icon-button">
+              <span class="rtime-assistant-button-icon preview-icon" data-icon="database"></span>
+              <span class="rtime-assistant-button-label" data-i18n="vault">知识库</span>
+            </button>
+          </div>
+
+          <div class="rtime-assistant-context">
+            <div class="rtime-assistant-context-file">
+              <span class="rtime-assistant-context-icon preview-icon" data-icon="file"></span>
+              <span>knowledge/research/hts-coil-literature.md</span>
+            </div>
+            <div class="rtime-assistant-context-details">
+              <span class="rtime-assistant-context-pill">
+                <span class="rtime-assistant-context-pill-icon preview-icon" data-icon="search"></span>
+                <span data-i18n="modePill">范围：当前笔记</span>
+              </span>
+              <span class="rtime-assistant-context-pill">
+                <span class="rtime-assistant-context-pill-icon preview-icon" data-icon="text"></span>
+                <span data-i18n="selectionPill">选区：开启</span>
+              </span>
+              <span class="rtime-assistant-context-pill">
+                <span class="rtime-assistant-context-pill-icon preview-icon" data-icon="files"></span>
+                <span data-i18n="bodyPill">正文：开启</span>
+              </span>
+              <span class="rtime-assistant-context-pill">
+                <span class="rtime-assistant-context-pill-icon preview-icon" data-icon="box"></span>
+                <span data-i18n="modulePill">模块：文献</span>
+              </span>
+              <span class="rtime-assistant-context-pill">
+                <span class="rtime-assistant-context-pill-icon preview-icon" data-icon="folder"></span>
+                <span>文件夹：knowledge/research</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="rtime-assistant-history" id="preview-history">
+            <div class="rtime-assistant-message rtime-assistant-message-system">
+              <div class="rtime-assistant-message-header">
+                <span class="rtime-assistant-message-icon preview-icon" data-icon="shield"></span>
+                <div class="rtime-assistant-message-role" data-i18n="systemRole">系统</div>
+              </div>
+              <div class="rtime-assistant-message-content" data-i18n="systemMessage">
+                在 Obsidian 内直接提问。只有点击发送后，插件才会把当前上下文发给本地 rtime endpoint。
+              </div>
+            </div>
+          </div>
+
+          <div class="rtime-assistant-composer">
+            <div class="rtime-assistant-taskbar">
+              <button class="is-active" data-i18n="taskAsk">提问</button>
+              <button data-i18n="taskSummary" data-prompt-key="promptSummary">总结</button>
+              <button data-i18n="taskExplain" data-prompt-key="promptExplain">解释</button>
+              <button data-i18n="taskRelated" data-prompt-key="promptRelated">相关</button>
+              <button data-i18n="taskCitation" data-prompt-key="promptCitations">引文</button>
+            </div>
+            <div class="rtime-assistant-targetbar">
+              <label class="rtime-assistant-target-field">
+                <span data-i18n="moduleLabel">模块</span>
+                <select class="rtime-assistant-select" id="preview-module">
+                  <option value="auto" data-i18n="moduleAuto">自动</option>
+                  <option value="brain" data-i18n="moduleBrain">知识库</option>
+                  <option value="literature" selected data-i18n="moduleLiterature">文献</option>
+                  <option value="project" data-i18n="moduleProject">项目</option>
+                  <option value="runtime" data-i18n="moduleRuntime">运行</option>
+                </select>
+              </label>
+              <label class="rtime-assistant-target-field rtime-assistant-target-field-wide">
+                <span data-i18n="folderLabel">文件夹</span>
+                <input
+                  class="rtime-assistant-folder-input"
+                  id="preview-folder"
+                  value="knowledge/research"
+                  placeholder="选择或输入 brain/项目文件夹"
+                />
+              </label>
+            </div>
+            <textarea
+              class="rtime-assistant-textarea"
+              id="preview-input"
+              placeholder="询问当前笔记、选中文本，或让助手检索你的 brain 知识库..."
+            ></textarea>
+            <div class="rtime-assistant-actions">
+              <button class="rtime-assistant-icon-button" id="preview-ask">
+                <span class="rtime-assistant-button-icon preview-icon" data-icon="send"></span>
+                <span class="rtime-assistant-button-label" data-i18n="send">发送</span>
+              </button>
+              <button class="rtime-assistant-icon-button rtime-assistant-button-secondary">
+                <span class="rtime-assistant-button-icon preview-icon" data-icon="insert"></span>
+                <span class="rtime-assistant-button-label" data-i18n="insert">插入</span>
+              </button>
+              <button class="rtime-assistant-icon-button rtime-assistant-button-secondary" id="preview-health">
+                <span class="rtime-assistant-button-icon preview-icon" data-icon="activity"></span>
+                <span class="rtime-assistant-button-label" data-i18n="health">检查</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+    <script>
+      const translations = {
+        "zh-CN": {
+          settingsLabel: "设置页语言",
+          noteTitle: "高温超导线圈文献笔记",
+          noteLead: "这是一条模拟的 Obsidian 当前笔记。右侧助手会携带当前路径、选区、标题、标签、链接和截断正文到本地 rtime endpoint。",
+          selectedPrefix: "选中文本：",
+          selectedText: "机器人辅助绕制需要把材料、工艺窗口和检测数据追溯到具体文献、页码或 DocPack 锚点。",
+          openQuestions: "待确认问题",
+          questionOne: "写报告章节前应先链接哪些笔记？",
+          questionTwo: "哪些结论还缺少页级证据？",
+          questionThree: "哪些 DocPack 输出需要优先复核？",
+          title: "Rtime 助手",
+          subtitle: "本地知识库侧边助手",
+          ready: "就绪",
+          thinking: "思考中",
+          healthy: "健康",
+          selection: "选区",
+          note: "当前笔记",
+          vault: "知识库",
+          modePill: "范围：当前笔记",
+          selectionPill: "选区：开启",
+          bodyPill: "正文：开启",
+          modulePill: "模块：文献",
+          moduleLabel: "模块",
+          folderLabel: "文件夹",
+          moduleAuto: "自动",
+          moduleBrain: "知识库",
+          moduleLiterature: "文献",
+          moduleProject: "项目",
+          moduleRuntime: "运行",
+          quickSummary: "总结笔记",
+          quickExplain: "解释选区",
+          quickRelated: "相关材料",
+          quickCitations: "引文审阅",
+          systemRole: "系统",
+          userRole: "你",
+          assistantRole: "助手",
+          systemMessage: "在 Obsidian 内直接提问。只有点击发送后，插件才会把当前上下文发给本地 rtime endpoint。",
+          taskAsk: "提问",
+          taskSummary: "总结",
+          taskExplain: "解释",
+          taskRelated: "相关",
+          taskCitation: "引文",
+          send: "发送",
+          insert: "插入",
+          health: "检查",
+          placeholder: "询问当前笔记、选中文本，或让助手检索你的 brain 知识库...",
+          promptSummary: "总结当前笔记，并列出关键判断、待确认问题和下一步动作。",
+          promptExplain: "结合当前笔记解释选中文本。如果没有选中文本，请解释这条笔记的核心论点。",
+          promptRelated: "查找与当前笔记相关的笔记、材料、引文和项目上下文。",
+          promptCitations: "审阅当前笔记的引文覆盖和来源可追溯性，返回具体路径、citekey 或缺失证据。",
+          answer: "这条笔记适合进入一次有针对性的文献复核。当前主要缺口不是主题覆盖，而是可追溯性：关于绕制工艺窗口、材料参数和检测数据的表述，需要先绑定到具体笔记、页码或 DocPack 锚点，再进入正式报告。",
+          sourceOne: "brain-library 扫描",
+          sourceOneMeta: "DocPack 状态 | 引文准备度 | 当前笔记路径",
+          sourceTwo: "brain-citation 面板",
+          sourceTwoMeta: "缺失 citekey | Zotero 线索 | 行级证据",
+        },
+        en: {
+          settingsLabel: "Settings language",
+          noteTitle: "HTS Coil Literature Note",
+          noteLead: "This mock note represents the active Obsidian document. The assistant sends the path, selection, headings, tags, links, and truncated body to the local rtime endpoint.",
+          selectedPrefix: "Selected text: ",
+          selectedText: "Robot-assisted winding needs citation-level traceability for materials, process windows, and inspection data.",
+          openQuestions: "Open Questions",
+          questionOne: "Which notes should be linked before drafting the report section?",
+          questionTwo: "Which claims still need page-level evidence?",
+          questionThree: "Which DocPack outputs should be reviewed first?",
+          title: "Rtime Assistant",
+          subtitle: "Local knowledge sidebar",
+          ready: "Ready",
+          thinking: "Thinking",
+          healthy: "Healthy",
+          selection: "Selection",
+          note: "Current note",
+          vault: "Vault",
+          modePill: "Mode: Current note",
+          selectionPill: "Selection: on",
+          bodyPill: "Body: on",
+          modulePill: "Module: Literature",
+          moduleLabel: "Module",
+          folderLabel: "Folder",
+          moduleAuto: "Auto",
+          moduleBrain: "Brain",
+          moduleLiterature: "Literature",
+          moduleProject: "Project",
+          moduleRuntime: "Runtime",
+          quickSummary: "Summarize",
+          quickExplain: "Explain Selection",
+          quickRelated: "Related",
+          quickCitations: "Citations",
+          systemRole: "system",
+          userRole: "you",
+          assistantRole: "assistant",
+          systemMessage: "Ask inside Obsidian. The plugin sends context to the local rtime endpoint only after you submit a prompt.",
+          taskAsk: "Ask",
+          taskSummary: "Summary",
+          taskExplain: "Explain",
+          taskRelated: "Related",
+          taskCitation: "Citations",
+          send: "Send",
+          insert: "Insert",
+          health: "Health",
+          placeholder: "Ask about the active note, selected text, or your brain library...",
+          promptSummary: "Summarize the active note and list decisions, open questions, and useful next actions.",
+          promptExplain: "Explain the selected text in the context of this note. If no text is selected, explain the note's main argument.",
+          promptRelated: "Find related notes, source materials, citations, and project context for the active note.",
+          promptCitations: "Review citation coverage and source traceability for the active note. Return concrete paths, citekeys, or missing evidence.",
+          answer: "This note is ready for a focused literature pass. The main gap is not topic coverage, but traceability: claims about winding process windows, material parameters, and inspection data should be tied to specific notes, pages, or DocPack anchors before report drafting.",
+          sourceOne: "brain-library scan",
+          sourceOneMeta: "DocPack status | citation readiness | active note path",
+          sourceTwo: "brain-citation panel",
+          sourceTwoMeta: "missing citekeys | linked Zotero clues | line evidence",
+        },
+      };
+
+      const icons = {
+        activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+        bot: '<rect width="18" height="12" x="3" y="8" rx="2"/><path d="M12 8V4"/><circle cx="8" cy="14" r="1"/><circle cx="16" cy="14" r="1"/><path d="M8 20h8"/>',
+        box: '<path d="M21 8a2 2 0 0 0-1-1.73L13 2.27a2 2 0 0 0-2 0L4 6.27A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+        database: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+        file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+        files: '<path d="M16 2H8a2 2 0 0 0-2 2v2"/><path d="M18 6H10a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z"/>',
+        folder: '<path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.5a2 2 0 0 1-1.6-.8L9.6 3.6A2 2 0 0 0 8 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+        insert: '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
+        list: '<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
+        network: '<circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><path d="M10.4 7.6 6.6 16.4"/><path d="m13.6 7.6 3.8 8.8"/><path d="M8 19h8"/>',
+        quote: '<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.75-2-2-2H4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2h3c0 3-1 5-4 5z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.75-2-2-2h-4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2h3c0 3-1 5-4 5z"/>',
+        search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+        send: '<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
+        shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>',
+        text: '<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>',
+        user: '<path d="M19 21a7 7 0 0 0-14 0"/><circle cx="12" cy="7" r="4"/>',
+      };
+
+      let currentLanguage = "zh-CN";
+      const input = document.querySelector("#preview-input");
+      const history = document.querySelector("#preview-history");
+      const status = document.querySelector("#preview-status .rtime-assistant-status-text");
+      const statusWrap = document.querySelector("#preview-status");
+
+      function t(key) {
+        return translations[currentLanguage][key];
+      }
+
+      function paintIcons() {
+        document.querySelectorAll(".preview-icon").forEach((node) => {
+          const icon = icons[node.dataset.icon];
+          if (!icon) return;
+          node.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;
+        });
+      }
+
+      function localize() {
+        document.querySelectorAll("[data-i18n]").forEach((node) => {
+          node.textContent = t(node.dataset.i18n);
+        });
+        input.placeholder = t("placeholder");
+        document.documentElement.lang = currentLanguage;
+      }
+
+      function addMessage(role, content, sources = []) {
+        const roleText = role === "user" ? t("userRole") : role === "assistant" ? t("assistantRole") : t("systemRole");
+        const roleIcon = role === "user" ? "user" : role === "assistant" ? "bot" : "shield";
+        const item = document.createElement("div");
+        item.className = `rtime-assistant-message rtime-assistant-message-${role}`;
+        item.innerHTML = `<div class="rtime-assistant-message-header"><span class="rtime-assistant-message-icon preview-icon" data-icon="${roleIcon}"></span><div class="rtime-assistant-message-role"></div></div><div class="rtime-assistant-message-content"></div>`;
+        item.querySelector(".rtime-assistant-message-role").textContent = roleText;
+        item.querySelector(".rtime-assistant-message-content").textContent = content;
+        if (sources.length) {
+          const sourceWrap = document.createElement("div");
+          sourceWrap.className = "rtime-assistant-sources";
+          for (const source of sources) {
+            const sourceEl = document.createElement("div");
+            sourceEl.className = "rtime-assistant-source";
+            sourceEl.innerHTML = '<div class="rtime-assistant-source-header"><span class="rtime-assistant-source-icon preview-icon" data-icon="file"></span><div class="rtime-assistant-source-title"></div></div><div class="rtime-assistant-source-meta"></div>';
+            sourceEl.querySelector(".rtime-assistant-source-title").textContent = source.title;
+            sourceEl.querySelector(".rtime-assistant-source-meta").textContent = source.meta;
+            sourceWrap.appendChild(sourceEl);
+          }
+          item.appendChild(sourceWrap);
+        }
+        history.appendChild(item);
+        paintIcons();
+        history.scrollTop = history.scrollHeight;
+      }
+
+      function setStatus(text, tone) {
+        status.textContent = text;
+        statusWrap.classList.remove("is-ready", "is-working", "is-error", "is-idle");
+        statusWrap.classList.add(tone);
+      }
+
+      function ask() {
+        const prompt = input.value.trim();
+        if (!prompt) return;
+        addMessage("user", prompt);
+        input.value = "";
+        setStatus(t("thinking"), "is-working");
+        window.setTimeout(() => {
+          addMessage("assistant", t("answer"), [
+            { title: t("sourceOne"), meta: t("sourceOneMeta") },
+            { title: t("sourceTwo"), meta: t("sourceTwoMeta") },
+          ]);
+          setStatus(t("ready"), "is-ready");
+        }, 450);
+      }
+
+      document.querySelector("#preview-language").addEventListener("change", (event) => {
+        currentLanguage = event.target.value;
+        localize();
+        setStatus(t("ready"), "is-ready");
+      });
+      document.querySelector("#preview-ask").addEventListener("click", ask);
+      document.querySelector("#preview-health").addEventListener("click", () => {
+        setStatus(t("healthy"), "is-ready");
+      });
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) ask();
+      });
+      document.querySelectorAll("[data-prompt-key]").forEach((button) => {
+        button.addEventListener("click", () => {
+          input.value = t(button.dataset.promptKey);
+          input.focus();
+        });
+      });
+
+      paintIcons();
+      localize();
+    </script>
+  </body>
+</html>

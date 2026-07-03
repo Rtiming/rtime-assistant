@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+set -euo pipefail
+
+export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+KEYFILE="$HOME/.config/claude-kimi/key"
+if [ -n "${CLAUDE_KIMI_KEYFILE:-}" ] && [ "${#CLAUDE_KIMI_KEYFILE}" -lt 4096 ]; then
+  KEYFILE="$CLAUDE_KIMI_KEYFILE"
+fi
+if [ -r "$KEYFILE" ]; then
+  IFS= read -r KEY < "$KEYFILE" || true
+fi
+
+if [ -z "${KEY:-}" ]; then
+  echo "claude-kimi: missing Kimi key" >&2
+  exit 1
+fi
+
+# Non-secret model DEFAULTS come from the registry-generated model-defaults.sh
+# sourced next to this wrapper (REG_*). The inline ${REG_*:-literal} keeps this
+# wrapper working if that file is absent (this wrapper is also installed on the
+# gateway host outside the repo). All three (registry, model-defaults.sh, the
+# inline literals) are kept equal by scripts/check-entrypoint-drift.py.
+# KEEP IN SYNC: packages/rtime-models/model-registry.json
+DEFAULTS_FILE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" >/dev/null 2>&1 && pwd)/model-defaults.sh"
+if [ -r "$DEFAULTS_FILE" ]; then
+  # shellcheck source=/dev/null
+  . "$DEFAULTS_FILE"
+fi
+
+export ANTHROPIC_BASE_URL="${REG_KIMI_BASE_URL:-https://api.kimi.com/coding}"
+export ANTHROPIC_AUTH_TOKEN="$KEY"
+export ANTHROPIC_MODEL="${REG_KIMI_MODEL:-kimi-code}"
+export ANTHROPIC_SMALL_FAST_MODEL="${REG_KIMI_MODEL:-kimi-code}"
+
+SELF_PATH="$0"
+DEFAULT_SELF="$HOME/.local/bin/claude-kimi"
+
+if [ -n "${CLAUDE_BIN:-}" ] && [ "$CLAUDE_BIN" != "$SELF_PATH" ] && [ "$CLAUDE_BIN" != "$DEFAULT_SELF" ]; then
+  CLI="$CLAUDE_BIN"
+elif [ -x "$HOME/.npm-global/bin/claude" ]; then
+  CLI="$HOME/.npm-global/bin/claude"
+else
+  CLI="$(command -v claude || true)"
+fi
+
+if [ -z "$CLI" ]; then
+  echo "claude-kimi: missing claude CLI" >&2
+  exit 1
+fi
+
+unset CLAUDE_BIN
+exec "$CLI" "$@"

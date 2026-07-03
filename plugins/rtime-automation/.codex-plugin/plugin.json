@@ -1,0 +1,26 @@
+{
+  "name": "rtime-automation",
+  "version": "0.1.0",
+  "description": "Read-only automation and reminder diagnostics for rtime assistant workflows.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Rtime Automation",
+    "shortDescription": "Inspect reminder, scheduler, notification, and workflow automation health.",
+    "longDescription": "Rtime Automation provides read-only diagnostics and planning surfaces for reminders, systemd timers, Feishu notification wiring, workflow automation lanes, and automation run-log metadata without sending notifications or writing runtime state.",
+    "developerName": "rtime",
+    "category": "Productivity",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Show my automation panel.",
+      "Summarize reminder metadata safely.",
+      "Plan this reminder workflow without sending anything."
+    ]
+  }
+}

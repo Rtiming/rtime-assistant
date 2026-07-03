@@ -1,0 +1,26 @@
+{
+  "name": "rtime-library-gateway",
+  "version": "0.1.0",
+  "description": "Unified library access gateway MCP: one permission gate and audit over rtime read tools and the three narrow-write settings tools.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Rtime Library Gateway",
+    "shortDescription": "One gated entry point for reading the rtime brain library and writing the three narrow settings tools.",
+    "longDescription": "Rtime Library Gateway is a thin orchestration MCP that subprocesses the existing rtime read CLIs (brain library, DocPack, citation, hub, context, profile, review, automation, runtime) and the three narrow-write settings tools (context sources, memory candidates, reminders) behind one central permission gate and metadata-only audit. personal-data gating and output redaction are policy switches, both OFF in the current single-owner deployment (personal-data accessible, output not redacted) and re-enablable without code changes.",
+    "developerName": "rtime",
+    "category": "Productivity",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Run the library gateway doctor.",
+      "Search the brain index through the gateway.",
+      "Register a study reminder through the gateway settings tool."
+    ]
+  }
+}

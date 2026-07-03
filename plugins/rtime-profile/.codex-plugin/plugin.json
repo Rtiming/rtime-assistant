@@ -1,0 +1,26 @@
+{
+  "name": "rtime-profile",
+  "version": "0.1.0",
+  "description": "Read-only assistant profile and policy diagnostics for rtime assistant workflows.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Rtime Profile",
+    "shortDescription": "Inspect assistant persona, prompt, model, and permission policy.",
+    "longDescription": "Rtime Profile provides read-only diagnostics and planning for assistant profile sources, prompt layering, model policy, permission policy, output behavior, memory behavior, and sensitive-data rules across Mac and orangepi clients.",
+    "developerName": "rtime",
+    "category": "Productivity",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Review my assistant profile policy.",
+      "Plan a persona or model policy adjustment.",
+      "Check profile sources without reading secrets."
+    ]
+  }
+}

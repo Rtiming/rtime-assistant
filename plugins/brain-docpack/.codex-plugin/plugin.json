@@ -1,0 +1,26 @@
+{
+  "name": "brain-docpack",
+  "version": "0.1.0",
+  "description": "Local DocPack tooling for the rtime brain knowledge library.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Brain DocPack",
+    "shortDescription": "Audit, sample, build, and validate local DocPacks.",
+    "longDescription": "Brain DocPack provides local-first workflow guidance for auditing, sampling, building, and validating DocPack artifacts for the rtime brain knowledge library. It keeps writes explicit and treats rendered pages, manifests, citations, and risk flags as evidence.",
+    "developerName": "rtime",
+    "category": "Productivity",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Audit my brain knowledge materials.",
+      "Select DocPack regression samples.",
+      "Validate this DocPack."
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "brain-library",
+  "version": "0.1.0",
+  "description": "Read-only library index diagnostics for the rtime brain knowledge library.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Brain Library",
+    "shortDescription": "Inspect brain library, Obsidian, Zotero, and DocPack readiness.",
+    "longDescription": "Brain Library provides read-only diagnostics for the rtime brain library, including Obsidian vault signals, Zotero/Better BibTeX clues, DocPack citation status, and local index readiness.",
+    "developerName": "rtime",
+    "category": "Productivity",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Scan my brain library.",
+      "Review Obsidian and Zotero readiness.",
+      "Summarize DocPack citation status."
+    ]
+  }
+}

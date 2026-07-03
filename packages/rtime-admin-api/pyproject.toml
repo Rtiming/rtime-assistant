@@ -1,0 +1,34 @@
+# P3 L2:管理面 HTTP API(FastAPI 薄层,所有逻辑在 rtime-admin-core)。
+# 仅绑 127.0.0.1(Tailscale 内网),绝不公网暴露;与用户聊天入口是分离服务。
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtime-admin-api"
+version = "0.1.0"
+description = "P3 L2 admin HTTP API: a thin FastAPI layer over rtime-admin-core (schema/config/validate/diff/apply/history/rollback/audit/health). Caddy-style ETag/If-Match concurrency, scoped bearer keys (read/write/read:sensitive + per-field x-scope), secrets redacted by default. Primary consumer is an ops agent; the human panel is a later thin client of the same API."
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "rtime-admin-core",
+    # K2 models 目录/探测(纯 stdlib;wiring 仍 best-effort import,缺了只降级 501)
+    "rtime-models",
+]
+
+[dependency-groups]
+# TestClient transport only (starlette's TestClient is httpx-based).
+dev = ["httpx>=0.27"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# Ship the static operator panel (T7) inside the wheel so a container build that
+# pip-installs the package still serves it.
+[tool.setuptools.package-data]
+rtime_admin_api = ["static/*.html", "static/*.js"]
+
+[tool.uv.sources]
+rtime-admin-core = { workspace = true }
+rtime-models = { workspace = true }

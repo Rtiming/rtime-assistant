@@ -1,0 +1,923 @@
+{
+  "schema_version": 1,
+  "description": "Independent module submission map for rtime-assistant.",
+  "modules": [
+    {
+      "id": "rtime-models",
+      "title": "Model registry — single non-secret source of truth for model directory + routing",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-models/",
+        "deploy/bin/model-defaults.sh",
+        "tests/test_rtime_models.py",
+        "tests/golden/model_catalog.json",
+        "docs/model-providers.zh-CN.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-models/src/rtime_models/__init__.py packages/rtime-models/src/rtime_models/__main__.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-models/src"
+            },
+            "command": "python -m rtime_models validate"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-models/src"
+            },
+            "command": "python -m pytest tests/test_rtime_models.py -q"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wechat-bridge",
+      "title": "WeChat/ClawBot bridge planning and future runtime app",
+      "kind": "app",
+      "paths": [
+        "apps/wechat-bridge/",
+        "deploy/systemd/user/wechat-bridge.service",
+        "docker/wechat-bridge.Dockerfile",
+        "docs/wechat-bridge-development.zh-CN.md",
+        "docs/bridge-requirements.md",
+        "docs/component-deep-dive.md",
+        "docs/deployment.md",
+        "docs/runbook.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "git diff --check"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rtime-chat-runtime",
+      "title": "Shared provider-neutral chat-bridge runtime primitives (Feishu now, WeChat later)",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-chat-runtime/"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-chat-runtime/src/rtime_chat_runtime/run_log.py packages/rtime-chat-runtime/src/rtime_chat_runtime/run_control.py packages/rtime-chat-runtime/src/rtime_chat_runtime/access_policy.py packages/rtime-chat-runtime/src/rtime_chat_runtime/chat_queue.py packages/rtime-chat-runtime/src/rtime_chat_runtime/attachment_directives.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-chat-runtime/src"
+            },
+            "command": "python -m pytest packages/rtime-chat-runtime/tests -q"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rtime-config",
+      "title": "Schema-driven config foundation (pydantic-settings base + schema->markdown export + git profile layer)",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-config/",
+        "docs/config/qq-bridge.md",
+        "profiles/"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-config/src/rtime_config/__init__.py packages/rtime-config/src/rtime_config/base.py packages/rtime-config/src/rtime_config/fields.py packages/rtime-config/src/rtime_config/schema_doc.py packages/rtime-config/src/rtime_config/__main__.py packages/rtime-config/src/rtime_config/profile/__init__.py packages/rtime-config/src/rtime_config/profile/schema.py packages/rtime-config/src/rtime_config/profile/mapping.py packages/rtime-config/src/rtime_config/profile/loader.py packages/rtime-config/src/rtime_config/profile/_meta.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-config/src:packages/rtime-admin-core/src:apps/qq-bridge"
+            },
+            "command": "python -m pytest packages/rtime-config/tests -q"
+          }
+        ]
+      }
+    },
+    {
+      "id": "feishu-bridge",
+      "title": "Feishu bridge runtime app",
+      "kind": "app",
+      "paths": [
+        "apps/feishu-bridge/",
+        "deploy/bin/claude-kimi",
+        "deploy/bin/claude-rtime",
+        "deploy/bin/claude-deepseek",
+        "deploy/bin/claude-qwen",
+        "deploy/bin/claude-ustc",
+        "deploy/bin/claude-ollama",
+        "deploy/bin/rtime-web-fetch",
+        "deploy/bin/rtime-qq-code",
+        "deploy/systemd/user/feishu-bridge-python.service",
+        "tests/test_rtime_web_fetch.py",
+        "tests/test_rtime_qq_code.py",
+        "docs/bridge-requirements.md",
+        "docs/deployment.md",
+        "docs/runbook.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "cwd": "apps/feishu-bridge",
+            "env": {
+              "PYTHONPATH": ".:../../packages/rtime-chat-runtime/src:../../packages/rtime-config/src:../../packages/rtime-admin-core/src"
+            },
+            "command": "python -m pytest tests -q"
+          },
+          {
+            "cwd": "apps/feishu-bridge",
+            "env": {
+              "PYTHONPATH": ".:../../packages/rtime-chat-runtime/src:../../packages/rtime-config/src:../../packages/rtime-admin-core/src"
+            },
+            "command": "python simulate_message_burst.py 第一条 第二条 第三条 --debounce 0.02"
+          }
+        ],
+        "docker": [
+          {
+            "command": "scripts/docker-dev-check.sh --service feishu-bridge-tests --timeout 240"
+          }
+        ]
+      }
+    },
+    {
+      "id": "obsidian-plugin",
+      "title": "Obsidian side-panel assistant plugin",
+      "kind": "app",
+      "paths": [
+        "apps/obsidian-rtime-assistant/",
+        "docs/obsidian-assistant-plugin.md",
+        "docs/obsidian-composer-contract.md",
+        "docs/ui-guide.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "cwd": "apps/obsidian-rtime-assistant",
+            "command": "npm run build"
+          },
+          {
+            "cwd": "apps/obsidian-rtime-assistant",
+            "command": "npm run simulate"
+          },
+          {
+            "cwd": "apps/obsidian-rtime-assistant",
+            "command": "npm run simulate:composer -- --dry-run --template citation-review --module brain --folder papers/zotero"
+          }
+        ]
+      }
+    },
+    {
+      "id": "brain-docpack",
+      "title": "DocPack CLI, schemas, and material-processing tools",
+      "kind": "package",
+      "paths": [
+        "packages/brain-docpack/",
+        "skills/brain-docpack/",
+        "plugins/brain-docpack/",
+        "schemas/docpack/",
+        "scripts/audit-knowledge-materials.sh",
+        "scripts/build-docpack.py",
+        "scripts/validate-docpack.py",
+        "scripts/select-docpack-samples.py",
+        "tests/test_brain_docpack_cli.py",
+        "tests/test_brain_docpack_mcp.py",
+        "tests/test_brain_docpack_course_intake.py",
+        "tests/test_docpack_builder.py",
+        "tests/test_docpack_validator.py",
+        "tests/test_docpack_samples.py",
+        "docs/knowledge-material-docpack-plan.md",
+        "docs/brain-docpack-mcp.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "env": {
+              "PYTHONPATH": "packages/brain-docpack/src"
+            },
+            "command": "python -m pytest tests/test_brain_docpack_cli.py tests/test_brain_docpack_mcp.py tests/test_brain_docpack_course_intake.py tests/test_docpack_builder.py tests/test_docpack_validator.py tests/test_docpack_samples.py -q"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/brain-docpack"
+          }
+        ],
+        "docker": [
+          {
+            "command": "scripts/docker-dev-check.sh --service docpack-tests --timeout 240"
+          }
+        ]
+      }
+    },
+    {
+      "id": "brain-library",
+      "title": "Brain library index diagnostics",
+      "kind": "package",
+      "paths": [
+        "packages/brain-library/",
+        "docs/brain-library-index.md",
+        "skills/brain-library/",
+        "plugins/brain-library/",
+        "tests/test_brain_library_cli.py",
+        "tests/test_brain_library_mcp.py",
+        "tests/test_brain_library_vector.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/brain-library/src/brain_library/*.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/brain-library/src"
+            },
+            "command": "python -m pytest tests/test_brain_library_cli.py tests/test_brain_library_mcp.py tests/test_brain_library_vector.py -q"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/brain-library"
+          }
+        ]
+      }
+    },
+    {
+      "id": "brain-citation",
+      "title": "Obsidian/Zotero citation crosswalk diagnostics",
+      "kind": "package",
+      "paths": [
+        "packages/brain-citation/",
+        "docs/brain-citation.md",
+        "skills/brain-citation/",
+        "plugins/brain-citation/",
+        "tests/test_brain_citation_cli.py",
+        "tests/test_brain_citation_mcp.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/brain-citation/src/brain_citation/*.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/brain-citation/src"
+            },
+            "command": "python -m pytest tests/test_brain_citation_cli.py tests/test_brain_citation_mcp.py -q"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/brain-citation"
+          }
+        ]
+      }
+    },
+    {
+      "id": "brain-visualmd",
+      "title": "Visual-first strict transcription of source materials into AI-readable Markdown",
+      "kind": "package",
+      "paths": [
+        "packages/brain-visualmd/",
+        "docs/brain-visualmd-module.zh-CN.md",
+        "docs/brain-visualmd-tools.zh-CN.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m compileall -q packages/brain-visualmd/src"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/brain-visualmd/src"
+            },
+            "command": "python -m pytest packages/brain-visualmd/tests -q"
+          }
+        ]
+      }
+    },
+    {
+      "id": "runtime-diagnostics",
+      "title": "Runtime diagnostics CLI, skill, plugin, and MCP",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-assistant-runtime/",
+        "docs/docker-production.md",
+        "docs/logging-and-audit.md",
+        "docs/design/chat-archive-storage-2026-07.zh-CN.md",
+        "skills/rtime-assistant-runtime/",
+        "plugins/rtime-assistant-runtime/",
+        "tests/test_rtime_assistant_runtime_cli.py",
+        "tests/test_rtime_assistant_runtime_mcp.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-assistant-runtime/src/rtime_assistant_runtime/*.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-assistant-runtime/src"
+            },
+            "command": "python -m pytest tests/test_rtime_assistant_runtime_cli.py tests/test_rtime_assistant_runtime_mcp.py -q"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/rtime-assistant-runtime"
+          }
+        ]
+      }
+    },
+    {
+      "id": "hub-connector",
+      "title": "rtime-hub read-only connector",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-hub-connector/",
+        "docs/rtime-hub-connector.md",
+        "skills/rtime-hub-connector/",
+        "plugins/rtime-hub-connector/",
+        "tests/test_rtime_hub_connector_cli.py",
+        "tests/test_rtime_hub_connector_mcp.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-hub-connector/src/rtime_hub_connector/*.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-hub-connector/src"
+            },
+            "command": "python -m pytest tests/test_rtime_hub_connector_cli.py tests/test_rtime_hub_connector_mcp.py -q"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/rtime-hub-connector"
+          }
+        ]
+      }
+    },
+    {
+      "id": "context-orchestrator",
+      "title": "Dynamic context planning tools",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-context/",
+        "docs/context-orchestrator.md",
+        "docs/context-unlocking.md",
+        "docs/context-fabric-modules.zh-CN.md",
+        "skills/rtime-context/",
+        "plugins/rtime-context/",
+        "tests/test_rtime_context_cli.py",
+        "tests/test_rtime_context_mcp.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-context/src/rtime_context/*.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-context/src"
+            },
+            "command": "python -m pytest tests/test_rtime_context_cli.py tests/test_rtime_context_mcp.py -q"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/rtime-context"
+          }
+        ]
+      }
+    },
+    {
+      "id": "assistant-profile",
+      "title": "Assistant profile and policy diagnostics",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-profile/",
+        "docs/assistant-profile-policy.md",
+        "docs/prompt-layering.md",
+        "skills/rtime-profile/",
+        "plugins/rtime-profile/",
+        "tests/test_rtime_profile_cli.py",
+        "tests/test_rtime_profile_mcp.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-profile/src/rtime_profile/*.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-profile/src"
+            },
+            "command": "python -m pytest tests/test_rtime_profile_cli.py tests/test_rtime_profile_mcp.py -q"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/rtime-profile"
+          }
+        ]
+      }
+    },
+    {
+      "id": "automation",
+      "title": "Automation and reminder diagnostics",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-automation/",
+        "apps/reminder-sender/",
+        "docs/automation-and-reminders.md",
+        "deploy/bin/rtime-reminder-register",
+        "deploy/bin/rtime-reminder-mcp",
+        "deploy/bin/rtime-reminder-wake-runner",
+        "skills/reminder/",
+        "skills/rtime-reminder/",
+        "skills/rtime-automation/",
+        "plugins/rtime-reminder/",
+        "plugins/rtime-automation/",
+        "tests/test_rtime_reminder_register.py",
+        "tests/test_rtime_reminder_mcp.py",
+        "tests/test_rtime_reminder_wake_runner.py",
+        "tests/test_reminder_sender.py",
+        "tests/test_rtime_automation_cli.py",
+        "tests/test_rtime_automation_mcp.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-automation/src/rtime_automation/*.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-automation/src"
+            },
+            "command": "python -m pytest tests/test_rtime_automation_cli.py tests/test_rtime_automation_mcp.py -q"
+          },
+          {
+            "command": "python -m py_compile deploy/bin/rtime-reminder-register deploy/bin/rtime-reminder-mcp deploy/bin/rtime-reminder-wake-runner"
+          },
+          {
+            "command": "python -m pytest tests/test_rtime_reminder_register.py tests/test_rtime_reminder_mcp.py tests/test_rtime_reminder_wake_runner.py -q"
+          },
+          {
+            "command": "python -m pytest tests/test_reminder_sender.py -q"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/rtime-automation"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/rtime-reminder"
+          }
+        ]
+      }
+    },
+    {
+      "id": "review-console",
+      "title": "Review-console data surfaces",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-review/",
+        "docs/review-console.md",
+        "skills/rtime-review/",
+        "plugins/rtime-review/",
+        "tests/test_rtime_review_cli.py",
+        "tests/test_rtime_review_mcp.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-review/src/rtime_review/*.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-review/src"
+            },
+            "command": "python -m pytest tests/test_rtime_review_cli.py tests/test_rtime_review_mcp.py -q"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/rtime-review"
+          }
+        ]
+      }
+    },
+    {
+      "id": "agent-control",
+      "title": "Agent control-plane MCP and tooling diagnostics",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-agent-control/",
+        "docs/agent-control-mcp.md",
+        "skills/rtime-agent-control/",
+        "plugins/rtime-agent-control/",
+        "tests/test_rtime_agent_control_cli.py",
+        "tests/test_rtime_agent_control_mcp.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-agent-control/src/rtime_agent_control/*.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-agent-control/src"
+            },
+            "command": "python -m pytest tests/test_rtime_agent_control_cli.py tests/test_rtime_agent_control_mcp.py -q"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/rtime-agent-control"
+          },
+          {
+            "command": "bash -n plugins/rtime-agent-control/scripts/rtime-agent-control-mcp.sh"
+          }
+        ]
+      }
+    },
+    {
+      "id": "library-gateway",
+      "title": "Unified library access gateway MCP",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-library-gateway/",
+        "docs/rtime-library-gateway.md",
+        "docs/development-log-2026-06-17-rtime-library-gateway.md",
+        "skills/rtime-library-gateway/",
+        "plugins/rtime-library-gateway/",
+        "tests/test_rtime_library_gateway_cli.py",
+        "tests/test_rtime_library_gateway_mcp.py",
+        "tests/test_rtime_library_gateway_gate.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-library-gateway/src/rtime_library_gateway/*.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-library-gateway/src"
+            },
+            "command": "python -m pytest tests/test_rtime_library_gateway_cli.py tests/test_rtime_library_gateway_mcp.py tests/test_rtime_library_gateway_gate.py -q"
+          },
+          {
+            "command": "scripts/validate-codex-plugin.py plugins/rtime-library-gateway"
+          },
+          {
+            "command": "bash -n plugins/rtime-library-gateway/scripts/rtime-library-gateway-mcp.sh"
+          }
+        ]
+      }
+    },
+    {
+      "id": "job-worker",
+      "title": "Local job queue + worker (long-task isolation, P7)",
+      "kind": "package",
+      "paths": [
+        "packages/rtime-jobs/",
+        "deploy/bin/rtime-jobs-submit",
+        "deploy/bin/rtime-jobs-worker",
+        "docs/job-worker-isolation.zh-CN.md",
+        "tests/test_rtime_jobs.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile packages/rtime-jobs/src/rtime_jobs/*.py deploy/bin/rtime-jobs-submit deploy/bin/rtime-jobs-worker"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/rtime-jobs/src:packages/brain-library/src"
+            },
+            "command": "python -m pytest tests/test_rtime_jobs.py -q"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ustc-kb",
+      "title": "USTC campus-affairs public-material crawler/archive/index",
+      "kind": "package",
+      "paths": [
+        "packages/ustc-kb/",
+        "docs/development-log-2026-06-20-ustc-kb.md",
+        "tests/test_ustc_kb.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "command -v ruff >/dev/null 2>&1 && ruff check packages/ustc-kb/src tests/test_ustc_kb.py && ruff format --check packages/ustc-kb/src tests/test_ustc_kb.py || echo '(无 ruff，跳过 lint 门)'"
+          },
+          {
+            "command": "python -m py_compile packages/ustc-kb/src/ustc_kb/cms.py packages/ustc-kb/src/ustc_kb/config.py packages/ustc-kb/src/ustc_kb/http.py packages/ustc-kb/src/ustc_kb/registry.py packages/ustc-kb/src/ustc_kb/files.py packages/ustc-kb/src/ustc_kb/notes.py packages/ustc-kb/src/ustc_kb/crawl.py packages/ustc-kb/src/ustc_kb/audit.py packages/ustc-kb/src/ustc_kb/assemble.py packages/ustc-kb/src/ustc_kb/worklog.py packages/ustc-kb/src/ustc_kb/cli.py"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/ustc-kb/src"
+            },
+            "command": "python -m ustc_kb sites"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/ustc-kb/src"
+            },
+            "command": "python -c 'import pytest_cov' 2>/dev/null && python -m pytest tests/test_ustc_kb.py --cov=ustc_kb.audit --cov=ustc_kb.cms --cov-fail-under=80 -q || python -m pytest tests/test_ustc_kb.py -q"
+          }
+        ]
+      }
+    },
+    {
+      "id": "assistant-gateway",
+      "title": "Obsidian assistant gateway",
+      "kind": "app",
+      "paths": [
+        "apps/assistant-gateway/",
+        "deploy/env/assistant-gateway.env.example",
+        "deploy/systemd/user/assistant-gateway.service",
+        "tests/test_assistant_gateway.py",
+        "tests/test_rtime_chat.py",
+        "docs/development-log-2026-06-20-split-gateway.md",
+        "docs/development-log-2026-06-20-gateway-modularize.md",
+        "docs/development-log-2026-06-25-p5-p6-runtime-modularize.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile apps/assistant-gateway/*.py"
+          },
+          {
+            "command": "python -m pytest tests/test_assistant_gateway.py tests/test_rtime_chat.py -q"
+          }
+        ]
+      }
+    },
+    {
+      "id": "agent-interface-tools",
+      "title": "Agent-facing read-only CLI and MCP tools",
+      "kind": "tooling",
+      "paths": [
+        "scripts/rtime-vault.py",
+        "scripts/rtime-zotero.py",
+        "scripts/rtime-tools-mcp.py",
+        "tests/test_rtime_vault_cli.py",
+        "tests/test_rtime_zotero_cli.py",
+        "tests/test_rtime_tools_mcp.py",
+        "apps/feishu-bridge/simulate_message_burst.py",
+        "apps/feishu-bridge/tests/test_simulate_message_burst.py",
+        "apps/assistant-gateway/README.md",
+        "apps/feishu-bridge/README.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile scripts/rtime-vault.py scripts/rtime-zotero.py scripts/rtime-tools-mcp.py apps/feishu-bridge/simulate_message_burst.py"
+          },
+          {
+            "command": "python -m pytest tests/test_rtime_vault_cli.py tests/test_rtime_zotero_cli.py tests/test_rtime_tools_mcp.py apps/feishu-bridge/tests/test_simulate_message_burst.py -q"
+          },
+          {
+            "command": "python scripts/rtime-tools-mcp.py --list-tools"
+          }
+        ]
+      }
+    },
+    {
+      "id": "memory-loop",
+      "title": "Memory loop design and intake scripts",
+      "kind": "governance",
+      "paths": [
+        "docs/memory-loop.zh-CN.md",
+        "scripts/brain-intake/",
+        "deploy/bin/rtime-memory-job",
+        "deploy/systemd/user/rtime-memory-nightly.service",
+        "deploy/systemd/user/rtime-memory-nightly.timer",
+        "deploy/systemd/user/rtime-memory-weekly.service",
+        "deploy/systemd/user/rtime-memory-weekly.timer",
+        "tests/test_memory_schema.py",
+        "tests/test_m9_extract.py",
+        "tests/test_m9_consolidate.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile scripts/brain-intake/memory_schema.py scripts/brain-intake/m9_extract.py scripts/brain-intake/m9_consolidate.py scripts/brain-intake/m9_replay.py deploy/bin/rtime-memory-job"
+          },
+          {
+            "command": "python -m pytest tests/test_memory_schema.py tests/test_m9_extract.py tests/test_m9_consolidate.py -q"
+          }
+        ]
+      }
+    },
+    {
+      "id": "brain-intake-pipeline",
+      "title": "Brain intake run pipeline",
+      "kind": "governance",
+      "paths": [
+        "docs/tasks/pipeline/",
+        "docs/brain-intake-workflow.zh-CN.md",
+        "scripts/brain-intake/",
+        "skills/brain-intake/",
+        "skills/brain-yuque-ingest/",
+        "tests/test_brain_intake_pipeline.py"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "python -m py_compile scripts/brain-intake/*.py"
+          },
+          {
+            "command": "bash -n scripts/brain-intake/*.sh"
+          },
+          {
+            "command": "python -m pytest tests/test_brain_intake_pipeline.py -q"
+          }
+        ]
+      }
+    },
+    {
+      "id": "brain-zotero-webdav",
+      "title": "Brain/Zotero WebDAV and PDF workflow",
+      "kind": "delivery",
+      "paths": [
+        "scripts/brain-zotero-webdav.sh",
+        "deploy/nginx/",
+        "docs/brain-zotero-pdf-workflow.zh-CN.md",
+        "docs/brain-intake-workflow.zh-CN.md",
+        "docs/brain-zotero-webdav-ops.zh-CN.md",
+        "docs/brain-zotero-webdav-deployment-2026-06-10.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "bash -n scripts/brain-zotero-webdav.sh"
+          },
+          {
+            "command": "scripts/brain-zotero-webdav.sh plan"
+          }
+        ]
+      }
+    },
+    {
+      "id": "project-governance",
+      "title": "Repository governance, maps, and integration workflow",
+      "kind": "governance",
+      "paths": [
+        ".gitignore",
+        ".env.example",
+        "AGENTS.md",
+        "README.md",
+        "module-submit.json",
+        "scripts/audit-env.sh",
+        "scripts/maintenance.sh",
+        "scripts/module-submit-check.py",
+        "scripts/validate-codex-plugin.py",
+        "scripts/rtime",
+        "scripts/check-entrypoint-drift.py",
+        "tools/rtime-project-check.py",
+        "tests/test_module_submit_check.py",
+        "tests/test_check_entrypoint_drift.py",
+        "tests/test_rtime_entrypoint.py",
+        "docs/maintainability-standards.zh-CN.md",
+        "docs/entrypoints.zh-CN.md",
+        "docs/overview.md",
+        "docs/architecture.md",
+        "docs/project-map.zh-CN.md",
+        "docs/module-submit-workflow.md",
+        "docs/development-workflow.md",
+        "docs/development-log-2026-06-16-maintenance-scripts.md",
+        "docs/refactor-roadmap.md",
+        "docs/component-deep-dive.md",
+        "docs/runtime-assets.md",
+        "docs/memory-references.md",
+        "docs/workflows.md",
+        "docs/troubleshooting.md",
+        "docs/context-unlocking-brief.zh-CN.md",
+        "docs/tasks/",
+        "deploy/git-hooks/",
+        "tests/test_post_receive_ci_hook.py",
+        "docs/ci-server-gate.zh-CN.md",
+        "docs/development-log-2026-06-20-ci-server-gate.md",
+        "pyproject.toml",
+        "uv.lock",
+        "docs/uv-workspace.zh-CN.md",
+        "docs/development-log-2026-06-20-uv-workspace.md",
+        "docs/development-log-2026-06-20-session-followups.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "bash -n scripts/audit-env.sh && bash -n scripts/maintenance.sh"
+          },
+          {
+            "command": "python -m pytest tests/test_module_submit_check.py tests/test_check_entrypoint_drift.py tests/test_rtime_entrypoint.py -q"
+          },
+          {
+            "command": "python -m py_compile scripts/rtime scripts/check-entrypoint-drift.py tools/rtime-project-check.py"
+          },
+          {
+            "command": "scripts/rtime --help"
+          },
+          {
+            "command": "python scripts/check-entrypoint-drift.py"
+          },
+          {
+            "command": "scripts/module-submit-check.py --list"
+          },
+          {
+            "command": "scripts/module-submit-check.py --changed --dry-run"
+          },
+          {
+            "command": "bash -n deploy/git-hooks/post-receive"
+          },
+          {
+            "command": "python -m pytest tests/test_post_receive_ci_hook.py -q"
+          },
+          {
+            "command": "command -v uv >/dev/null 2>&1 && uv lock --check || echo '(uv 不在,跳过 uv.lock 校验)'"
+          },
+          {
+            "command": "command -v ruff >/dev/null 2>&1 && ruff check --select E,F,W --ignore E501 packages apps scripts tests || echo '(无 ruff，跳过全仓 lint)'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "docker-delivery",
+      "title": "Docker development and production delivery",
+      "kind": "delivery",
+      "paths": [
+        "docker/",
+        "compose.dev.yml",
+        "compose.prod.yml",
+        ".dockerignore",
+        "deploy/bin/claude-rtime",
+        "deploy/bin/claude-deepseek",
+        "deploy/bin/claude-qwen",
+        "deploy/bin/claude-ustc",
+        "deploy/bin/claude-ollama",
+        "deploy/litellm/",
+        "deploy/bin/rtime-web-fetch",
+        "deploy/env/feishu-bridge.prod.env.example",
+        "deploy/systemd/user/rtime-assistant-docker.service",
+        "scripts/docker-dev-check.sh",
+        "scripts/docker-prod-check.sh",
+        "tests/test_docker_dev_check.py",
+        "tests/test_docker_prod_check.py",
+        "docs/docker-workflow.md",
+        "docs/docker-production.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "bash -n scripts/docker-dev-check.sh"
+          },
+          {
+            "command": "bash -n scripts/docker-prod-check.sh"
+          },
+          {
+            "command": "docker compose -f compose.dev.yml config"
+          },
+          {
+            "command": "docker compose --env-file deploy/env/feishu-bridge.prod.env.example -f compose.prod.yml config"
+          },
+          {
+            "command": "scripts/docker-prod-check.sh --env-file deploy/env/feishu-bridge.prod.env.example --config --dry-run"
+          }
+        ],
+        "docker": [
+          {
+            "command": "scripts/docker-dev-check.sh --service feishu-bridge-tests --timeout 240"
+          },
+          {
+            "command": "scripts/docker-dev-check.sh --service docpack-tests --timeout 240"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tooling-installation",
+      "title": "Tooling, skill, plugin, and MCP installation",
+      "kind": "tooling",
+      "paths": [
+        "scripts/install-rtime-tooling.sh",
+        "scripts/install-brain-docpack-tooling.sh",
+        "tests/test_install_rtime_tooling.py",
+        "tests/test_brain_docpack_install_tooling.py",
+        "docs/tooling-installation.md",
+        "docs/tooling-packaging.md"
+      ],
+      "checks": {
+        "quick": [
+          {
+            "command": "bash -n scripts/install-rtime-tooling.sh"
+          },
+          {
+            "command": "bash -n scripts/install-brain-docpack-tooling.sh"
+          },
+          {
+            "env": {
+              "PYTHONPATH": "packages/brain-library/src:packages/brain-citation/src:packages/brain-docpack/src:packages/rtime-assistant-runtime/src:packages/rtime-hub-connector/src:packages/rtime-context/src:packages/rtime-profile/src:packages/rtime-automation/src:packages/rtime-review/src"
+            },
+            "command": "python -m pytest tests/test_install_rtime_tooling.py tests/test_brain_docpack_install_tooling.py -q"
+          },
+          {
+            "command": "scripts/install-rtime-tooling.sh --skip-cli --profile mac --check-installed --skip-codex-skill --skip-claude-skill --skip-codex-plugin --no-mcp-snippets"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "_comment": "开源发布白名单(open-source-architecture §二 S1;风险台账=docs/design/open-source-risk-register-2026-07.zh-CN.md)。公开树只含 include 内路径——忘了登记的内容默认不公开。硬约束:发布脚本必须经 git ls-files 过滤(绝不目录拷贝:工作区磁盘有 gitignored 的真实密钥文件,台账#1/#2);include_blocked 里 blocked_by 未清零的路径不进公开树;exclude_always 任何情况不进。数据(brain/聊天档案/运行状态/密钥)本就不在仓库,三重保险的第一重。",
+  "include": [
+    "LICENSE",
+    "NOTICE",
+    "README.md",
+    "CONTRIBUTING.md",
+    "CHANGELOG.md",
+    "AGENTS.md",
+    "pyproject.toml",
+    "uv.lock",
+    "requirements-dev.txt",
+    "module-submit.json",
+    ".gitignore",
+    ".gitleaks.toml",
+    "packages/",
+    "apps/qq-bridge/",
+    "apps/feishu-bridge/",
+    "apps/web-chat/",
+    "apps/assistant-gateway/",
+    "apps/obsidian-rtime-assistant/",
+    "apps/reminder-sender/",
+    "deploy/",
+    "docker/",
+    "compose.prod.yml",
+    "compose.dev.yml",
+    "docs/README.zh-CN.md",
+    "docs/architecture-overview.zh-CN.md",
+    "docs/reference/",
+    "docs/config/",
+    "docs/connect-your-own.zh-CN.md",
+    "docs/instance-deploy.zh-CN.md",
+    "docs/development-workflow.md",
+    "tests/",
+    "schemas/",
+    "evals/",
+    "plugins/",
+    "skills/",
+    "scripts/",
+    "tools/rtime-project-check.py",
+    "profiles/_base/",
+    "profiles/examples/",
+    "tools/chat-intake/wechat-mp-rss/",
+    "tools/chat-intake/wechat-archiver/",
+    "tools/chat-intake/we-mp-rss-mcp/"
+  ],
+  "include_blocked": [
+    {
+      "path": "deploy/systemd/",
+      "blocked_by": [
+        "risk#7(open_id硬编码)",
+        "risk#19(机器路径模板化)"
+      ],
+      "note": "在include的deploy/内,发布脚本按本条从公开树剔除直至清零"
+    }
+  ],
+  "exclude_always": [
+    "profiles/owner/",
+    "profiles/studentunion/",
+    "tools/chat-intake/chat-mcp/",
+    "tools/chat-intake/qq-export/",
+    "tools/chat-intake/wechat-export/",
+    "work/",
+    ".tmp/",
+    ".claude/",
+    "skills/brain-yuque-ingest/",
+    "deploy/PROFILE-CUTOVER.md",
+    "tools/chat-intake/wechat-mp-rss/.arts/"
+  ],
+  "release_gate": "发布前:gitleaks 扫描零命中 + 风险台账逐条复核 + 干净虚机冷启动实测(open-source-architecture S4)",
+  "_comment_docs": "docs按逐份登记原则只放通用参考/教程;owner运维runbook(部署实录/网络拓扑/巡检)默认不公开,要加须先过占位化审查(风险台账#13一类)。"
+}

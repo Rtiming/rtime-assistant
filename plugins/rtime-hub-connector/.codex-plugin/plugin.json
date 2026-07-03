@@ -1,0 +1,26 @@
+{
+  "name": "rtime-hub-connector",
+  "version": "0.1.0",
+  "description": "Read-only rtime-hub project, device, and contact panel diagnostics.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Rtime Hub Connector",
+    "shortDescription": "Inspect project, device, and contact panels from rtime-hub.",
+    "longDescription": "Rtime Hub Connector provides read-only diagnostics for rtime-hub, including project status, device status, contact-directory style panels, service/task/deployment cards, and safe Mac/orangepi path detection.",
+    "developerName": "rtime",
+    "category": "Productivity",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Scan my rtime-hub workspace.",
+      "Show my project and device panels.",
+      "Review rtime-hub contact cards."
+    ]
+  }
+}

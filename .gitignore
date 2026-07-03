@@ -1,0 +1,62 @@
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*token*
+*secret*
+secrets/
+credentials/
+# rtime-admin-api:真实 bearer key 文件绝不入库(keys.example.json 为显假样例,可入库)
+packages/rtime-admin-api/keys*.json
+!packages/rtime-admin-api/keys.example.json
+
+.venv/
+.venv-test/
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tmp-remote-scripts/
+work/
+.local/
+# brain 入库盘点工作产物(本地清单/映射 TSV,不进代码仓)
+.inventory-*/
+# brain-visualmd 严格转写暂存产物(成品在暂存目录,不进代码仓也暂不入 brain)
+visualmd-out/
+
+logs/
+*.log
+# 网关请求日志运行时产物:测试若未设 log_dir 会落到 cwd,勿入库
+requests.jsonl
+runtime/
+state/
+sessions/
+data/
+# rtime-jobs 本地队列默认在 ~/.local/state/rtime-assistant/jobs/(仓库外,本就不入 git);
+# 上面的 .local/ 与这里的 *.sqlite 兜底任何落到仓库内的运行状态(队列库、索引缓存)。
+*.sqlite
+*.sqlite3
+*.db
+.lark-channel/
+.openclaw/
+
+node_modules/
+dist/
+build/
+apps/obsidian-rtime-assistant/main.js
+
+# Syncthing local artifacts (this working tree is inside a synced folder)
+.stfolder/
+.stignore

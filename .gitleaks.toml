@@ -1,0 +1,32 @@
+# gitleaks 配置(开源发布门用)。发布演练:
+#   gitleaks detect --no-git --source <公开树> --config .gitleaks.toml --redact
+# scripts/build-public-tree.py --scan 会自动带上本配置。
+#
+# 这里 allowlist 的都是**误报**,不是真密钥:
+#   - 我们自己测试夹具里的假 token(test-*/long-enough-test-key-*);
+#   - vendored 第三方 we-mp-rss 的文档占位符(YOUR_JWT_TOKEN/CNxxxxxxxx)与压缩前端
+#     构建产物(static/assets/*.js 里高熵的压缩变量名);
+# 真的第三方密钥(.arts/launch.json 的钉钉 webhook)已从公开树白名单排除,不靠 allowlist。
+
+title = "rtime-assistant gitleaks (publish gate)"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "误报豁免:假测试token + vendored第三方占位/压缩产物"
+paths = [
+  # vendored 第三方 we-mp-rss 整棵树:其"密钥"全是示例占位(YOUR_JWT_TOKEN/CNxxxx)、
+  # 公开文章 URL 里的 token、压缩前端构建产物的高熵变量名——都非真密钥。真的第三方
+  # 密钥(.arts/launch.json 钉钉 webhook)已从 publish-manifest 排除、不进公开树,
+  # 故整树 allowlist 安全。
+  '''tools/chat-intake/wechat-mp-rss/.*''',
+]
+regexes = [
+  # 我们测试夹具的假 bearer token / API key
+  '''test-(admin|writer|plain|reader)-[0-9a-fA-F]+''',
+  '''long-enough-test-key-\w+''',
+  # vendored 文档占位符
+  '''YOUR_JWT_TOKEN''',
+  '''C[NS]x{4,}''',
+]

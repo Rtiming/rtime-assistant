@@ -1,0 +1,390 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Claude CLI-compatible wrapper with provider and USTC routing.
+
+The Feishu bridge expects a Claude Code CLI that accepts stdin and emits
+`--output-format stream-json`. This wrapper delegates Claude Code provider
+models to thin provider wrappers (claude-deepseek/claude-qwen/claude-ustc/
+claude-ollama), delegates ordinary models to the configured Kimi/Claude
+wrapper, and keeps a legacy tool-less inline chat path for USTC models
+(RTIME_USTC_AGENT=0) without exposing provider keys in logs or chat.
+
+USTC models default to the claude-ustc wrapper (full agent tools via LiteLLM
+protocol translation); set RTIME_USTC_AGENT=0 to fall back to the old inline
+chat-only HTTP path. Ollama models always go through claude-ollama.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import pathlib
+import sys
+import time
+import urllib.error
+import urllib.request
+import uuid
+
+
+def _load_registry():
+    """Best-effort import of the rtime model registry loader. The Feishu runtime
+    image ships packages/rtime-models on PYTHONPATH; a repo checkout is found by
+    walking up to packages/rtime-models/src. Returns None if unavailable, in which
+    case the identical _FALLBACK_* literals below are used (kept == the registry by
+    scripts/check-entrypoint-drift.py)."""
+    here = pathlib.Path(__file__).resolve()
+    for parent in here.parents:
+        candidate = parent / "packages" / "rtime-models" / "src"
+        if candidate.is_dir():
+            sp = str(candidate)
+            if sp not in sys.path:
+                sys.path.insert(0, sp)
+            break
+    try:
+        import rtime_models
+
+        return rtime_models
+    except Exception:
+        return None
+
+
+_REG = _load_registry()
+
+# KEEP IN SYNC: packages/rtime-models/model-registry.json — identical-literal
+# fallbacks used only when the registry package is unavailable.
+_FALLBACK_ALIASES = {
+    "ds": "deepseek-v4-flash-ascend",
+    "deepseek": "deepseek-v4-flash-ascend",
+    "qwen": "qwen3.6-chat",
+    "qianwen": "qwen3.6-chat",
+    "qwen-chat": "qwen3.6-chat",
+    "qwen-reasoner": "qwen3.6-reasoner",
+    "deepseek-code": "deepseek-v4-pro[1m]",
+    "ds-code": "deepseek-v4-pro[1m]",
+    "deepseek-coder": "deepseek-v4-pro[1m]",
+    "qwen-code": "qwen3-coder-next",
+    "qwen-coder": "qwen3-coder-next",
+    "ollama": "qwen3.5:9b",
+    "qwen-local": "qwen3.5:9b",
+}
+
+_FALLBACK_DEEPSEEK_CODE_MODELS = {
+    "deepseek-v4-pro",
+    "deepseek-v4-pro[1m]",
+    "deepseek-v4-flash",
+}
+
+_FALLBACK_QWEN_CODE_MODELS = {
+    "qwen3-coder-next",
+    "qwen3-coder-plus",
+    "qwen3-coder-plus-2025-09-23",
+    "qwen3-coder-flash",
+}
+
+_FALLBACK_USTC_MODELS = {
+    "deepseek-v4-flash-ascend",
+    "qwen-chat",
+    "qwen-reasoner",
+    "qwen3.6-chat",
+    "qwen3.6-reasoner",
+    "smart/default",
+    "smart/reasoning",
+}
+
+_FALLBACK_OLLAMA_MODELS = {
+    "qwen3.5:9b",
+    "qwen2.5:3b",
+}
+
+_FALLBACK_USTC_BASE_URL = "https://api.llm.ustc.edu.cn/v1"
+
+
+def _default_aliases() -> dict[str, str]:
+    if _REG is not None:
+        return _REG.alias_map(["ustc-openai", "deepseek-code", "qwen-code", "ollama"])
+    return dict(_FALLBACK_ALIASES)
+
+
+def _default_deepseek_code_models() -> set[str]:
+    return set(_REG.code_model_ids("deepseek-code")) if _REG is not None else set(_FALLBACK_DEEPSEEK_CODE_MODELS)
+
+
+def _default_qwen_code_models() -> set[str]:
+    return set(_REG.code_model_ids("qwen-code")) if _REG is not None else set(_FALLBACK_QWEN_CODE_MODELS)
+
+
+def _default_ustc_models() -> set[str]:
+    return set(_REG.routing_model_ids("ustc-openai")) if _REG is not None else set(_FALLBACK_USTC_MODELS)
+
+
+def _default_ollama_models() -> set[str]:
+    return set(_REG.routing_model_ids("ollama")) if _REG is not None else set(_FALLBACK_OLLAMA_MODELS)
+
+
+def _default_ustc_base_url() -> str:
+    return (_REG.base_url("ustc-openai") if _REG is not None else None) or _FALLBACK_USTC_BASE_URL
+
+VALUE_FLAGS = {
+    "--model",
+    "--resume",
+    "--output-format",
+    "--permission-mode",
+    "--cwd",
+    "--system-prompt",
+    "--append-system-prompt",
+    "-p",
+    "--prompt",
+}
+
+
+def _load_json_env(name: str) -> dict[str, str]:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return {}
+    parsed = json.loads(raw)
+    if not isinstance(parsed, dict):
+        raise SystemExit(f"{name} must be a JSON object")
+    return {str(k).lower(): str(v) for k, v in parsed.items()}
+
+
+def _parse_args(argv: list[str]) -> tuple[str | None, str | None, str | None]:
+    model = None
+    session_id = None
+    prompt = None
+    index = 0
+    while index < len(argv):
+        arg = argv[index]
+        if arg == "--model" and index + 1 < len(argv):
+            model = argv[index + 1]
+            index += 2
+            continue
+        if arg.startswith("--model="):
+            model = arg.split("=", 1)[1]
+            index += 1
+            continue
+        if arg == "--resume" and index + 1 < len(argv):
+            session_id = argv[index + 1]
+            index += 2
+            continue
+        if arg.startswith("--resume="):
+            session_id = arg.split("=", 1)[1]
+            index += 1
+            continue
+        if arg in {"-p", "--prompt"} and index + 1 < len(argv) and not argv[index + 1].startswith("-"):
+            prompt = argv[index + 1]
+            index += 2
+            continue
+        if arg in {"-p", "--prompt"}:
+            index += 1
+            continue
+        if arg.startswith("--prompt="):
+            prompt = arg.split("=", 1)[1]
+            index += 1
+            continue
+        if arg in VALUE_FLAGS:
+            index += 2
+            continue
+        if not arg.startswith("-"):
+            prompt = arg
+        index += 1
+    return model, session_id, prompt
+
+
+def _resolve_model(model: str | None) -> str | None:
+    if not model:
+        return None
+    aliases = (
+        _default_aliases()
+        | _load_json_env("RTIME_CODE_MODEL_ALIASES_JSON")
+        | _load_json_env("RTIME_USTC_MODEL_ALIASES_JSON")
+    )
+    return aliases.get(model.lower(), model)
+
+
+def _csv_env(name: str, defaults: set[str]) -> set[str]:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return set(defaults)
+    return {item.strip() for item in raw.split(",") if item.strip()}
+
+
+def _code_wrapper_for(model: str | None) -> str | None:
+    if not model:
+        return None
+    if model in _csv_env("RTIME_DEEPSEEK_CODE_MODELS", _default_deepseek_code_models()):
+        return os.environ.get("RTIME_DEEPSEEK_CLAUDE_WRAPPER", "/usr/local/bin/claude-deepseek")
+    if model in _csv_env("RTIME_QWEN_CODE_MODELS", _default_qwen_code_models()):
+        return os.environ.get("RTIME_QWEN_CLAUDE_WRAPPER", "/usr/local/bin/claude-qwen")
+    return None
+
+
+def _ustc_models() -> set[str]:
+    return _csv_env("RTIME_USTC_MODELS", _default_ustc_models())
+
+
+def _ollama_models() -> set[str]:
+    return _csv_env("RTIME_OLLAMA_MODELS", _default_ollama_models())
+
+
+def _ustc_agent_enabled() -> bool:
+    """Default 1 = USTC models get full agent tools through the claude-ustc
+    wrapper (LiteLLM protocol translation). RTIME_USTC_AGENT=0 restores the
+    legacy tool-less inline chat path below."""
+    return os.environ.get("RTIME_USTC_AGENT", "1").strip() != "0"
+
+
+def _read_key() -> str:
+    direct = os.environ.get("RTIME_USTC_API_KEY", "").strip()
+    if direct:
+        return direct
+    keyfile = os.environ.get("RTIME_USTC_API_KEY_FILE", "").strip()
+    if keyfile:
+        path = pathlib.Path(keyfile).expanduser()
+        if path.is_file():
+            return path.read_text(encoding="utf-8").strip()
+    return ""
+
+
+def _delegate(argv: list[str]) -> None:
+    fallback = os.environ.get("RTIME_CLAUDE_FALLBACK", "/usr/local/bin/claude-kimi")
+    os.execv(fallback, [fallback, *argv])
+
+
+def _delegate_to(wrapper: str, argv: list[str]) -> None:
+    os.execv(wrapper, [wrapper, *argv])
+
+
+def _session_dir() -> pathlib.Path:
+    base = os.environ.get("RTIME_USTC_SESSION_DIR", "").strip()
+    if base:
+        path = pathlib.Path(base).expanduser()
+    else:
+        path = pathlib.Path(os.environ.get("HOME", "~")).expanduser() / ".rtime-ustc-sessions"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _session_path(session_id: str) -> pathlib.Path:
+    safe = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in session_id)
+    return _session_dir() / f"{safe}.jsonl"
+
+
+def _load_history(session_id: str, max_messages: int) -> list[dict[str, str]]:
+    path = _session_path(session_id)
+    if not path.is_file():
+        return []
+    messages: list[dict[str, str]] = []
+    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        try:
+            item = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        if item.get("role") in {"user", "assistant"} and isinstance(item.get("content"), str):
+            messages.append({"role": item["role"], "content": item["content"]})
+    return messages[-max_messages:]
+
+
+def _append_history(session_id: str, role: str, content: str) -> None:
+    path = _session_path(session_id)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps({"ts": time.time(), "role": role, "content": content}, ensure_ascii=False) + "\n")
+
+
+def _emit(payload: dict) -> None:
+    print(json.dumps(payload, ensure_ascii=False), flush=True)
+
+
+def _emit_text(session_id: str, text: str) -> None:
+    chunk_size = int(os.environ.get("RTIME_USTC_STREAM_CHARS", "320"))
+    _emit({"type": "system", "session_id": session_id})
+    for start in range(0, len(text), chunk_size):
+        _emit(
+            {
+                "type": "stream_event",
+                "event": {
+                    "type": "content_block_delta",
+                    "delta": {"type": "text_delta", "text": text[start : start + chunk_size]},
+                },
+            }
+        )
+    _emit({"type": "result", "session_id": session_id, "result": text})
+
+
+def _call_ustc(model: str, message: str, session_id: str) -> str:
+    base_url = os.environ.get("RTIME_USTC_BASE_URL", _default_ustc_base_url()).rstrip("/")
+    api_key = _read_key()
+    if not api_key:
+        raise RuntimeError("RTIME_USTC_API_KEY or RTIME_USTC_API_KEY_FILE is required for USTC models")
+
+    max_history = int(os.environ.get("RTIME_USTC_HISTORY_MESSAGES", "12"))
+    messages = _load_history(session_id, max_history)
+    messages.append({"role": "user", "content": message})
+    payload = {
+        "model": model,
+        "messages": messages,
+        "temperature": float(os.environ.get("RTIME_USTC_TEMPERATURE", "0")),
+        "max_tokens": int(os.environ.get("RTIME_USTC_MAX_TOKENS", "8192")),
+        "stream": False,
+    }
+    request = urllib.request.Request(
+        f"{base_url}/chat/completions",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=float(os.environ.get("RTIME_USTC_TIMEOUT", "180"))) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:500]
+        raise RuntimeError(f"USTC request failed with HTTP {exc.code}: {detail}") from None
+
+    choice = (data.get("choices") or [{}])[0]
+    msg = choice.get("message") or {}
+    content = (msg.get("content") or "").strip()
+    if not content and msg.get("reasoning_content"):
+        content = (
+            "USTC model returned reasoning_content but no final content. "
+            "Try a larger RTIME_USTC_MAX_TOKENS value or use qwen3.6-chat."
+        )
+    if not content:
+        raise RuntimeError("USTC response did not include assistant content")
+    _append_history(session_id, "user", message)
+    _append_history(session_id, "assistant", content)
+    return content
+
+
+def main() -> int:
+    argv = sys.argv[1:]
+    raw_model, resume_id, prompt_arg = _parse_args(argv)
+    model = _resolve_model(raw_model)
+    code_wrapper = _code_wrapper_for(model)
+    if code_wrapper:
+        _delegate_to(code_wrapper, argv)
+    if model in _ollama_models():
+        _delegate_to(os.environ.get("RTIME_OLLAMA_CLAUDE_WRAPPER", "/usr/local/bin/claude-ollama"), argv)
+    if model not in _ustc_models():
+        _delegate(argv)
+    if _ustc_agent_enabled():
+        # Full agent tools: claude CLI -> LiteLLM -> USTC. The wrapper resolves
+        # ds/qwen/... aliases itself, so the original argv passes through.
+        _delegate_to(os.environ.get("RTIME_USTC_CLAUDE_WRAPPER", "/usr/local/bin/claude-ustc"), argv)
+
+    # Legacy fallback (RTIME_USTC_AGENT=0): tool-less inline chat over HTTP.
+    message = sys.stdin.read().strip() or (prompt_arg or "").strip()
+    if not message:
+        print("claude-rtime: empty prompt", file=sys.stderr)
+        return 2
+    session_id = resume_id or f"ustc-{uuid.uuid4()}"
+    try:
+        text = _call_ustc(model, message, session_id)
+    except Exception as exc:
+        print(f"claude-rtime: {exc}", file=sys.stderr)
+        return 1
+    _emit_text(session_id, text)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

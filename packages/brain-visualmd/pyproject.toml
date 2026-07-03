@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brain-visualmd"
+version = "0.1.0"
+description = "Visual-first strict transcription of source materials into AI-readable Markdown (standalone; staging output only, not wired to brain yet)."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+# image downscaling (cuts vision-token / encode time on weak boxes).
+downscale = ["Pillow>=10"]
+# pre-analysis layout detection (PP-DocLayout via PaddleOCR, CPU).
+layout = ["paddleocr>=3"]
+# per-region formula recognition (RapidLaTeXOCR, ONNX, CPU; no Chinese, needs layout).
+formula = ["rapid_latex_ocr"]
+# Chinese-aware formula recognition (Pix2Text MFD+MFR; self-detects, no layout needed).
+formula-zh = ["pix2text"]
+
+[project.scripts]
+brain-visualmd = "brain_visualmd.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

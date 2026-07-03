@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "default_read": "allow",
+  "default_write": "allow",
+  "excluded_top_dirs": [],
+  "redact_sensitive": false,
+  "hide_excluded_in_results": false,
+  "allowed_path_prefixes": [],
+  "audit_log": "{STATE}/rtime-library-gateway/audit.jsonl",
+  "methods": {
+    "lib.doctor": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.search": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.courses": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.get": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.read": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.tree": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.stat": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.recent": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.freshness": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.policy": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.audit": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.preview": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.list": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.meta": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.docpack": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.citation": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.hub": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.context": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.profile": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.review": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.automation": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.runtime": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.status": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.settings.context_source_list": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.settings.context_source_check": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.settings.context_source_add": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.settings.context_source_deactivate": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.settings.memory_candidate_add": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.settings.reminder_register": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.settings.reminder_list": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.settings.reminder_cancel": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.contribute": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.finalize": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.course-intake": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.jobs.get": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.jobs.list": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.jobs.submit": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.annotate": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.edit": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.revert": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.revisions": {
+      "tier": "read",
+      "enabled": true
+    },
+    "lib.move": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.retire": {
+      "tier": "write",
+      "enabled": true
+    },
+    "lib.restore": {
+      "tier": "write",
+      "enabled": true
+    }
+  },
+  "clients": {
+    "default": {
+      "allow": [
+        "*"
+      ]
+    }
+  }
+}

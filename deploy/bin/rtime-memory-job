@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Run an M9 memory consolidation job through plan/apply.
+
+This wrapper is intended for systemd user timers on orangepi. It generates a
+plan under runtime state, then immediately applies that generated plan. The
+underlying state-changing script still owns the safety gates and audit log.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+BEIJING = dt.timezone(dt.timedelta(hours=8))
+
+
+def _env_path(name: str, default: str) -> Path:
+    return Path(os.environ.get(name, default)).expanduser()
+
+
+def _today(raw: str | None) -> str:
+    return raw or dt.datetime.now(BEIJING).date().isoformat()
+
+
+def _run(cmd: list[str], cwd: Path) -> None:
+    subprocess.run(cmd, cwd=cwd, check=True)
+
+
+def _read_json(path: Path) -> dict:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def _line_count(path: Path) -> int:
+    try:
+        with path.open("r", encoding="utf-8") as fh:
+            return sum(1 for _ in fh)
+    except OSError:
+        return 0
+
+
+def materials_to_extract(materials_dir: Path, observed_at: str, state: dict) -> list[Path]:
+    """Captured-material jsonl files (date <= observed_at) that are new or have
+    grown since last extraction. m9_extract is idempotent (only writes missing
+    candidates), but tracking line counts avoids re-running on unchanged files."""
+    todo: list[Path] = []
+    if not materials_dir.is_dir():
+        return todo
+    for path in sorted(materials_dir.glob("*.jsonl")):
+        if path.stem > observed_at:  # YYYY-MM-DD filename; skip future-dated
+            continue
+        if int(state.get(path.name, -1)) < _line_count(path):
+            todo.append(path)
+    return todo
+
+
+def run_extract(repo: Path, brain: Path, run_dir: Path, state_dir: Path, observed_at: str) -> None:
+    """L2: turn captured gateway conversation materials into review-queue
+    candidates before consolidation. Without this step the materials are
+    orphaned and no memory cards ever accumulate across conversations."""
+    materials_dir = _env_path(
+        "RTIME_MEMORY_MATERIALS_DIR",
+        str(Path.home() / ".local/state/rtime-assistant/assistant-gateway/memory-session-materials"),
+    )
+    state_path = state_dir / "extracted-materials.json"
+    state = _read_json(state_path)
+    pending = materials_to_extract(materials_dir, observed_at, state)
+    if not pending:
+        return
+    extract_script = repo / "scripts/brain-intake/m9_extract.py"
+    plan_path = run_dir / "m9-extract-plan.json"
+    for material in pending:
+        base = [
+            sys.executable,
+            str(extract_script),
+            "--brain-root",
+            str(brain),
+            "--run-dir",
+            str(run_dir),
+            "--input-log",
+            str(material),
+            "--date",
+            observed_at,
+            "--source-id",
+            material.name,
+        ]
+        _run(base + ["--plan"], repo)
+        _run(base + ["--apply", "--approved-plan", str(plan_path)], repo)
+        state[material.name] = _line_count(material)
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run M9 memory job via plan/apply")
+    parser.add_argument("mode", choices=["nightly", "weekly"])
+    parser.add_argument("--date")
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv or sys.argv[1:])
+    repo = _env_path("RTIME_ASSISTANT_REPO", str(Path.home() / "rtime-assistant"))
+    brain = _env_path("RTIME_BRAIN_ROOT", "/mnt/brain")
+    run_dir = _env_path("RTIME_MEMORY_RUN_DIR", str(Path.home() / ".local/state/rtime-assistant/pipeline/run-05"))
+    state_dir = _env_path("RTIME_MEMORY_STATE_DIR", str(Path.home() / ".local/state/rtime-assistant/memory-loop"))
+    reminders = _env_path("RTIME_REMINDERS_PATH", "/mnt/brain/_system/reminders.jsonl")
+    failed_queries = _env_path(
+        "RTIME_FAILED_QUERIES",
+        str(Path.home() / ".local/state/rtime-assistant/failed-queries.jsonl"),
+    )
+    observed_at = _today(args.date)
+    run_extract(repo, brain, run_dir, state_dir, observed_at)
+    script = repo / "scripts/brain-intake/m9_consolidate.py"
+    common = [
+        sys.executable,
+        str(script),
+        "--mode",
+        args.mode,
+        "--brain-root",
+        str(brain),
+        "--run-dir",
+        str(run_dir),
+        "--state-dir",
+        str(state_dir),
+        "--date",
+        observed_at,
+        "--reminders-path",
+        str(reminders),
+    ]
+    if args.mode == "weekly" and failed_queries.exists():
+        common.extend(["--failed-queries", str(failed_queries)])
+    if args.mode == "weekly" and os.environ.get("RTIME_MEMORY_ALLOW_EXISTING_REMINDER_TARGET") == "1":
+        common.append("--allow-existing-reminder-target")
+
+    _run(common[:2] + ["--plan"] + common[2:], repo)
+    plan = run_dir / f"m9-{args.mode}-plan-{observed_at}.json"
+    _run(common[:2] + ["--apply", "--approved-plan", str(plan)] + common[2:], repo)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

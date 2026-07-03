@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+# brain-search "<查询词>" [--limit N] [--refresh|--no-refresh]
+# 查询 brain 的 BM25 全文索引(只读)。默认:索引过期(brain有更新的md/txt/bib)或缺失时自动重建,
+# 确保新入库文件能被查到。--refresh 强制重建;--no-refresh 跳过检测直接查。
+# 详见 docs/brain-search-quickstart.md
+set -euo pipefail
+
+# 索引路径:显式 BRAIN_LIBRARY_INDEX 优先;否则优先 runtime state 目录,
+# 其它机回退到 ~/.local/state。与 rebuild-brain-index.sh 和网关 wrapper 的口径保持一致。
+if [ -n "${BRAIN_LIBRARY_INDEX:-}" ]; then
+  INDEX="$BRAIN_LIBRARY_INDEX"
+elif [ -d /var/lib/rtime-assistant ] && [ -w /var/lib/rtime-assistant ]; then
+  INDEX="/var/lib/rtime-assistant/brain-library/brain-library.sqlite"
+else
+  INDEX="$HOME/.local/state/rtime-assistant/brain-library/brain-library.sqlite"
+fi
+SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# 定位 brain 根(用于过期检测)
+BRAIN="${BRAIN_ROOT:-}"
+if [ -z "$BRAIN" ]; then
+  for c in "$HOME/OrangePi-Store/sync/brain" "$HOME/brain" "/mnt/brain"; do
+    [ -d "$c" ] && BRAIN="$c" && break
+  done
+fi
+
+REFRESH=auto   # auto | force | off
+ARGS=()
+for a in "$@"; do
+  case "$a" in
+    --refresh)    REFRESH=force ;;
+    --no-refresh) REFRESH=off ;;
+    *)            ARGS+=("$a") ;;
+  esac
+done
+if [ "${#ARGS[@]}" -lt 1 ]; then
+  echo "用法: brain-search \"<查询词>\" [--limit N] [--refresh|--no-refresh]" >&2
+  exit 2
+fi
+
+# 是否需要重建:缺失 / 强制 / 自动检测到 brain 有比索引更新的文本文件。
+# 跨平台:用 Python 比对 mtime,不依赖 GNU 专属的 stat -c / find -printf(在 macOS/BSD 上
+# 会静默失效)。索引口径与 indexer.py 一致:含 .csl 与 *.docpack/{content.md,concept.md}。
+needs_build() {
+  [ -f "$INDEX" ] || return 0
+  [ "$REFRESH" = force ] && return 0
+  [ "$REFRESH" = off ] && return 1
+  { [ -n "$BRAIN" ] && [ -d "$BRAIN" ]; } || return 1
+  PYTHONUTF8=1 python - "$INDEX" "$BRAIN" <<'PY'
+import os, sys
+index, brain = sys.argv[1], sys.argv[2]
+try:
+    idx = os.path.getmtime(index)
+except OSError:
+    sys.exit(0)  # 索引不可读 -> 重建
+SKIP = {".git", ".obsidian", ".trash", "node_modules", "__pycache__"}
+TEXT = (".md", ".markdown", ".txt", ".bib", ".csl")
+DOCPACK_KEEP = {"content.md", "concept.md"}
+newest = 0.0
+for root, dirs, files in os.walk(brain):
+    if os.path.basename(root).endswith(".docpack"):
+        dirs[:] = []
+        names = [f for f in files if f in DOCPACK_KEEP]
+    else:
+        dirs[:] = [d for d in dirs if d not in SKIP]
+        names = [f for f in files if os.path.splitext(f)[1].lower() in TEXT]
+    for name in names:
+        try:
+            newest = max(newest, os.path.getmtime(os.path.join(root, name)))
+        except OSError:
+            pass
+sys.exit(0 if newest > idx else 1)
+PY
+}
+
+if needs_build; then
+  echo "[brain-search] 索引过期或缺失,自动重建(约25s)..." >&2
+  "$SELF_DIR/rebuild-brain-index.sh" >&2
+fi
+
+export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
+exec brain-library index query "$INDEX" "${ARGS[@]}"

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rtime-library-gateway": {
+      "cwd": ".",
+      "command": "./scripts/rtime-library-gateway-mcp.sh",
+      "args": []
+    }
+  }
+}

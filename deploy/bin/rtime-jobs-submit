@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""lib.jobs.submit backend: the narrow WRITE tool that enqueues one job.
+
+The library gateway routes the write-tier ``lib.jobs.submit`` here (like every
+other gateway write goes to a deploy/bin narrow tool), keeping the gateway itself
+free of any queue logic. This script only *enqueues* a job into the machine-local
+queue; the heavy work runs later in a separate worker (``rtime-jobs-worker``).
+
+It does NOT touch brain content and grants no new authority: a queued
+``course-intake-apply`` job still carries an owner-approved ``plan_sha`` and the
+worker re-checks that approval, so submitting a job is not the same as approving
+the underlying brain write.
+
+Params travel on stdin (``--params-stdin``) so they never land in argv, the
+process listing, or the gateway audit.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from pathlib import Path
+
+
+def _force_utf8() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8")
+            except (ValueError, OSError):
+                pass
+
+
+def _print(data: dict) -> None:
+    print(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+
+
+def _die(message: str, code: int = 2) -> None:
+    _print({"ok": False, "error": message})
+    raise SystemExit(code)
+
+
+def _repo_root() -> Path | None:
+    raw = os.environ.get("RTIME_ASSISTANT_ROOT")
+    if raw and (Path(raw) / "packages" / "rtime-jobs" / "src").is_dir():
+        return Path(raw)
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / "packages" / "rtime-jobs" / "src").is_dir():
+            return parent
+    return None
+
+
+def _load_jobs():
+    repo = _repo_root()
+    if repo is None:
+        _die("cannot locate packages/rtime-jobs/src")
+    src = str(repo / "packages" / "rtime-jobs" / "src")
+    if src not in sys.path:
+        sys.path.insert(0, src)
+    from rtime_jobs.handlers import HANDLERS, known_types  # noqa: PLC0415
+    from rtime_jobs.store import JobStore  # noqa: PLC0415
+
+    return JobStore, HANDLERS, known_types
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Enqueue one job into the local queue.")
+    parser.add_argument("--type", required=True, help="job type")
+    parser.add_argument("--params", help="job params as a JSON object string")
+    parser.add_argument("--params-stdin", action="store_true", help="read params JSON from stdin")
+    parser.add_argument("--db", help="queue DB path; defaults to RTIME_JOBS_DB or the state dir")
+    parser.add_argument(
+        "--allow-unknown-type",
+        action="store_true",
+        help="permit a type with no built-in handler",
+    )
+    args = parser.parse_args(argv)
+    _force_utf8()
+
+    JobStore, HANDLERS, known_types = _load_jobs()
+
+    if args.type not in HANDLERS and not args.allow_unknown_type:
+        _die(
+            "unknown job type: "
+            + args.type
+            + " (known: "
+            + ", ".join(known_types())
+            + ")"
+        )
+
+    raw = sys.stdin.read() if args.params_stdin else (args.params or "")
+    params: dict = {}
+    if raw.strip():
+        try:
+            value = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            _die(f"params must be valid JSON: {exc.msg}")
+        if not isinstance(value, dict):
+            _die("params must be a JSON object")
+        params = value
+
+    store = JobStore(args.db or None)
+    job = store.submit(args.type, params)
+    _print(
+        {
+            "ok": True,
+            "op": "submit",
+            "job_id": job.id,
+            "type": job.type,
+            "status": job.status,
+            "created_at": job.created_at,
+            "next_step": f"poll: lib.jobs.get id={job.id} (a worker must be running to execute it)",
+        }
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtime-hub-connector"
+version = "0.1.0"
+description = "Read-only rtime-hub project, device, and contact panel diagnostics."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+rtime-hub-connector = "rtime_hub_connector.cli:main"
+rtime-hub-mcp = "rtime_hub_connector.mcp_server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

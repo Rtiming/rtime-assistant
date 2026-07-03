@@ -1,0 +1,150 @@
+{
+  "errors": [],
+  "providers": [
+    {
+      "id": "gateway-default",
+      "label": "Gateway default",
+      "models": [
+        {
+          "capabilities": {
+            "agent_tools": true,
+            "chat": true,
+            "code": true,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default",
+            "vision": false
+          },
+          "default": true,
+          "id": "",
+          "label": "Gateway default model",
+          "protocol": "claude-wrapper/agent-tools"
+        }
+      ],
+      "protocol": "claude-wrapper/agent-tools"
+    },
+    {
+      "id": "kimi-code-wrapper",
+      "label": "Kimi Code wrapper",
+      "models": [
+        {
+          "capabilities": {
+            "agent_tools": true,
+            "chat": true,
+            "code": true,
+            "file_extract": false,
+            "long_context": 256000,
+            "thinking": "provider-default",
+            "vision": false
+          },
+          "cli_model": "kimi-code",
+          "id": "kimi-code",
+          "label": "Kimi Code wrapper default",
+          "protocol": "claude-wrapper/agent-tools"
+        }
+      ],
+      "protocol": "claude-wrapper/agent-tools"
+    },
+    {
+      "base_url_label": "https://api.moonshot.ai/v1",
+      "id": "moonshot-openai",
+      "label": "Moonshot/Kimi OpenAI-compatible",
+      "models": [
+        {
+          "capabilities": {
+            "agent_tools": false,
+            "chat": true,
+            "code": true,
+            "file_extract": true,
+            "long_context": 256000,
+            "thinking": "required",
+            "vision": true
+          },
+          "id": "kimi-k2.7-code",
+          "label": "kimi-k2.7-code",
+          "protocol": "openai-chat"
+        },
+        {
+          "capabilities": {
+            "agent_tools": false,
+            "chat": true,
+            "code": true,
+            "file_extract": true,
+            "long_context": 256000,
+            "thinking": "supported",
+            "vision": true
+          },
+          "id": "kimi-k2.6",
+          "label": "kimi-k2.6",
+          "protocol": "openai-chat"
+        },
+        {
+          "capabilities": {
+            "agent_tools": false,
+            "chat": true,
+            "code": true,
+            "file_extract": true,
+            "long_context": 256000,
+            "thinking": "supported",
+            "vision": false
+          },
+          "id": "kimi-k2.5",
+          "label": "kimi-k2.5",
+          "protocol": "openai-chat"
+        }
+      ],
+      "protocol": "openai-chat"
+    },
+    {
+      "base_url_label": "https://api.llm.ustc.edu.cn/v1",
+      "id": "ustc-openai",
+      "label": "USTC OpenAI-compatible",
+      "models": [
+        {
+          "capabilities": {
+            "agent_tools": true,
+            "chat": true,
+            "code": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default",
+            "vision": false
+          },
+          "id": "deepseek-v4-flash-ascend",
+          "label": "deepseek-v4-flash-ascend",
+          "protocol": "openai-chat"
+        },
+        {
+          "capabilities": {
+            "agent_tools": true,
+            "chat": true,
+            "code": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default",
+            "vision": false
+          },
+          "id": "qwen3.6-chat",
+          "label": "qwen3.6-chat",
+          "protocol": "openai-chat"
+        },
+        {
+          "capabilities": {
+            "agent_tools": true,
+            "chat": true,
+            "code": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "supported",
+            "vision": false
+          },
+          "id": "qwen3.6-reasoner",
+          "label": "qwen3.6-reasoner",
+          "protocol": "openai-chat"
+        }
+      ],
+      "protocol": "openai-chat"
+    }
+  ],
+  "schema_version": 1
+}

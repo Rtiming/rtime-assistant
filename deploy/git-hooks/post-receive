@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+# Bare-repo CI —— 咨询式(advisory)、非阻塞(non-blocking)的服务端门。
+#
+# 设计三原则(对应"松一点 / 可调 / 给反馈"):
+#   1) 松:post-receive 在 push 被接受之后才跑,**永远无法拒绝/锁住**任何客户端;
+#      就算检查失败也只回报,push 照样进。多机/多会话并行不会被它挡住。
+#   2) 可调:开关集中在 CONFIG 区,或用同名环境变量、或裸仓库 hooks/ci.env 覆盖
+#      (ci.env 不进 git,按机器本地调)。
+#   3) 给反馈:
+#        - 快门(可移植性,纯标准库、不需 venv)对**每一次分支推送**同步跑,有超时上限,
+#          结果直接回显在执行 `git push` 的终端/会话里 —— 每个并行会话都能立刻拿到反馈;
+#        - 慢门(pytest)只对 WATCH_REFS(默认 main)跑,后台执行、写各自日志、带超时,
+#          并把"怎么看结果"的命令回显给推送者。完全脱离 push 连接,绝不挂住推送。
+#
+# 安装到裸仓库(一次性):
+#   cp deploy/git-hooks/post-receive ~/rtime-assistant.git/hooks/post-receive
+#   chmod +x ~/rtime-assistant.git/hooks/post-receive
+# 慢门(pytest)需要测试 venv:scripts/bootstrap-test-venv.sh(快门不需要)。
+set -uo pipefail
+
+# ----------------------------- CONFIG(可调) -----------------------------
+# 先载入机器本地覆盖(不进 git):裸仓库 hooks/ 下放 ci.env,写 `RTIME_CI_...=...`。
+# 必须在下面的赋值之前 source,这些 ${RTIME_CI_*:-默认} 才会吃到 ci.env 的值。
+_HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+[ -f "${_HOOK_DIR}/ci.env" ] && { . "${_HOOK_DIR}/ci.env" 2>/dev/null || echo "[rtime-ci] ⚠ ci.env 载入失败,已忽略"; }
+
+WORK_CLONE="${RTIME_ROOT:-$HOME/rtime-assistant}"                       # 已部署检出(取 .venv-test)
+VENV_PY="${RTIME_CI_VENV_PY:-${WORK_CLONE}/.venv-test/bin/python}"      # 慢门用的 venv python
+SYS_PY="${RTIME_CI_PY:-python3}"                                       # 快门用的系统 python(标准库即可)
+LOG="${RTIME_CI_LOG:-$HOME/.local/state/rtime-assistant/ci-post-receive.log}"  # 慢门日志(每次推送各写一份)
+WATCH_REFS="${RTIME_CI_REFS:-refs/heads/main}"                          # 跑 pytest 的分支(空格分隔,支持 glob 如 refs/heads/*)
+PORTABILITY_STRICT="${RTIME_CI_PORTABILITY_STRICT:-0}"                  # 1 => 可移植性警告也算问题
+PYTEST_TARGETS="${RTIME_CI_PYTEST:-tests}"                              # 慢门 pytest 目标;默认全量 tests(在汇聚点拦住任何模块的回归)
+PYTEST_TIMEOUT="${RTIME_CI_PYTEST_TIMEOUT:-600}"                        # 慢门超时(秒)
+FAST_TIMEOUT="${RTIME_CI_FAST_TIMEOUT:-60}"                             # 快门/导出超时(秒)
+[ -n "$PYTEST_TARGETS" ] || PYTEST_TARGETS="tests"                     # 空串=跑全量,显式兜底
+# -------------------------------------------------------------------------
+
+mkdir -p "$(dirname "$LOG")"
+TIMEOUT_BIN="$(command -v timeout || true)"
+
+_p() { echo "[rtime-ci] $*"; }                       # 回显给推送者(post-receive stdout 走 push 连接回客户端)
+_to() { local s="$1"; shift; if [ -n "$TIMEOUT_BIN" ]; then "$TIMEOUT_BIN" "$s" "$@"; else "$@"; fi; }
+
+ref_is_watched() {                                   # glob 匹配,支持 refs/heads/* 之类
+  local ref="$1" w
+  for w in $WATCH_REFS; do
+    case "$ref" in $w) return 0 ;; esac
+  done
+  return 1
+}
+
+# 改动文件 → module-submit.json 登记模块的映射程序(manifest 为 argv[1],改动路径走 stdin)。
+# 注意:用 -c 传程序,绝不能用 `python - <<heredoc` ——那样 heredoc 会占住 stdin,管道喂的 diff 收不到。
+read -r -d '' CHANGED_MODULES_PY <<'PY' || true
+import json, sys
+try:
+    mods = json.load(open(sys.argv[1], encoding="utf-8")).get("modules", [])
+except Exception:
+    sys.exit(0)
+paths = [ln.strip().replace("\\", "/") for ln in sys.stdin if ln.strip()]
+hit = []
+for m in mods:
+    pres = [str(p).replace("\\", "/").rstrip("/") for p in m.get("paths", [])]
+    if any(f == pre or f.startswith(pre + "/") for f in paths for pre in pres):
+        hit.append(m.get("id", "?"))
+if hit:
+    print(", ".join(hit))
+PY
+
+EMPTY_TREE="$(git hash-object -t tree /dev/null 2>/dev/null || echo 4b825dc642cb6eb9a060e54bf8d69288fbee4904)"
+
+while read -r oldrev newrev ref; do
+  case "$ref" in refs/heads/*) : ;; *) continue ;; esac          # 只处理分支推送
+  case "$newrev" in *[!0]*) : ;; *) _p "${ref#refs/heads/} 已删除,跳过"; continue ;; esac  # 跳过删除
+  short="$(git rev-parse --short "$newrev" 2>/dev/null || echo "$newrev")"
+  branch="${ref#refs/heads/}"
+
+  # 用 git archive 导出推送内容到临时目录:只读、不动裸仓库 index,并发 push 也安全。
+  wt="$(mktemp -d)"
+  if ! _to "$FAST_TIMEOUT" git archive --format=tar "$newrev" 2>/dev/null | tar -x -C "$wt" 2>/dev/null; then
+    _p "⚠ 导出 ${short} 失败,跳过 CI(push 已接受)"
+    rm -rf "$wt"
+    continue
+  fi
+
+  _p "── push ${short} → ${branch} ───────────────"
+
+  # 改动了哪些登记模块(信息反馈);新建分支时 oldrev 全 0,与空树比。
+  base="$oldrev"
+  case "$oldrev" in *[!0]*) : ;; *) base="$EMPTY_TREE" ;; esac
+  mods="$(git diff --name-only "$base" "$newrev" 2>/dev/null | "$SYS_PY" -c "$CHANGED_MODULES_PY" "$wt/module-submit.json" 2>/dev/null || true)"
+  [ -n "$mods" ] && _p "改动模块:${mods}"
+
+  # ---------- 快门:可移植性(纯标准库、不需 venv,同步、有超时,对每个分支都跑)----------
+  if [ -f "$wt/tools/rtime-project-check.py" ]; then
+    pflags="--no-git"
+    [ "$PORTABILITY_STRICT" = "1" ] && pflags="$pflags --strict"
+    port_out="$(mktemp)"                                          # 写在扫描根之外
+    if _to "$FAST_TIMEOUT" "$SYS_PY" "$wt/tools/rtime-project-check.py" "$wt" $pflags >"$port_out" 2>&1; then
+      _p "✅ 可移植性通过"
+    else
+      _p "⚠ 可移植性发现问题(仅提示,push 已接受):"
+      { grep -E -A1 '^\[(ERROR|warn )' "$port_out" || true; } | head -40 | sed 's/^/[rtime-ci]     /'
+    fi
+    rm -f "$port_out"
+  else
+    _p "(跳过可移植性:此提交无 tools/rtime-project-check.py)"
+  fi
+
+  # ---------- 慢门:pytest(仅 WATCH_REFS;后台、超时、写各自日志,完全脱离 push 连接)----------
+  if ref_is_watched "$ref"; then
+    run_log="${LOG%.log}.${branch//\//-}.${short}.log"
+    # 关键:重定向加在子 shell 自身(并 </dev/null),三个 fd 全离开 push 管道 ——
+    # 否则 git push 会一直挂到 pytest 结束(最多 PYTEST_TIMEOUT 秒)。已被审查复现/验证。
+    (
+      echo "=== $(date +%Y-%m-%dT%H:%M:%S%z) pytest CI ${branch} @ ${short} ==="
+      if [ ! -x "$VENV_PY" ]; then
+        echo "PYTEST SKIPPED @ ${short}: 无测试 venv(scripts/bootstrap-test-venv.sh)"
+      # pytest runs in a scrubbed subshell:
+      #  (1) unset GIT_* — git exports GIT_DIR (the bare repo) and friends into hook
+      #      processes; the backgrounded pytest inherits them, so every test that runs
+      #      `git` in its own tmp_path repo instead operates on the bare repo and fails
+      #      spuriously (this caused 9 false reds in git/subprocess tests). Scrubbing
+      #      them is THE fix; the subshell keeps the unset local to this run.
+      #  (2) --continue-on-collection-errors: one module's missing dep can't abort the
+      #      whole suite and mask every other module's real pass/fail.
+      #  (3) --basetemp under this run's unique $wt: per-run temp isolation
+      #      (defense-in-depth against any concurrent pytest sharing /tmp/pytest-of-*).
+      elif (
+        cd "$wt"
+        unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_QUARANTINE_PATH GIT_QUARANTINE_ID GIT_PREFIX GIT_PUSH_CERT_STATUS
+        _to "$PYTEST_TIMEOUT" "$VENV_PY" -m pytest $PYTEST_TARGETS -q --continue-on-collection-errors --basetemp="$wt/.pytest-tmp"
+      ); then
+        echo "PYTEST OK @ ${short}"
+      else
+        rc=$?
+        if [ "$rc" = "124" ]; then echo "PYTEST TIMEOUT @ ${short} (>${PYTEST_TIMEOUT}s)"; else echo "PYTEST FAIL @ ${short} (rc=${rc})"; fi
+      fi
+      rm -rf "$wt"
+    ) >"$run_log" 2>&1 </dev/null &
+      _p "🧪 pytest 后台运行(${branch}) → 看结果:cat ${run_log}（或 ssh <你的服务器> 'cat ${run_log}'）"
+  else
+    _p "(本分支不跑 pytest;慢门仅:${WATCH_REFS})"
+    rm -rf "$wt"
+  fi
+done

@@ -1,0 +1,16 @@
+[project]
+name = "rtime-profile"
+version = "0.1.0"
+description = "Read-only assistant profile and policy diagnostics for rtime-assistant"
+requires-python = ">=3.11"
+
+[project.scripts]
+rtime-profile = "rtime_profile.cli:main"
+rtime-profile-mcp = "rtime_profile.mcp_server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

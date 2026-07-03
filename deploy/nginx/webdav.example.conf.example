@@ -1,0 +1,77 @@
+# Example Nginx reverse proxy for the brain/Zotero WebDAV stack.
+#
+# Source of truth for the WebDAV host containers:
+#   scripts/brain-zotero-webdav.sh
+#
+# This file intentionally contains no credentials. Basic Auth is enforced by
+# the rclone WebDAV services on WebDAV host.
+#
+# Before enabling this config:
+#   1. Confirm webdav.example.com resolves only to the intended public host.
+#   2. Obtain a valid certificate for webdav.example.com.
+#   3. Confirm <你的公网反代主机> can reach <内网WebDAV主机IP>:18081, :18082, and :18083.
+#   4. Run authenticated smoke tests through the public HTTPS URL.
+
+server {
+    listen 80;
+    server_name webdav.example.com;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name webdav.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/webdav.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/webdav.example.com/privkey.pem;
+
+    client_max_body_size 4096m;
+    client_body_timeout 3600s;
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+    proxy_request_buffering off;
+    proxy_buffering off;
+
+    location /brain/ {
+        proxy_pass http://<内网WebDAV主机IP>:18081/brain/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Destination $http_destination;
+        proxy_set_header Depth $http_depth;
+        proxy_set_header Overwrite $http_overwrite;
+    }
+
+    location /brain-inbox/ {
+        proxy_pass http://<内网WebDAV主机IP>:18082/brain-inbox/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Destination $http_destination;
+        proxy_set_header Depth $http_depth;
+        proxy_set_header Overwrite $http_overwrite;
+    }
+
+    location /zotero-sync/ {
+        proxy_pass http://<内网WebDAV主机IP>:18083/zotero-sync/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Destination $http_destination;
+        proxy_set_header Depth $http_depth;
+        proxy_set_header Overwrite $http_overwrite;
+    }
+}

@@ -1,0 +1,50 @@
+# deploy/compose.override.example.yml — 实例覆盖模板
+#
+# 复制到实例目录并按需修改:
+#   cp deploy/compose.override.example.yml ~/rtime-instances/<name>/compose.override.yml
+#
+# 用法(update.sh 内部即这样调用):
+#   docker compose -f <repo>/compose.prod.yml -f <instance>/compose.override.yml \
+#     --env-file <instance>/.env -p rtime-<name> up -d
+#
+# 原则:
+#   - 基线 compose.prod.yml 属于仓库,升级会更新它;实例差异全部写在本文件,升级不动。
+#   - 大多数差异优先用实例 .env 里的变量解决(compose.prod.yml 已参数化端口/挂载源/UID 等),
+#     只有 .env 覆盖不了的结构性差异(加只读标志、资源限制、profile、加/删卷)才写这里。
+#   - 不要在本文件里写任何 token/密码;凭据一律走宿主机文件 + 只读 bind mount。
+
+services:
+  feishu-bridge:
+    # --- 示例 1: 改回调端口绑定(多实例共机时避免端口冲突) ---
+    # 端口号本身建议用实例 .env 的 CALLBACK_PORT/CALLBACK_BIND 改;
+    # 若需要完全重写 ports 列表(compose 的 ports 是合并追加,重写需 !override):
+    # ports: !override
+    #   - "127.0.0.1:9982:9982"
+
+    # --- 示例 2: 给实例把 brain 挂载改成只读(学生会等非 owner 实例建议开) ---
+    # volumes 列表按 target 合并,同 target 的条目会被本文件覆盖:
+    # volumes:
+    #   - type: bind
+    #     source: ${BRAIN_ROOT:-/mnt/brain}
+    #     target: /mnt/brain
+    #     read_only: true
+
+    # --- 示例 3: 资源限制(与 owner 主实例共机时防止互相挤占) ---
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: "2.0"
+    #       memory: 2g
+
+    # --- 示例 4: 实例专属环境变量微调(简单键值优先放 .env,结构性覆盖才放这里) ---
+    # environment:
+    #   OUTPUT_STYLE: plain
+    {}
+
+  # --- 示例 5: 启用 QQ profile 的实例 ---
+  # compose.prod.yml 里 qq 相关服务挂在 profiles: [qq] 下;
+  # 需要 QQ 的实例在 .env 写 COMPOSE_PROFILES=qq 即可,无需改本文件。
+  # 若要给 qq-bridge 做实例差异,同样在这里按服务名覆盖:
+  # qq-bridge:
+  #   environment:
+  #     QQ_DEBUG: "0"

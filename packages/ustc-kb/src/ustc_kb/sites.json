@@ -1,0 +1,274 @@
+{
+ "_about": "USTC 校内事务站点清单（抓取目标）。新增/修改站点改这里。",
+ "source": "2026-06-20 侦察",
+ "departments": {
+  "jiaowu": {
+   "name": "教务处",
+   "base": "https://www.teach.ustc.edu.cn",
+   "topic": "academics",
+   "contact": "电话：0551-63602251；邮箱：jwc@ustc.edu.cn；地址：安徽省合肥市金寨路96号中国科学技术大学东校区老图书馆2楼/教二楼7楼；一号通办热线 0551-63602251；皖ICP备05002528号-1",
+   "org": "中国科学技术大学教务处负责本科教学管理，下设教学运行办公室（学籍注册、考试成绩、交流、英才班）、教学研究与质量管理办公室（教学督导、评教、质量工程项目、教学奖励）、教学改革与发展办公室（培养方案、课程管理、研讨班、教师教学发展）、实验实践教学管理与综合事务办公室（实验教学、毕业论文、大学生研究计划、排课、综合事务）、现代教育技术中心（多媒体设施、在线教学平台、技术支持）。服务对象分为学生服务(svc-student)与教师服务(svc-teacher)两大类。",
+   "columns": [
+    {
+     "url": "https://www.teach.ustc.edu.cn/category/service",
+     "cms": "teach"
+    },
+    {
+     "url": "https://www.teach.ustc.edu.cn/category/service/svc-student",
+     "cms": "teach"
+    },
+    {
+     "url": "https://www.teach.ustc.edu.cn/category/service/svc-teacher",
+     "cms": "teach"
+    }
+   ],
+   "extra_columns": {
+    "notice": "https://www.teach.ustc.edu.cn/category/notice",
+    "download": "https://www.teach.ustc.edu.cn/download/all",
+    "contact": "https://www.teach.ustc.edu.cn/about/tel",
+    "policy": "https://www.teach.ustc.edu.cn/category/document/doc-administration",
+    "overview": "https://www.teach.ustc.edu.cn/about"
+   }
+  },
+  "caiwu": {
+   "name": "财务处",
+   "base": "https://finance.ustc.edu.cn",
+   "topic": "procedures",
+   "contact": "电话：0551-63601156；邮箱：caiwuchu@ustc.edu.cn；地址：安徽省合肥市金寨路96号中国科学技术大学东、西区活动中心一楼，邮政编码：230026；一号通办(一站式服务)总机及邮箱",
+   "org": "中国科学技术大学财务处下设十个职能科室：预决算管理办公室、资金管理办公室、财务核算中心、内控与稽核办公室、科研经费管理办公室、信息办公室、薪酬与收费办公室、基建经费管理办公室、综合业务办公室、所属单位财会中心，分别负责预决算、资金结算、会计核算、内控稽核、科研经费、信息化、薪酬收费、基建经费等财务业务。",
+   "columns": [
+    {
+     "url": "https://finance.ustc.edu.cn/ywzn/list.htm",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://finance.ustc.edu.cn/22118/list.htm",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://finance.ustc.edu.cn/22119/list.htm",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://finance.ustc.edu.cn/ywlct/list.htm",
+     "cms": "siyuan"
+    }
+   ],
+   "extra_columns": {
+    "notice": "https://finance.ustc.edu.cn/tzgg/list.htm",
+    "download": "https://finance.ustc.edu.cn/xzzx/list.htm",
+    "contact": "https://finance.ustc.edu.cn/lxwm/list.htm",
+    "policy": "https://finance.ustc.edu.cn/22115/list.htm",
+    "overview": "https://finance.ustc.edu.cn/bmgk/list.htm"
+   }
+  },
+  "baowei": {
+   "name": "保卫与校园管理处",
+   "base": "https://bwc.ustc.edu.cn",
+   "topic": "procedures",
+   "contact": "电话：本部校区24小时报警求助电话：63600110；高新校区：63601110、63066110；邮箱：bwc@ustc.edu.cn；地址：安徽省合肥市金寨路96号（邮编230026）；消防安全邮箱：bwcxf@ustc.edu.cn；主要办公地点：东区学生服务中心、中区能源保障楼",
+   "org": "中科大保卫与校园管理处下设综合事务管理办公室、社区事务管理办公室、政治保卫科、户籍管理科、校园巡查科、治安管理科、校园管理科、校园综合治理科、信息化建设科、物业管理办公室、消防安全管理办公室等科室，职能涵盖校园政治保卫与安全保卫、治安巡查与综合治理、户籍管理、交通与车辆管理、消防安全、物业与校园管理、安防监控信息化及师生政审等公开办事服务。",
+   "columns": [
+    {
+     "url": "https://bwc.ustc.edu.cn/5656/list.htm",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://bwc.ustc.edu.cn/bslc/list.htm",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://bwc.ustc.edu.cn/kstd/list.htm",
+     "cms": "siyuan"
+    }
+   ],
+   "extra_columns": {
+    "notice": "https://bwc.ustc.edu.cn/5668/list.htm",
+    "download": "https://bwc.ustc.edu.cn/zlxz/list.htm",
+    "contact": "https://bwc.ustc.edu.cn/bmgk/list.htm",
+    "policy": "https://bwc.ustc.edu.cn/zcfg/list.htm",
+    "overview": "https://bwc.ustc.edu.cn/bmgk/list.htm"
+   }
+  },
+  "xuegong": {
+   "name": "学生工作处",
+   "base": "https://stuhome.ustc.edu.cn",
+   "topic": "student-affairs",
+   "contact": "公开页面未展示总机/邮箱/地址；官网「联系我们」(/lxwm/list.htm) 需统一身份认证(CAS, id.ustc.edu.cn)登录后方可访问，未抓到公开联系方式。",
+   "org": "中国科学技术大学学生工作处（学工在线）与党委学生工作部合署，下含党委学生工作部（负责全校学生思想政治教育与德育）、学生工作处（负责本科生学籍管理、奖助学金评审发放、校规校纪宣传与违纪处理、勤工助学、国家助学贷款）、党委人民武装部（负责军训、征兵、双拥、民兵预备役、人防），并设心理健康教育与咨询中心（负责心理测验、面谈咨询、心理讲座与素质拓展）。",
+   "columns": [
+    {
+     "url": "https://stuhome.ustc.edu.cn/2311/list.htm",
+     "cms": "siyuan"
+    }
+   ],
+   "extra_columns": {
+    "notice": "https://stuhome.ustc.edu.cn/2316/list.htm",
+    "download": "https://stuhome.ustc.edu.cn/2310/list.htm",
+    "contact": "https://stuhome.ustc.edu.cn/lxwm/list.htm",
+    "policy": "https://stuhome.ustc.edu.cn/2301/list.htm",
+    "overview": "https://stuhome.ustc.edu.cn/bmjs/list.htm"
+   }
+  },
+  "tuanwei": {
+   "name": "校团委",
+   "base": "https://young.ustc.edu.cn",
+   "topic": "youth-league",
+   "contact": "电话：0551-63600152；邮箱：xtw@ustc.edu.cn；地址：安徽省合肥市金寨路96号中国科学技术大学东校区大礼堂北侧厅2楼(邮编230026)；热线电话0551-63600152;校主页 http://www.ustc.edu.cn/",
+   "org": "共青团中国科学技术大学委员会(校团委)下设四个科室:综合办公室(综合行政、网络信息、五四评选、会议、对外联络、印章、网站及微信公众号维护),社团指导办公室(学生社团日常事务、书院工作,指导艺术与体育类学生中心),青年发展办公室(骨干培养、创新创业、社会实践、志愿服务及高新园区团工委),\"第二课堂\"领导小组办公室(青春科大智慧团学综合信息平台培训推广与管理维护、成绩单认证发放);设书记一名、副书记四名,分管学研两会、学生社团、基层组织建设、权益服务与青年发展等工作。",
+   "columns": [
+    {
+     "url": "https://young.ustc.edu.cn/15056/list.htm",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://young.ustc.edu.cn/15056/list2.htm",
+     "cms": "siyuan"
+    }
+   ],
+   "extra_columns": {
+    "notice": "https://young.ustc.edu.cn/15063/list.htm",
+    "download": "https://young.ustc.edu.cn/15056/list.htm",
+    "contact": "https://young.ustc.edu.cn/15060/list.htm",
+    "policy": "https://young.ustc.edu.cn/15056/list.htm",
+    "overview": "https://young.ustc.edu.cn/bmjs/list.htm"
+   }
+  },
+  "yanjiusheng": {
+   "name": "研究生院",
+   "base": "https://gradschool.ustc.edu.cn",
+   "topic": "academics",
+   "contact": "电话：0551-63601958；邮箱：yjsy@ustc.edu.cn；地址：安徽省合肥市包河区金寨路96号",
+   "org": "中国科学技术大学研究生院下设综合处、招生处、培养处、校学位委员会办公室、学科建设处及《研究生教育研究》编辑部六个科室，分别负责综合行政与档案、招生宣传录取、课程培养与学籍奖助及国际交流、学位授予与导师遴选、学科建设与质量评估、期刊编辑等职能。",
+   "columns": [
+    {
+     "url": "https://gradschool.ustc.edu.cn/column/12",
+     "cms": "column"
+    }
+   ],
+   "extra_columns": {
+    "notice": "https://gradschool.ustc.edu.cn/column/9",
+    "download": "https://gradschool.ustc.edu.cn/column/11",
+    "contact": "https://gradschool.ustc.edu.cn/article/3394",
+    "policy": "https://gradschool.ustc.edu.cn/column/7",
+    "overview": "https://gradschool.ustc.edu.cn/column/13"
+   }
+  },
+  "benke": {
+   "name": "本科生院",
+   "base": "https://ugs.ustc.edu.cn",
+   "topic": "academics",
+   "contact": "电话：0551-63601568；邮箱：bksy@ustc.edu.cn；地址：安徽省合肥市金寨路96号 中区本科生院108室；中国科学技术大学本科生院",
+   "org": "本科生院成立于2020年5月7日，是统筹本科教育教学管理的常设机构，下设/统管教务管理、本科招生、就业信息、本科生书院、创新创业、通识教育、外语教学、艺术教学、体育教学等业务板块，职能覆盖学生思政与发展、创新创业训练、教学运行、招生就业、教育研究与改革、教学质量保障等七大领域；日常办事指南与业务流程由教务管理子站（teach.ustc.edu.cn）承载。",
+   "columns": [
+    {
+     "url": "https://www.teach.ustc.edu.cn/category/service",
+     "cms": "teach"
+    },
+    {
+     "url": "https://www.teach.ustc.edu.cn/category/service/svc-student",
+     "cms": "teach"
+    },
+    {
+     "url": "https://www.teach.ustc.edu.cn/category/service/svc-teacher",
+     "cms": "teach"
+    }
+   ],
+   "extra_columns": {
+    "notice": "https://ugs.ustc.edu.cn/tzgg/list.htm",
+    "download": "https://www.teach.ustc.edu.cn/download/all",
+    "contact": "https://ugs.ustc.edu.cn/lxfs/list.htm",
+    "policy": "https://www.teach.ustc.edu.cn/category/document/doc-administration",
+    "overview": "https://ugs.ustc.edu.cn/gk/list.htm"
+   }
+  },
+  "zhaosheng": {
+   "name": "招生就业处",
+   "base": "https://zsb.ustc.edu.cn",
+   "topic": "admissions",
+   "contact": "电话：0551-63600096, 0551-63602553；邮箱：zsb@ustc.edu.cn；地址：安徽省合肥市包河区金寨路96号中国科学技术大学招生办公室(邮编230026)；办公时间：高考志愿填报期间8:30-11:30、14:30-20:30;平时工作日8:30-11:30、14:30-17:30；传真0551-63603222。就业指导服务中心:邮箱jybgs@ustc.edu.cn,地址合肥市金寨路96号中国科大东区老图书馆一楼;就业手续办理0551-63602554、单位服务热线0551-63607164、生涯规划咨询0551-63602557。",
+   "org": "中科大招生就业处统筹本科招生与毕业生就业两条业务线。招生侧（zsb.ustc.edu.cn，招生办公室）负责普通本科、少年班及创新试点班、强基计划、自强计划、港澳台招生的政策制定、章程发布、计划与录取信息公开及各省市咨询；就业侧（job.ustc.edu.cn，就业指导服务中心）下设综合办公室、生涯规划、本科生就业、研究生就业、市场拓展、网站管理、政策与选调等岗位，承办就业协议网签、毕业去向登记、档案转递、就业推荐表办理、用印申请、单位服务与生涯发展教育等。",
+   "columns": [
+    {
+     "url": "https://job.ustc.edu.cn/EmploymentProcess/list.aspx",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://job.ustc.edu.cn/FrequentlyAskedQuestions/list.aspx",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://zsb.ustc.edu.cn/zszc/list.htm",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://zsb.ustc.edu.cn/xxgk/list.htm",
+     "cms": "siyuan"
+    }
+   ],
+   "extra_columns": {
+    "notice": "https://zsb.ustc.edu.cn/tzgg/list.htm",
+    "download": "https://job.ustc.edu.cn/Documentdownload/index.aspx",
+    "contact": "https://zsb.ustc.edu.cn/lxwm_35531/list.htm",
+    "policy": "https://zsb.ustc.edu.cn/zszc/list.htm",
+    "overview": "https://zsb.ustc.edu.cn/xxgk/list.htm"
+   }
+  },
+  "tushuguan": {
+   "name": "图书馆",
+   "base": "https://lib.ustc.edu.cn",
+   "topic": "procedures",
+   "contact": "电话：(0551)63602325/63602328；邮箱：lib@ustc.edu.cn；地址：安徽省合肥市金寨路96号中国科学技术大学东区(230026)；办公时间：东区/西区:8:00-22:00(自习室7:00-23:00);高新区:服务台8:30-17:30;采编、技术等部门:8:00-12:00 14:00-18:00(工作日)；传真:(0551)63602325;邮编:230026;在线咨询:小蜗在线咨询/问馆员",
+   "org": "中科大图书馆下设八个部室：办公室(行政、人事、总务)、信息咨询部(文献检索、查收查引、科技查新、馆际互借)、采编部(资源建设与编目)、技术部(系统与数字资源)、东区/西区/高新区工作部(各校区流通与阅览服务)、安徽省数图办公室(省级数字图书馆协调)。",
+   "columns": [
+    {
+     "url": "https://lib.ustc.edu.cn/服务指南/",
+     "cms": "lib"
+    }
+   ],
+   "extra_columns": {
+    "notice": "https://lib.ustc.edu.cn/",
+    "download": "",
+    "contact": "https://lib.ustc.edu.cn/?p=6053",
+    "policy": "https://lib.ustc.edu.cn/服务指南/接收图书捐赠办法/",
+    "overview": "https://lib.ustc.edu.cn/本馆概况/本馆简介/"
+   }
+  },
+  "wangluo": {
+   "name": "网络信息中心",
+   "base": "https://ustcnet.ustc.edu.cn",
+   "topic": "procedures",
+   "contact": "电话：0551-63600800；邮箱：nic@ustc.edu.cn；地址：安徽省合肥市包河区金寨路96号，邮编230026；办公时间：8:00-12:00 14:00-18:00（东区/高新区每日，西区工作日）；报修系统 https://baoxiu.ustc.edu.cn/ ；柜面服务点：东区师生活动中心北一楼、西区教三楼一楼B区、高新区师生活动中心107",
+   "org": "中国科学技术大学网络信息中心成立于1996年（2001年更名），为学校直属单位，现有职工38人，下设综合事务部、用户服务部、高新校区部、网络与安全部、信息与数据部、超级计算中心、安徽省教育和科研计算机网络中心、智慧科大建设工作组办公室共8个部门，负责校园网络基础设施、邮件、统一身份认证、校园一卡通、数据/智慧中台、正版软件、网站建设、超算等信息化服务，并运维CERNET/CERNET2合肥主节点。",
+   "columns": [
+    {
+     "url": "https://ustcnet.ustc.edu.cn/fwznw/list.htm",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://ustcnet.ustc.edu.cn/40939/list.htm",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://ustcnet.ustc.edu.cn/40940/list.htm",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://ustcnet.ustc.edu.cn/40941/list.htm",
+     "cms": "siyuan"
+    },
+    {
+     "url": "https://ustcnet.ustc.edu.cn/40942/list.htm",
+     "cms": "siyuan"
+    }
+   ],
+   "extra_columns": {
+    "notice": "https://ustcnet.ustc.edu.cn/33415/list.htm",
+    "download": "https://ustcnet.ustc.edu.cn/40960/list.htm",
+    "contact": "https://ustcnet.ustc.edu.cn/33464/list.htm",
+    "policy": "https://ustcnet.ustc.edu.cn/33419/list.htm",
+    "overview": "https://ustcnet.ustc.edu.cn/33414/list.htm"
+   }
+  }
+ }
+}

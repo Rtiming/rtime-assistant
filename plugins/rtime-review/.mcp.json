@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rtime-review": {
+      "cwd": ".",
+      "command": "./scripts/rtime-review-mcp.sh",
+      "args": []
+    }
+  }
+}

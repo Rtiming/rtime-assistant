@@ -1,0 +1,26 @@
+{
+  "name": "rtime-review",
+  "version": "0.1.0",
+  "description": "Read-only review-console data surfaces for rtime assistant workflows.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Rtime Review",
+    "shortDescription": "Inspect audit, run-log, memory-candidate, and tooling review panels.",
+    "longDescription": "Rtime Review provides read-only review-console data surfaces for standards audit archives, runtime and context run logs, memory candidate counts, failed runs, permission audit summaries, and repository-owned tool health.",
+    "developerName": "rtime",
+    "category": "Productivity",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Show my review console panel.",
+      "Summarize failed runs and memory candidates.",
+      "Review standards audit archives."
+    ]
+  }
+}

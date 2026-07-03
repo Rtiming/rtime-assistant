@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+# brain-course-ingest <源目录> <course-id> "<课程中文名>"
+# 把本地课程材料入 brain 并产出可全文检索文本,再刷新索引。固化流程见 docs/brain-course-pipeline.md
+#   链路: course_intake(PDF文本层+分类+materials_index+pdf-manifest)
+#       -> Office补抽(pptx/docx 无依赖 zip/XML 抽文本; 本机无 soffice 时的兜底)
+#       -> rebuild-brain-index(全文检索)
+# 注意: course_intake 默认按课程关键词过滤,本脚本固定 --include-all 防漏;扫描件(无文本层PDF)
+#       只归档原件,OCR/DocPack 后续单独做(见 docs)。
+set -euo pipefail
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
+SRC="${1:?用法: brain-course-ingest <源目录> <course-id> \"<课程中文名>\"}"
+CID="${2:?course-id 必填(英文小写连字符)}"
+TITLE="${3:?课程中文名 必填}"
+BRAIN="${BRAIN_ROOT:-}"
+if [ -z "$BRAIN" ]; then
+  for c in "$HOME/OrangePi-Store/sync/brain" "$HOME/brain" "/mnt/brain"; do
+    [ -d "$c" ] && BRAIN="$c" && break
+  done
+fi
+if [ -z "$BRAIN" ] || [ ! -d "$BRAIN" ]; then
+  echo "找不到 brain 根(BRAIN_ROOT='${BRAIN_ROOT:-未设置}');设置 BRAIN_ROOT 后重试" >&2
+  exit 1
+fi
+COURSE_DIR="$BRAIN/knowledge/courses/$CID"
+export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
+
+OCR=0
+for a in "$@"; do [ "$a" = "--ocr" ] && OCR=1; done
+
+[ -d "$SRC" ] || { echo "源目录不存在: $SRC" >&2; exit 1; }
+
+echo "==> [1/3] course_intake: $SRC  ->  knowledge/courses/$CID"
+log="$(mktemp)"
+# 默认走确认门:confirm 级问题按 policy 自动放行,blocker(疑似敏感文件名 / 同名异内容
+# 冲突 / 空计划)仍拦下需人工。复核无误要强制全放行: BRAIN_COURSE_FORCE=1 重跑。
+POLICY="$REPO/scripts/brain-intake/course-intake-policy.json"
+if [ "${BRAIN_COURSE_FORCE:-0}" = "1" ]; then
+  GATE=(--approved)
+else
+  GATE=(--auto-approve --policy "$POLICY")
+fi
+set +e
+PYTHONPATH="$REPO/packages/brain-docpack/src" python -m brain_docpack course-intake \
+  "$SRC" --brain-root "$BRAIN" --course-id "$CID" --course-title "$TITLE" \
+  --include-all --apply "${GATE[@]}" --write-md --md-max-pages 150 --update-pdf-manifest \
+  >"$log" 2>&1
+rc=$?
+set -e
+if [ "$rc" -eq 2 ]; then
+  echo "⛔ 入库被确认门拦截(疑似敏感文件名 / 同名异内容冲突等需人工确认):" >&2
+  tail -40 "$log" >&2
+  echo "    复核后:改名 / 移走敏感件或调整 $POLICY;确认无误可 BRAIN_COURSE_FORCE=1 重跑放行全部。" >&2
+  exit 2
+elif [ "$rc" -ne 0 ]; then
+  echo "course_intake 失败:" >&2; tail -20 "$log" >&2; exit 1
+fi
+ingested=$(grep -c ' -> ' "$log" 2>/dev/null || echo 0)
+echo "    course_intake 入库 $ingested 个文件(含PDF文本层md)"
+
+echo "==> [2/3] Office(pptx/docx)文本补抽 -> md/office/"
+n=0
+while IFS= read -r f; do
+  base="$(basename "$f")"; stem="${base%.*}"
+  rel="${f#"$COURSE_DIR/"}"
+  mdout="$COURSE_DIR/md/office/${stem}.md"
+  [ -f "$mdout" ] && continue
+  if python "$REPO/scripts/extract-office-text.py" "$f" --course "$CID" --source-rel "$rel" --out "$mdout" >/dev/null 2>&1; then
+    n=$((n+1))
+  fi
+done < <(find "$COURSE_DIR" -type f \( -iname '*.pptx' -o -iname '*.docx' \) 2>/dev/null)
+echo "    补抽 $n 个 office 文件"
+
+if [ "$OCR" = "1" ]; then
+  echo "==> [2.5] OCR 无文本层PDF -> md/ocr/ (--ocr; 慢)"
+  o=0
+  while IFS= read -r f; do
+    case "$f" in *.docpack/*) continue;; esac   # 已有DocPack content.md(已索引),跳过
+    chars=$(pdftotext -l 1 "$f" - 2>/dev/null | tr -d ' \n\r' | wc -c)
+    [ "$chars" -ge 50 ] && continue              # 有文本层,course_intake已出md
+    base="$(basename "$f")"; stem="${base%.*}"; rel="${f#"$COURSE_DIR/"}"
+    mdout="$COURSE_DIR/md/ocr/${stem}.md"
+    [ -f "$mdout" ] && continue
+    if python "$REPO/scripts/ocr-pdf-to-md.py" "$f" --course "$CID" --source-rel "$rel" --out "$mdout" >/dev/null 2>&1; then o=$((o+1)); fi
+  done < <(find "$COURSE_DIR" -type f -iname '*.pdf' 2>/dev/null)
+  echo "    OCR $o 个扫描PDF"
+fi
+
+if [ "${BRAIN_COURSE_SKIP_REBUILD:-0}" = "1" ]; then
+  echo "==> [3/3] 跳过重建(批量模式,稍后统一重建)"
+else
+  echo "==> [3/3] 重建全文检索索引"
+  "$REPO/scripts/rebuild-brain-index.sh" 2>&1 | grep -E 'documents_indexed' || true
+fi
+rm -f "$log"
+echo "✅ 完成: $CID   全文检索: scripts/brain-search \"<考点词>\""
+echo ""
+echo "📚 Obsidian 展示(入库已可检索;在 ob 里浏览需另做一次,且每台客户端各跑一次):"
+echo "   1) 已生成入口草稿: knowledge/courses/$CID/_intake/obsidian-view-entries.json"
+echo "      把其中 entries 合并进 brain-notes/80 系统/course-view-manifest.json,填好 <学期>"
+echo "   2) python scripts/brain-intake/m4_link.py --plan / --apply / --verify"
+echo "      --manifest \"<vault>/80 系统/course-view-manifest.json\"  (--verify 须 ok:true)"
+echo "   3) 复习面板(folder note)写考点/闪卡入口。详见 docs/obsidian-vault-layout.zh-CN.md"

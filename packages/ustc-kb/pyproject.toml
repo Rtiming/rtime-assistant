@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ustc-kb"
+version = "0.1.0"
+description = "USTC 校内事务公开资料抓取/归档/索引模块（确定性脚本，原始文件归档+可检索，供 rtime 助手按名取用）。"
+requires-python = ">=3.10"
+# beautifulsoup4: crawler runtime. rtime-config: the schema-driven config base for
+# ustc_kb.config_schema:UstcKbConfig (P2 config 收编 批 3) — imported LAZILY by
+# admin-core to register the module, NOT by the crawler runtime (config.py stays
+# stdlib-only). pydantic/pydantic-settings come transitively via rtime-config.
+dependencies = ["beautifulsoup4>=4.12", "rtime-config"]
+
+[project.scripts]
+ustc-kb = "ustc_kb.cli:main"
+
+[tool.uv.sources]
+rtime-config = { workspace = true }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ustc_kb = ["sites.json"]

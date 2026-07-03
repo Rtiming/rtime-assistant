@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rtime-profile": {
+      "cwd": ".",
+      "command": "./scripts/rtime-profile-mcp.sh",
+      "args": []
+    }
+  }
+}

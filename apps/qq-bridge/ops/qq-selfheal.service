@@ -1,0 +1,19 @@
+[Unit]
+Description=QQ bridge self-heal (detect offline -> restart NapCat -> deliver QR to Feishu)
+Documentation=file:%h/rtime-assistant/apps/qq-bridge/README.md
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+# 复用 qqbridge.env(含 SELFHEAL_* + FEISHU_OWNER_OPEN_ID);FEISHU 凭据默认读 feishu.json
+EnvironmentFile=%h/rtime-assistant/apps/qq-bridge/ops/qqbridge.env
+ExecStart=/usr/bin/python3 %h/rtime-assistant/apps/qq-bridge/ops/qq_selfheal.py
+Restart=always
+RestartSec=30
+# 守护本身很轻(每 60s 一次 HTTP+可能一次 docker 调用)
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

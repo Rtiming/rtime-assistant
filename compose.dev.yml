@@ -1,0 +1,46 @@
+name: rtime-assistant-dev
+
+services:
+  feishu-bridge-tests:
+    build:
+      context: .
+      dockerfile: docker/feishu-bridge.Dockerfile
+      target: test
+    environment:
+      FEISHU_APP_ID: test_app_id
+      FEISHU_APP_SECRET: test_app_secret
+      RTIME_ASSISTANT_RUN_LOG: /tmp/rtime-assistant/run-log.jsonl
+    command: ["python", "-m", "pytest", "tests", "-q"]
+
+  docpack-tests:
+    build:
+      context: .
+      dockerfile: docker/feishu-bridge.Dockerfile
+      target: docpack-test
+    command: ["python", "-m", "pytest", "tests", "-q"]
+
+  docpack-office-tests:
+    build:
+      context: .
+      dockerfile: docker/feishu-bridge.Dockerfile
+      target: docpack-office-test
+    command: ["python", "-m", "pytest", "tests", "-q"]
+
+  feishu-bridge-candidate:
+    profiles: ["candidate"]
+    build:
+      context: .
+      dockerfile: docker/feishu-bridge.Dockerfile
+      target: runtime
+    environment:
+      FEISHU_CONFIG_JSON: /run/rtime-assistant/feishu.json
+      DEFAULT_CWD: ${DEFAULT_CWD:-/mnt/brain}
+      DEFAULT_MODEL: ${DEFAULT_MODEL:-}
+      PERMISSION_MODE: ${PERMISSION_MODE:-default}
+      OUTPUT_STYLE: ${OUTPUT_STYLE:-segmented}
+      SHOW_TOOL_CALLS: ${SHOW_TOOL_CALLS:-0}
+      RTIME_ASSISTANT_RUN_LOG: /var/lib/rtime-assistant/run-log.jsonl
+    volumes:
+      - ${BRAIN_ROOT:-./.dev/brain}:/mnt/brain
+      - ${FEISHU_CONFIG_JSON:-./.dev/feishu.json}:/run/rtime-assistant/feishu.json:ro
+      - ${RTIME_ASSISTANT_STATE_DIR:-.local/state}/rtime-assistant:/var/lib/rtime-assistant

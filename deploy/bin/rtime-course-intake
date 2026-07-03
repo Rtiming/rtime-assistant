@@ -1,0 +1,324 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""lib.course-intake backend: gated course-folder ingest with auto slides/lectures/exams classify.
+
+Wraps ``brain_docpack course-intake`` (classify into slides/lectures/exercises/exams/
+solutions/references + sha256 dedup + PDF text-layer md + materials_index + pdf-manifest)
+behind the SAME owner-token gate as rtime-finalize:
+
+  plan    (any agent, gateway)  -> run course-intake with NO --apply; return the
+                                   classification preview + confirmation_questions + a
+                                   plan_sha; writes only the plan file.
+  approve (OWNER only, NOT on the gateway) -> ``rtime-course-intake approve <sha>`` writes
+                                   ``<sha>.approved`` (refuses blocker-level questions).
+  apply   (any agent, gateway)  -> refuses without the approval; runs course-intake
+                                   --apply (policy gate keeps blockers stopping), then
+                                   rebuilds the BM25 index. Originals are copied, never moved.
+
+The source must be a directory under ``brain/_inbox/``. Course folders end up at
+``knowledge/courses/<course-id>/{slides,lectures,exercises,exams,solutions,references,misc}``.
+Only plan/apply are exposed on the gateway; approve is owner-only (no self-approve).
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import subprocess
+import sys
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
+
+DEFAULT_TZ = timezone(timedelta(hours=8))
+
+
+def _force_utf8() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8")
+            except (ValueError, OSError):
+                pass
+
+
+def _die(message: str, code: int = 2) -> None:
+    print(json.dumps({"ok": False, "error": message}, ensure_ascii=False, indent=2, sort_keys=True))
+    raise SystemExit(code)
+
+
+def _print(data: dict[str, Any]) -> None:
+    print(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+
+
+def _now() -> datetime:
+    return datetime.now(DEFAULT_TZ)
+
+
+def _default_brain_roots() -> list[Path]:
+    paths: list[Path] = []
+    env_root = os.environ.get("BRAIN_ROOT")
+    if env_root:
+        paths.append(Path(env_root).expanduser())
+    paths.extend([Path("/mnt/brain"), Path.home() / "brain", Path.home() / "OrangePi-Store" / "sync" / "brain"])
+    out, seen = [], set()
+    for p in paths:
+        if str(p) not in seen:
+            seen.add(str(p))
+            out.append(p)
+    return out
+
+
+def _brain_root(raw: str | None) -> Path:
+    if raw:
+        return Path(raw).expanduser()
+    for path in _default_brain_roots():
+        if path.exists():
+            return path
+    return _default_brain_roots()[0]
+
+
+def _repo_root() -> Path | None:
+    raw = os.environ.get("RTIME_ASSISTANT_ROOT")
+    if raw and (Path(raw) / "packages" / "brain-docpack").is_dir():
+        return Path(raw)
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / "packages" / "brain-docpack" / "src").is_dir():
+            return parent
+    return None
+
+
+def _finalize_dir(brain_root: Path) -> Path:
+    return brain_root / "_inbox" / ".finalize"
+
+
+def _resolve_src(brain_root: Path, raw: str) -> Path:
+    candidate = Path(raw)
+    if not candidate.is_absolute():
+        candidate = brain_root / raw
+    candidate = candidate.resolve()
+    root = brain_root.resolve()
+    if not candidate.is_relative_to(root):
+        _die("source must be inside the brain root")
+    rel = candidate.relative_to(root)
+    if not rel.parts or rel.parts[0] != "_inbox":
+        _die("source must be a directory under brain/_inbox/")
+    if not candidate.is_dir():
+        _die(f"source course folder not found (must be a directory): {rel}")
+    return candidate
+
+
+def _src_digest(root: Path) -> str:
+    parts = []
+    for f in sorted(root.rglob("*")):
+        if f.is_file():
+            parts.append(f"{f.relative_to(root)}\t{f.stat().st_size}")
+    return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()
+
+
+def _plan_sha(src_rel: str, course_id: str, digest: str) -> str:
+    return hashlib.sha256(f"{src_rel}\n{course_id}\n{digest}".encode("utf-8")).hexdigest()[:16]
+
+
+def _run_course_intake(src: Path, brain_root: Path, cid: str, title: str, *, apply: bool, repo: Path | None,
+                       policy: Path | None) -> tuple[dict[str, Any], int, str]:
+    env = dict(os.environ)
+    env.setdefault("PYTHONUTF8", "1")
+    if repo is not None:
+        env["PYTHONPATH"] = str(repo / "packages" / "brain-docpack" / "src") + os.pathsep + env.get("PYTHONPATH", "")
+    argv = [sys.executable, "-m", "brain_docpack", "course-intake", str(src),
+            "--brain-root", str(brain_root), "--course-id", cid, "--course-title", title,
+            "--include-all", "--json"]
+    if apply:
+        argv += ["--apply", "--auto-approve", "--write-md", "--md-max-pages", "150", "--update-pdf-manifest"]
+        if policy is not None and policy.is_file():
+            argv += ["--policy", str(policy)]
+    r = subprocess.run(argv, capture_output=True, text=True, timeout=900, env=env)
+    try:
+        data = json.loads(r.stdout) if r.stdout.strip() else {}
+    except json.JSONDecodeError:
+        data = {}
+    return data, r.returncode, (r.stderr or "")[-300:]
+
+
+def _distribution(plan: dict[str, Any]) -> dict[str, int]:
+    dist: dict[str, int] = {}
+    for f in plan.get("files", []):
+        dist[f.get("category", "?")] = dist.get(f.get("category", "?"), 0) + 1
+    return dist
+
+
+def _rebuild_index(brain_root: Path) -> dict[str, Any]:
+    index = os.environ.get("BRAIN_LIBRARY_INDEX") or str(
+        Path.home() / ".local" / "state" / "rtime-assistant" / "brain-library" / "brain-library.sqlite")
+    root = os.environ.get("RTIME_ASSISTANT_ROOT")
+    env = dict(os.environ)
+    if root:
+        env["PYTHONPATH"] = str(Path(root) / "packages" / "brain-library" / "src") + os.pathsep + env.get("PYTHONPATH", "")
+    env.setdefault("PYTHONUTF8", "1")
+    Path(index).parent.mkdir(parents=True, exist_ok=True)
+    try:
+        # 增量重建：复用未变文档,仅处理新入课程的文档 → 秒级(不兼容时自动全量)。
+        r = subprocess.run([sys.executable, "-m", "brain_library.cli", "index", "build", str(brain_root),
+                            "--out", index, "--incremental", "--json"], capture_output=True, text=True, timeout=600, env=env)
+        return {"ok": r.returncode == 0, "index": index, "error": None if r.returncode == 0 else (r.stderr or "")[-200:]}
+    except (OSError, subprocess.SubprocessError) as exc:
+        return {"ok": False, "index": index, "error": str(exc)[:200]}
+
+
+def _notify_owner(sha: str, course_rel: str, dist: dict, repo: Path | None) -> dict:
+    """Send the owner a one-tap Feishu approve card (same as lib.finalize) and wait ~60s."""
+    approval = (repo / "deploy" / "bin" / "rtime-intake-approval") if repo else None
+    if not (approval and approval.exists()):
+        return {"sent": False, "reason": "approval tool not found"}
+    summary = (f"🗂 **待审批课程入库**\n目标：`{course_rel}`\n分类：{dist}\n"
+               f"确认无误请点下方按钮批准（约 1 分钟内有效）。")
+    try:
+        r = subprocess.run([sys.executable, str(approval), "request", "--sha", sha, "--tool", "course-intake",
+                            "--summary", summary, "--timeout", "60"], capture_output=True, text=True, timeout=90)
+        data = json.loads(r.stdout) if r.stdout.strip() else {}
+        return {"channel": "feishu-card", "sent": bool(data.get("sent")),
+                "approved": bool(data.get("approved")), "reason": data.get("next")}
+    except (OSError, subprocess.SubprocessError, ValueError) as exc:
+        return {"sent": False, "reason": str(exc)[:150]}
+
+
+def cmd_plan(args: argparse.Namespace) -> int:
+    brain_root = _brain_root(args.brain_root)
+    src = _resolve_src(brain_root, args.src)
+    root = brain_root.resolve()
+    src_rel = str(src.relative_to(root))
+    repo = _repo_root()
+    plan_json, rc, err = _run_course_intake(src, brain_root, args.course_id, args.course_title,
+                                            apply=False, repo=repo, policy=None)
+    if not plan_json:
+        _die(f"course-intake plan failed (rc={rc}): {err}")
+    questions = plan_json.get("confirmation_questions", [])
+    blockers = [q for q in questions if q.get("severity") == "blocker"]
+    digest = _src_digest(src)
+    sha = _plan_sha(src_rel, args.course_id, digest)
+    dist = _distribution(plan_json)
+    course_rel = str(Path(plan_json.get("course_root", "")).resolve().relative_to(root)) if plan_json.get("course_root") else f"knowledge/courses/{args.course_id}"
+    plan = {
+        "schema": "rtime-course-intake-plan-v1", "plan_sha": sha, "created_at": _now().isoformat(timespec="seconds"),
+        "src_rel": src_rel, "src_digest": digest, "course_id": args.course_id, "course_title": args.course_title,
+        "course_rel": course_rel, "distribution": dist, "file_count": len(plan_json.get("files", [])),
+        "confirmation_questions": questions, "blockers": [q.get("id") for q in blockers],
+    }
+    if not args.dry_run and not blockers:
+        fdir = _finalize_dir(brain_root)
+        fdir.mkdir(parents=True, exist_ok=True)
+        (fdir / f"{sha}.plan.json").write_text(json.dumps(plan, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+    notify = None
+    if getattr(args, "notify", False) and not blockers and not args.dry_run:
+        notify = _notify_owner(sha, course_rel, dist, _repo_root())
+    _print({
+        "ok": True, "op": "plan", "plan_sha": sha, "course_id": args.course_id, "course_rel": course_rel,
+        "file_count": plan["file_count"], "distribution": dist, "confirmation_questions": questions,
+        "blocked": bool(blockers), "owner_notified": notify,
+        "next_step": ("blocked: 解决 blocker 后重新 plan" if blockers else
+                      f"owner approves: rtime-course-intake approve {sha} (owner-only) → lib.course-intake op=apply plan_sha={sha}"),
+    })
+    return 0
+
+
+def cmd_approve(args: argparse.Namespace) -> int:
+    brain_root = _brain_root(args.brain_root)
+    fdir = _finalize_dir(brain_root)
+    plan_path = fdir / f"{args.plan_sha}.plan.json"
+    if not plan_path.is_file():
+        _die(f"no course-intake plan for sha {args.plan_sha} (run op=plan first)")
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    if plan.get("blockers"):
+        _die(f"refusing to approve: plan has blockers {plan['blockers']}")
+    (fdir / f"{args.plan_sha}.approved").write_text(
+        json.dumps({"plan_sha": args.plan_sha, "approved_at": _now().isoformat(timespec="seconds"),
+                    "approved_by": os.environ.get("USER") or "owner"}, ensure_ascii=False, indent=2, sort_keys=True),
+        encoding="utf-8")
+    _print({"ok": True, "op": "approve", "plan_sha": args.plan_sha, "course_rel": plan.get("course_rel"),
+            "note": "owner approval issued; an agent may now run lib.course-intake op=apply with this plan_sha"})
+    return 0
+
+
+def cmd_apply(args: argparse.Namespace) -> int:
+    brain_root = _brain_root(args.brain_root)
+    root = brain_root.resolve()
+    fdir = _finalize_dir(brain_root)
+    plan_path = fdir / f"{args.token}.plan.json"
+    approved_path = fdir / f"{args.token}.approved"
+    if not plan_path.is_file():
+        _die(f"no course-intake plan for plan_sha {args.token}")
+    if not approved_path.is_file():
+        _die("refusing: no owner approval for this plan (owner must run: rtime-course-intake approve " + args.token + ")")
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    src = (brain_root / plan["src_rel"]).resolve()
+    if not src.is_dir():
+        _die(f"source folder vanished: {plan['src_rel']}")
+    if _src_digest(src) != plan["src_digest"]:
+        _die("source folder changed since it was approved — re-plan and re-approve")
+    repo = _repo_root()
+    policy = (repo / "scripts" / "brain-intake" / "course-intake-policy.json") if repo else None
+    result: dict[str, Any] = {"ok": True, "op": "apply", "plan_sha": args.token,
+                              "course_id": plan["course_id"], "course_rel": plan["course_rel"]}
+    if not args.dry_run:
+        out, rc, err = _run_course_intake(src, brain_root, plan["course_id"], plan["course_title"],
+                                          apply=True, repo=repo, policy=policy)
+        if rc != 0:
+            _die(f"course-intake apply failed (rc={rc}): {err}")
+        result["summary"] = out.get("summary", {})
+        result["distribution"] = _distribution(out)
+        result["index_rebuilt"] = {"ok": None, "skipped": True} if args.no_reindex else _rebuild_index(brain_root)
+    result["original_kept_in_inbox"] = plan["src_rel"]
+    result["next_step"] = (
+        f"课程已分类入 {plan['course_rel']}/（slides/lectures/exams…），全文检索可命中。"
+        "ob 入口：course-view-manifest + m4_link（参考 docs/obsidian-vault-layout.zh-CN.md）。")
+    if not args.keep_token and not args.dry_run:
+        for suffix in (".plan.json", ".approved"):
+            p = fdir / f"{args.token}{suffix}"
+            if p.exists():
+                p.unlink()
+        result["approval_consumed"] = True
+    _print(result)
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Gated course-folder ingest (auto slides/lectures/exams classify).")
+    parser.add_argument("--brain-root", help="brain root; defaults to BRAIN_ROOT or known mounts")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_plan = sub.add_parser("plan", help="preview a course ingest (no write); emits a plan sha")
+    p_plan.add_argument("--src", required=True, help="brain/_inbox-relative course folder")
+    p_plan.add_argument("--course-id", required=True, help="english-lowercase-hyphen course id, e.g. optics")
+    p_plan.add_argument("--course-title", required=True, help="course title, e.g. 光学")
+    p_plan.add_argument("--notify", action="store_true", help="send the owner a one-tap Feishu approve card")
+    p_plan.add_argument("--dry-run", action="store_true")
+
+    p_appr = sub.add_parser("approve", help="OWNER-ONLY: issue the confirmation token for a plan sha")
+    p_appr.add_argument("plan_sha")
+
+    p_apply = sub.add_parser("apply", help="execute a course ingest; refuses without the owner approval")
+    p_apply.add_argument("--token", required=True, help="the owner-approved plan_sha")
+    p_apply.add_argument("--no-reindex", action="store_true")
+    p_apply.add_argument("--keep-token", action="store_true")
+    p_apply.add_argument("--dry-run", action="store_true")
+
+    args = parser.parse_args(argv)
+    _force_utf8()
+    if args.command == "plan":
+        return cmd_plan(args)
+    if args.command == "approve":
+        return cmd_approve(args)
+    if args.command == "apply":
+        return cmd_apply(args)
+    parser.error("unknown command")
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

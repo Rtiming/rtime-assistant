@@ -1,0 +1,782 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Finalize a staged ``brain/_inbox`` item into ``knowledge/`` — gated by an owner token.
+
+The ``deploy/bin`` writer behind the gateway method ``lib.finalize``; the other half
+of ``lib.contribute`` (contribute stages into ``_inbox``, finalize promotes into the
+library — but **never automatically**). It handles three item kinds:
+
+  - **file**  — a single staged file.
+  - **zip**   — a ``.zip`` bundle; safe-extracted into ``<dest>/<name>/``.
+  - **dir**   — a staged directory; copied into ``<dest>/<name>/``.
+
+Flow (same for every kind):
+
+  plan    (any agent, gateway)  -> classify + propose dest + a per-file parse plan +
+                                   inventory + a plan sha; writes only the plan file.
+  approve (OWNER only, NOT on the gateway) -> ``rtime-finalize approve <sha>`` writes
+                                   ``<sha>.approved`` — the owner confirmation token.
+  apply   (any agent, gateway)  -> refuses without the approval; moves/extracts into
+                                   knowledge/, parses to searchable text (PDF text layer
+                                   -> md, scanned PDF -> OCR when --ocr, Office -> extract),
+                                   writes a catalog, rebuilds the index, drafts an Obsidian
+                                   entry only for course items.
+
+Constraints / requirements enforced (the "约束"):
+  1. The item must live under ``brain/_inbox/`` (never personal-data, never escaping).
+  2. ``dest`` must be under ``knowledge/`` in the same brain root (the gate also checks).
+  3. Bundle limits: <= MAX_BUNDLE_FILES files and <= MAX_BUNDLE_BYTES total, else blocked.
+  4. Zip-slip: any member resolving outside the target dir is a blocker (extraction refused).
+  5. Sensitive filenames anywhere in the bundle -> blocker (handle as personal-data manually).
+  6. No overwrite: a non-empty existing target dir (bundle) / different-content file -> blocker.
+  7. Every bundle gets a searchable ``_intake.md`` catalog; originals are never deleted.
+  8. Reference/template bundles get NO Obsidian view (only course paths get an entry draft).
+  9. Scanned PDFs / legacy Office without a text layer are filed and flagged; OCR is opt-in.
+ 10. The BM25 index is rebuilt after apply so the item is immediately searchable.
+
+Only ``plan`` and ``apply`` are exposed on the gateway; ``approve`` is owner-only, so an
+agent can never self-approve.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import zipfile
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
+
+DEFAULT_TZ = timezone(timedelta(hours=8))
+SENSITIVE_RE = re.compile(
+    r"(open[_-]?id|union[_-]?id|tenant[_-]?key|app[_-]?secret|api[_-]?key|token|secret|credential|"
+    r"password|passwd|私钥|密钥|验证码|身份证|银行卡|公安备案|ou_[A-Za-z0-9_-]{8,})",
+    re.IGNORECASE,
+)
+SENSITIVE_NAME = ("身份证", "证件", "名单", "成绩", "学号", "账号", "密码", "联系方式", "报名表")
+TEXT_SUFFIXES = {".md", ".markdown", ".txt", ".bib", ".csl"}
+PDF_SUFFIX = ".pdf"
+OFFICE_ZIP = {".pptx", ".docx", ".xlsx"}   # zip-based; extract-office-text.py handles these
+OFFICE_LEGACY = {".ppt", ".doc", ".xls"}   # binary; need soffice (flagged for now)
+EXCLUDED_TOP_DIRS = {"personal-data"}
+MAX_BUNDLE_FILES = 3000
+MAX_BUNDLE_BYTES = 300 * 1024 * 1024
+
+
+def _force_utf8() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8")
+            except (ValueError, OSError):
+                pass
+
+
+def _die(message: str, code: int = 2) -> None:
+    # Structured refusal on stdout so the gateway surfaces it (it drops stderr when
+    # stdout is empty). These are expected agent-facing refusals, not crashes.
+    print(json.dumps({"ok": False, "error": message}, ensure_ascii=False, indent=2, sort_keys=True))
+    raise SystemExit(code)
+
+
+def _print(data: dict[str, Any]) -> None:
+    print(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+
+
+def _now() -> datetime:
+    return datetime.now(DEFAULT_TZ)
+
+
+def _default_brain_roots() -> list[Path]:
+    paths: list[Path] = []
+    env_root = os.environ.get("BRAIN_ROOT")
+    if env_root:
+        paths.append(Path(env_root).expanduser())
+    paths.extend(
+        [Path("/mnt/brain"), Path.home() / "brain", Path.home() / "OrangePi-Store" / "sync" / "brain"]
+    )
+    out, seen = [], set()
+    for p in paths:
+        if str(p) not in seen:
+            seen.add(str(p))
+            out.append(p)
+    return out
+
+
+def _brain_root(raw: str | None) -> Path:
+    if raw:
+        return Path(raw).expanduser()
+    for path in _default_brain_roots():
+        if path.exists():
+            return path
+    return _default_brain_roots()[0]
+
+
+def _repo_root() -> Path | None:
+    raw = os.environ.get("RTIME_ASSISTANT_ROOT")
+    if raw and (Path(raw) / "scripts").is_dir():
+        return Path(raw)
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / "scripts" / "ocr-pdf-to-md.py").is_file():
+            return parent
+    return None
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _slug(text: str) -> str:
+    slug = "-".join(re.findall(r"[A-Za-z0-9一-鿿]+", text))[:60].strip("-")
+    return slug or "bundle"
+
+
+def _item_kind(item: Path) -> str:
+    if item.is_dir():
+        return "dir"
+    if item.suffix.lower() == ".zip":
+        return "zip"
+    return "file"
+
+
+def _resolve_inbox_item(brain_root: Path, raw: str) -> Path:
+    candidate = Path(raw)
+    if not candidate.is_absolute():
+        candidate = brain_root / raw
+    candidate = candidate.resolve()
+    root = brain_root.resolve()
+    if not candidate.is_relative_to(root):
+        _die("inbox item must be inside the brain root")
+    rel = candidate.relative_to(root)
+    if not rel.parts or rel.parts[0] != "_inbox":
+        _die("inbox item must be under brain/_inbox/")
+    if candidate.is_file() and candidate.suffix == ".json":
+        _die("pass the inbox file/dir itself, not its .intake.json ticket")
+    if not candidate.exists():
+        _die(f"inbox item not found: {rel}")
+    return candidate
+
+
+def _validate_dest(brain_root: Path, dest_rel: str) -> Path:
+    if not dest_rel:
+        _die("dest (knowledge-relative destination dir) is required")
+    dest = (brain_root / dest_rel).resolve()
+    root = brain_root.resolve()
+    if not dest.is_relative_to(root):
+        _die("destination must stay inside the brain root")
+    rel = dest.relative_to(root)
+    if rel.parts and rel.parts[0] in EXCLUDED_TOP_DIRS:
+        _die("personal-data is not a finalize destination")
+    if not rel.parts or rel.parts[0] == "_inbox":
+        _die("destination must be a final dir (e.g. knowledge/...), not _inbox")
+    if rel.parts[0] != "knowledge":
+        _die("destination must be under knowledge/")
+    return dest
+
+
+def _finalize_dir(brain_root: Path) -> Path:
+    return brain_root / "_inbox" / ".finalize"
+
+
+def _plan_sha(inbox_rel: str, content_digest: str, dest_rel: str, name: str) -> str:
+    return hashlib.sha256(f"{inbox_rel}\n{content_digest}\n{dest_rel}\n{name}".encode("utf-8")).hexdigest()[:16]
+
+
+# --------------------------------------------------------------------------
+# Members + inventory (file / zip / dir)
+# --------------------------------------------------------------------------
+
+def _zip_members(zip_path: Path) -> tuple[list[tuple[str, int]], int, list[str]]:
+    """Return (members[(name,size)], total_bytes, unsafe_names). Zip-slip aware."""
+    members: list[tuple[str, int]] = []
+    unsafe: list[str] = []
+    total = 0
+    base = Path("/__extract__").resolve()
+    with zipfile.ZipFile(zip_path) as zf:
+        for info in zf.infolist():
+            if info.is_dir():
+                continue
+            target = (base / info.filename).resolve()
+            if not str(target).startswith(str(base) + os.sep) and target != base:
+                unsafe.append(info.filename)
+                continue
+            members.append((info.filename, info.file_size))
+            total += info.file_size
+    return members, total, unsafe
+
+
+def _dir_members(root: Path) -> tuple[list[tuple[str, int]], int]:
+    members: list[tuple[str, int]] = []
+    total = 0
+    for f in sorted(root.rglob("*")):
+        if f.is_file():
+            size = f.stat().st_size
+            members.append((str(f.relative_to(root)), size))
+            total += size
+    return members, total
+
+
+def _bundle_digest(members: list[tuple[str, int]]) -> str:
+    payload = "\n".join(f"{n}\t{s}" for n, s in sorted(members))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _suffix_kind(name: str) -> str:
+    suf = Path(name).suffix.lower()
+    if suf in TEXT_SUFFIXES:
+        return "text"
+    if suf == PDF_SUFFIX:
+        return "pdf"
+    if suf in OFFICE_ZIP:
+        return "office"
+    if suf in OFFICE_LEGACY:
+        return "office-legacy"
+    return "binary"
+
+
+def _inventory(members: list[tuple[str, int]]) -> dict[str, Any]:
+    counts: dict[str, int] = {}
+    sensitive: list[str] = []
+    for name, _ in members:
+        counts[_suffix_kind(name)] = counts.get(_suffix_kind(name), 0) + 1
+        base = Path(name).name
+        if any(p in base for p in SENSITIVE_NAME):
+            sensitive.append(name)
+    return {"files": len(members), "by_kind": counts, "sensitive_names": sensitive[:20]}
+
+
+def _reminder_target_env() -> dict[str, str]:
+    """Source the Feishu owner target from the standard config when not already in env.
+
+    rtime-reminder-register resolves its target from RTIME_REMINDER_DEFAULT_TARGET /
+    ALLOWED_USERS in the environment only; the gateway-launched context doesn't inherit
+    them, so read them from ~/.config/rtime-assistant/docker.env as a fallback."""
+    if os.environ.get("RTIME_REMINDER_DEFAULT_TARGET") or os.environ.get("ALLOWED_USERS"):
+        return {}
+    cfg = Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))) / "rtime-assistant" / "docker.env"
+    extra: dict[str, str] = {}
+    if not cfg.is_file():
+        return extra
+    try:
+        for line in cfg.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = line.strip()
+            if line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            if key.strip() in ("RTIME_REMINDER_DEFAULT_TARGET", "ALLOWED_USERS"):
+                extra[key.strip()] = value.strip().strip('"').strip("'")
+    except OSError:
+        pass
+    return extra
+
+
+def _notify_owner(plan: dict[str, Any], sha: str, repo: Path | None, *, tool: str = "finalize") -> dict[str, Any]:
+    """Notify the owner that a finalize awaits approval. Prefers the one-tap Feishu approve CARD
+    (sends + waits ~60s for the owner's click -> returns approved=true so the agent applies
+    immediately); falls back to a text reminder carrying the approve command. Metadata only —
+    never file bodies."""
+    inv = plan.get("parse", {}).get("inventory", {})
+    files = inv.get("files", 1) if plan["item_kind"] != "file" else 1
+    env = {**os.environ, **_reminder_target_env()}
+    summary = (f"🗂 **待审批入库**\n目标：`{plan['target_rel']}`（{plan['item_kind']}，{files} 文件）\n"
+               f"确认无误请点下方按钮批准（约 1 分钟内有效）。")
+    # 1) one-tap approve card: sends the card and waits up to ~60s for the click
+    approval = (repo / "deploy" / "bin" / "rtime-intake-approval") if repo else None
+    if approval and approval.exists():
+        try:
+            r = subprocess.run(
+                [sys.executable, str(approval), "request", "--sha", sha, "--tool", tool,
+                 "--summary", summary, "--timeout", "60"],
+                capture_output=True, text=True, timeout=90, env=env,
+            )
+            data = json.loads(r.stdout) if r.stdout.strip() else {}
+            if data.get("sent"):
+                return {"channel": "feishu-card", "sent": True, "approved": bool(data.get("approved")),
+                        "reason": data.get("next")}
+        except (OSError, subprocess.SubprocessError, ValueError):
+            pass
+    # 2) fallback: text reminder with the approve command
+    exe = (repo / "deploy" / "bin" / "rtime-reminder-register") if repo else None
+    if exe is None or not exe.exists():
+        return {"channel": "none", "sent": False, "reason": "no approval/reminder tool found"}
+    msg = (f"🗂 待审批入库：{plan['target_rel']}（{plan['item_kind']}，{files} 文件）。"
+           f"确认无误请批准：rtime-finalize approve {sha}")
+    argv = [sys.executable, str(exe)]
+    reminders = os.environ.get("RTIME_REMINDERS_PATH")
+    if reminders:
+        argv += ["--path", reminders]
+    argv += ["add", "--due", _now().isoformat(timespec="seconds"), "--message", msg, "--mode", "notify"]
+    try:
+        r = subprocess.run(argv, capture_output=True, text=True, timeout=30, env=env)
+        return {"channel": "feishu-reminder", "sent": r.returncode == 0,
+                "reason": None if r.returncode == 0 else (r.stderr or "")[-150:]}
+    except (OSError, subprocess.SubprocessError) as exc:
+        return {"channel": "feishu-reminder", "sent": False, "reason": str(exc)[:150]}
+
+
+def _pdf_has_text(pdf: Path) -> bool:
+    if not shutil.which("pdftotext"):
+        return False
+    try:
+        out = subprocess.run(["pdftotext", "-l", "2", str(pdf), "-"], capture_output=True, text=True, timeout=30)
+        return len(re.sub(r"\s", "", out.stdout or "")) >= 50
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+# --------------------------------------------------------------------------
+# plan
+# --------------------------------------------------------------------------
+
+def cmd_plan(args: argparse.Namespace) -> int:
+    brain_root = _brain_root(args.brain_root)
+    item = _resolve_inbox_item(brain_root, args.inbox)
+    dest = _validate_dest(brain_root, args.dest)
+    root = brain_root.resolve()
+    inbox_rel = str(item.relative_to(root))
+    dest_rel = str(dest.relative_to(root))
+    kind = _item_kind(item)
+    questions: list[dict[str, str]] = []
+
+    if kind == "file":
+        name = item.name
+        content_digest = sha256_file(item)
+        suf = _suffix_kind(name)
+        searchable = suf == "text" or (suf == "pdf" and _pdf_has_text(item))
+        parse = {"item_kind": "file", "file_kind": suf, "searchable": searchable}
+        target_rel = str((dest / name).relative_to(root))
+        if any(p in item.name for p in SENSITIVE_NAME):
+            questions.append({"id": "sensitive-filename", "severity": "blocker",
+                              "q": "文件名疑似含个人/敏感信息，确认入公开 knowledge 而非 personal-data?"})
+        if suf == "text":
+            try:
+                if SENSITIVE_RE.search(item.read_text(encoding="utf-8", errors="replace")[:20000]):
+                    questions.append({"id": "sensitive-content", "severity": "blocker",
+                                      "q": "正文命中敏感词，确认入库?（默认 hold 交 owner）"})
+            except OSError:
+                pass
+        tgt = dest / name
+        if tgt.exists() and tgt.is_file() and sha256_file(tgt) != content_digest:
+            questions.append({"id": "target-conflict", "severity": "blocker",
+                              "q": f"目标已存在同名异内容 {name}，改名/替换/跳过?"})
+        if not searchable:
+            questions.append({"id": "parse-gap", "severity": "confirm",
+                              "q": f"{suf} 无文本层，入库后需 OCR/DocPack 才可全文检索（--ocr 可在 apply 时做）。"})
+    else:
+        bundle_name = args.name or _slug(item.stem if kind == "zip" else item.name)
+        if kind == "zip":
+            members, total, unsafe = _zip_members(item)
+            content_digest = _bundle_digest(members)
+            if unsafe:
+                questions.append({"id": "zip-slip", "severity": "blocker",
+                                  "q": f"zip 含越界路径 {unsafe[:3]}…，拒绝解压。"})
+        else:
+            members, total = _dir_members(item)
+            content_digest = _bundle_digest(members)
+        inv = _inventory(members)
+        target_dir = dest / bundle_name
+        target_rel = str(target_dir.relative_to(root))
+        searchable = inv["by_kind"].get("text", 0) + inv["by_kind"].get("pdf", 0) + inv["by_kind"].get("office", 0) > 0
+        parse = {"item_kind": kind, "bundle_name": bundle_name, "inventory": inv,
+                 "total_bytes": total, "searchable": searchable}
+        if inv["files"] > MAX_BUNDLE_FILES or total > MAX_BUNDLE_BYTES:
+            questions.append({"id": "bundle-too-big", "severity": "blocker",
+                              "q": f"bundle {inv['files']} 文件/{total // 1024 // 1024}MB 超限（{MAX_BUNDLE_FILES}/{MAX_BUNDLE_BYTES // 1024 // 1024}MB），拆分或手工处理。"})
+        if inv["sensitive_names"]:
+            questions.append({"id": "sensitive-filename", "severity": "blocker",
+                              "q": f"包内文件名疑似敏感 {inv['sensitive_names'][:3]}…，确认入公开 knowledge?"})
+        if target_dir.exists() and any(target_dir.iterdir()):
+            questions.append({"id": "target-conflict", "severity": "blocker",
+                              "q": f"目标目录已存在且非空 {target_rel}，改名(--name)或先处理。"})
+        legacy = inv["by_kind"].get("office-legacy", 0)
+        scans = inv["by_kind"].get("pdf", 0)
+        if legacy or scans:
+            questions.append({"id": "parse-gap", "severity": "confirm",
+                              "q": f"含 {scans} 个 PDF / {legacy} 个旧 Office；无文本层的需 --ocr 或到 orangepi soffice 才进全文检索。"})
+
+    if not dest.exists():
+        questions.append({"id": "new-topic-dir", "severity": "confirm",
+                          "q": f"将新建分类目录 {dest_rel}，分类是否正确（已先读 _meta 规则）?"})
+
+    blockers = [q for q in questions if q["severity"] == "blocker"]
+    name_for_sha = parse.get("bundle_name", "") if kind != "file" else item.name
+    sha = _plan_sha(inbox_rel, content_digest, dest_rel, name_for_sha)
+    plan = {
+        "schema": "rtime-finalize-plan-v2",
+        "plan_sha": sha,
+        "created_at": _now().isoformat(timespec="seconds"),
+        "item_kind": kind,
+        "inbox_rel": inbox_rel,
+        "content_digest": content_digest,
+        "dest_rel": dest_rel,
+        "target_rel": target_rel,
+        "bundle_name": parse.get("bundle_name"),
+        "summary": args.summary or "",
+        "parse": parse,
+        "confirmation_questions": questions,
+        "blockers": [q["id"] for q in blockers],
+    }
+    if not args.dry_run and not blockers:
+        fdir = _finalize_dir(brain_root)
+        fdir.mkdir(parents=True, exist_ok=True)
+        (fdir / f"{sha}.plan.json").write_text(
+            json.dumps(plan, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+        )
+    approved = (_finalize_dir(brain_root) / f"{sha}.approved").exists()
+    notify = None
+    if getattr(args, "notify", False) and not blockers and not args.dry_run:
+        notify = _notify_owner(plan, sha, _repo_root())
+    _print({
+        "ok": True, "op": "plan", "plan_sha": sha, "item_kind": kind,
+        "inbox_rel": inbox_rel, "dest_rel": dest_rel, "target_rel": target_rel,
+        "parse": parse, "confirmation_questions": questions, "blocked": bool(blockers), "approved": approved,
+        "owner_notified": notify,
+        "next_step": (
+            "blocked: 解决 blocker（改名/移走敏感件/改 --name/拆分）后重新 plan"
+            if blockers else
+            f"owner approves: rtime-finalize approve {sha}  (owner-only) → then lib.finalize op=apply with plan_sha={sha}"
+        ),
+    })
+    return 0
+
+
+def cmd_approve(args: argparse.Namespace) -> int:
+    """OWNER-ONLY. Not exposed on the gateway — issues the confirmation token."""
+    brain_root = _brain_root(args.brain_root)
+    fdir = _finalize_dir(brain_root)
+    plan_path = fdir / f"{args.plan_sha}.plan.json"
+    if not plan_path.is_file():
+        _die(f"no finalize plan for sha {args.plan_sha} (run op=plan first; blocked plans are not written)")
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    if plan.get("blockers"):
+        _die(f"refusing to approve: plan has blockers {plan['blockers']} — resolve and re-plan first")
+    approved = {"plan_sha": args.plan_sha, "approved_at": _now().isoformat(timespec="seconds"),
+                "approved_by": os.environ.get("USER") or "owner"}
+    (fdir / f"{args.plan_sha}.approved").write_text(
+        json.dumps(approved, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+    )
+    _print({"ok": True, "op": "approve", "plan_sha": args.plan_sha, "target_rel": plan["target_rel"],
+            "note": "owner approval issued; an agent may now run lib.finalize op=apply with this plan_sha"})
+    return 0
+
+
+# --------------------------------------------------------------------------
+# apply helpers
+# --------------------------------------------------------------------------
+
+def _set_frontmatter_filed(md_path: Path) -> None:
+    try:
+        text = md_path.read_text(encoding="utf-8")
+    except OSError:
+        return
+    stamp = _now().date().isoformat()
+    if text.startswith("---\n") and "\n---" in text[4:]:
+        head, _, rest = text[4:].partition("\n---")
+        lines = [ln for ln in head.splitlines() if not ln.startswith("status:") and not ln.startswith("filed_at:")]
+        lines += ["status: filed", f"filed_at: {stamp}"]
+        md_path.write_text("---\n" + "\n".join(lines) + "\n---" + rest, encoding="utf-8")
+    else:
+        md_path.write_text(f"---\nstatus: filed\nfiled_at: {stamp}\n---\n\n" + text, encoding="utf-8")
+
+
+def _rebuild_index(brain_root: Path) -> dict[str, Any]:
+    index = os.environ.get("BRAIN_LIBRARY_INDEX") or str(
+        Path.home() / ".local" / "state" / "rtime-assistant" / "brain-library" / "brain-library.sqlite"
+    )
+    root = os.environ.get("RTIME_ASSISTANT_ROOT")
+    env = dict(os.environ)
+    if root:
+        env["PYTHONPATH"] = str(Path(root) / "packages" / "brain-library" / "src") + os.pathsep + env.get("PYTHONPATH", "")
+    env.setdefault("PYTHONUTF8", "1")
+    Path(index).parent.mkdir(parents=True, exist_ok=True)
+    try:
+        # 增量重建：复用未变文档的行与向量，入一篇只重切/重嵌那一篇 → 秒级
+        # (旧索引不兼容时自动降级为全量)。原 --force 全量在 3 万文档上要 ~20min。
+        r = subprocess.run(
+            [sys.executable, "-m", "brain_library.cli", "index", "build", str(brain_root), "--out", index, "--incremental", "--json"],
+            capture_output=True, text=True, timeout=600, env=env,
+        )
+        return {"ok": r.returncode == 0, "index": index, "error": None if r.returncode == 0 else (r.stderr or "")[-200:]}
+    except (OSError, subprocess.SubprocessError) as exc:
+        return {"ok": False, "index": index, "error": str(exc)[:200]}
+
+
+def _ocr_pdf(pdf: Path, out_md: Path, repo: Path | None, max_pages: int) -> bool:
+    if repo is None or not shutil.which("tesseract"):
+        return False
+    out_md.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        r = subprocess.run(
+            [sys.executable, str(repo / "scripts" / "ocr-pdf-to-md.py"), str(pdf),
+             "--out", str(out_md), "--max-pages", str(max_pages)],
+            capture_output=True, text=True, timeout=900,
+        )
+        return r.returncode == 0 and out_md.is_file()
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def _extract_office(file: Path, out_md: Path, repo: Path | None) -> bool:
+    if repo is None:
+        return False
+    out_md.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        r = subprocess.run(
+            [sys.executable, str(repo / "scripts" / "extract-office-text.py"), str(file), "--out", str(out_md)],
+            capture_output=True, text=True, timeout=120,
+        )
+        return r.returncode == 0 and out_md.is_file()
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def _build_docpack(pdf: Path, docpacks_dir: Path, repo: Path | None, ocr_max_pages: int = 50) -> bool:
+    """Build a structured DocPack (page images + OCR'd content.md) for a scanned PDF.
+    content.md is the L3 deep-processing surface the indexer picks up. OCR is capped at
+    ocr_max_pages so a few-hundred-page scan doesn't crawl (all pages still render)."""
+    if repo is None:
+        return False
+    docpacks_dir.mkdir(parents=True, exist_ok=True)
+    out = docpacks_dir / (pdf.stem + ".docpack")
+    try:
+        r = subprocess.run(
+            [sys.executable, str(repo / "scripts" / "build-docpack.py"), str(pdf),
+             "--out", str(out), "--ocr", "--ocr-max-pages", str(ocr_max_pages), "--force"],
+            capture_output=True, text=True, timeout=1800,
+        )
+        return r.returncode == 0 and (out / "content.md").is_file()
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def _parse_tree(target_dir: Path, repo: Path | None, *, ocr: bool, ocr_max_pages: int,
+                docpack: bool = False) -> dict[str, Any]:
+    """Make a filed tree searchable: PDF text-layer -> md, scanned PDF -> structured DocPack
+    (if docpack) or flat OCR md (if ocr), Office (pptx/docx/xlsx) -> extract md. Text files
+    already index. Returns a summary."""
+    md_dir = target_dir / "md"
+    docpacks_dir = target_dir / "docpacks"
+    res = {"pdf_text_md": 0, "docpack": 0, "ocr_md": 0, "office_md": 0, "flagged_needs_review": 0}
+    for f in sorted(target_dir.rglob("*")):
+        if not f.is_file() or f.is_relative_to(md_dir) or f.is_relative_to(docpacks_dir):
+            continue
+        suf = f.suffix.lower()
+        if suf == PDF_SUFFIX:
+            out = md_dir / (f.stem + ".md")
+            if out.exists():
+                continue
+            if _pdf_has_text(f):
+                try:
+                    txt = subprocess.run(["pdftotext", str(f), "-"], capture_output=True, text=True, timeout=180).stdout or ""
+                    out.parent.mkdir(parents=True, exist_ok=True)
+                    out.write_text(f"---\nstatus: filed\ntype: pdf-text-md\nsource_pdf: {f.name}\n---\n\n{txt}", encoding="utf-8")
+                    res["pdf_text_md"] += 1
+                except (OSError, subprocess.SubprocessError):
+                    res["flagged_needs_review"] += 1
+            elif docpack and _build_docpack(f, docpacks_dir, repo, ocr_max_pages):
+                res["docpack"] += 1
+            elif ocr and _ocr_pdf(f, out, repo, ocr_max_pages):
+                res["ocr_md"] += 1
+            else:
+                res["flagged_needs_review"] += 1
+        elif suf in OFFICE_ZIP:
+            out = md_dir / (f.stem + ".md")
+            if not out.exists() and _extract_office(f, out, repo):
+                res["office_md"] += 1
+            elif not out.exists():
+                res["flagged_needs_review"] += 1
+        elif suf in OFFICE_LEGACY:
+            res["flagged_needs_review"] += 1
+    return res
+
+
+def _write_catalog(target_dir: Path, plan: dict[str, Any], parse_res: dict[str, Any]) -> Path:
+    inv = plan["parse"].get("inventory", {})
+    name = plan.get("bundle_name") or target_dir.name
+    summary = plan.get("summary") or f"{name} —— 从 {plan['inbox_rel']} 入库的资料包。"
+    by_kind = inv.get("by_kind", {})
+    cat = target_dir / "_intake.md"
+    lines = [
+        "---", "type: bundle-catalog", "status: filed",
+        f"filed_at: {_now().date().isoformat()}", f"source_inbox: {plan['inbox_rel']}",
+        f"item_kind: {plan['item_kind']}", "---", "",
+        f"# {name}", "", summary, "",
+        "## 内容清单",
+        f"- 文件数：{inv.get('files', 0)}（{', '.join(f'{k}:{v}' for k, v in sorted(by_kind.items()))}）",
+        f"- 文本化产出：pdf文本 {parse_res.get('pdf_text_md', 0)}、OCR {parse_res.get('ocr_md', 0)}、"
+        f"office {parse_res.get('office_md', 0)}；待处理(无文本层) {parse_res.get('flagged_needs_review', 0)}",
+        "",
+        "> 解压版可直接用；`md/` 下是为全文检索抽的文本。标签：" + name.replace("-", " "),
+    ]
+    cat.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return cat
+
+
+def _course_ob_draft(dest_rel: str) -> dict[str, Any] | None:
+    parts = Path(dest_rel).parts
+    if len(parts) >= 3 and parts[0] == "knowledge" and parts[1] == "courses":
+        view_map = {"slides": "课件", "lectures": "讲义", "exercises": "习题",
+                    "exams": "试卷", "solutions": "答案", "references": "参考资料", "md": "文稿"}
+        view = view_map.get(parts[-1])
+        if view:
+            return {"hint": "合进 brain-notes/80 系统/course-view-manifest.json 填 <学期> 再 m4_link --verify",
+                    "entry": {"vault_rel": f"10 课程/<学期>/{parts[2]}/{view}", "brain_rel": dest_rel,
+                              "mode": "materialize", "prune": True}}
+    return None
+
+
+# --------------------------------------------------------------------------
+# apply
+# --------------------------------------------------------------------------
+
+def cmd_apply(args: argparse.Namespace) -> int:
+    brain_root = _brain_root(args.brain_root)
+    root = brain_root.resolve()
+    fdir = _finalize_dir(brain_root)
+    plan_path = fdir / f"{args.token}.plan.json"
+    approved_path = fdir / f"{args.token}.approved"
+    if not plan_path.is_file():
+        _die(f"no finalize plan for plan_sha {args.token}")
+    if not approved_path.is_file():
+        _die("refusing to finalize: no owner approval for this plan "
+             "(owner must run: rtime-finalize approve " + args.token + ")")
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    item = (brain_root / plan["inbox_rel"]).resolve()
+    if not item.exists():
+        _die(f"inbox item vanished: {plan['inbox_rel']}")
+    kind = plan["item_kind"]
+    repo = _repo_root()
+
+    # re-verify the approved content is unchanged
+    if kind == "file":
+        if sha256_file(item) != plan["content_digest"]:
+            _die("inbox file changed since it was approved — re-plan and re-approve")
+    elif kind == "zip":
+        members, _, _ = _zip_members(item)
+        if _bundle_digest(members) != plan["content_digest"]:
+            _die("zip changed since it was approved — re-plan and re-approve")
+    else:
+        members, _ = _dir_members(item)
+        if _bundle_digest(members) != plan["content_digest"]:
+            _die("directory changed since it was approved — re-plan and re-approve")
+
+    dest = _validate_dest(brain_root, plan["dest_rel"])
+    result: dict[str, Any] = {"ok": True, "op": "apply", "dry_run": bool(args.dry_run),
+                              "plan_sha": args.token, "item_kind": kind}
+
+    if kind == "file":
+        target = dest / item.name
+        if target.exists() and target.is_file() and sha256_file(target) != plan["content_digest"]:
+            _die(f"target exists with different content: {plan['target_rel']}")
+        parse_res = {}
+        if not args.dry_run:
+            dest.mkdir(parents=True, exist_ok=True)
+            if not target.exists():
+                shutil.copy2(item, target)
+            suf = _suffix_kind(item.name)
+            if suf == "text":
+                _set_frontmatter_filed(target)
+            elif suf == "pdf" and _pdf_has_text(target):
+                parse_res = _parse_tree(dest, repo, ocr=args.ocr, ocr_max_pages=args.ocr_max_pages, docpack=args.docpack)
+            elif suf in ("pdf", "office", "office-legacy") and args.ocr:
+                parse_res = _parse_tree(dest, repo, ocr=args.ocr, ocr_max_pages=args.ocr_max_pages, docpack=args.docpack)
+        result["filed_to"] = plan["target_rel"]
+        result["parse"] = parse_res
+    else:
+        target_dir = dest / plan["bundle_name"]
+        if target_dir.exists() and any(target_dir.iterdir()):
+            _die(f"target dir exists and is non-empty: {plan['target_rel']}")
+        if not args.dry_run:
+            target_dir.mkdir(parents=True, exist_ok=True)
+            if kind == "zip":
+                with zipfile.ZipFile(item) as zf:
+                    for info in zf.infolist():
+                        if info.is_dir():
+                            continue
+                        out = (target_dir / info.filename).resolve()
+                        if not str(out).startswith(str(target_dir.resolve()) + os.sep):
+                            _die(f"zip-slip member refused: {info.filename}")
+                        out.parent.mkdir(parents=True, exist_ok=True)
+                        with zf.open(info) as src, out.open("wb") as dst:
+                            shutil.copyfileobj(src, dst)
+            else:
+                shutil.copytree(item, target_dir, dirs_exist_ok=True)
+            parse_res = _parse_tree(target_dir, repo, ocr=args.ocr, ocr_max_pages=args.ocr_max_pages, docpack=args.docpack)
+            catalog = _write_catalog(target_dir, plan, parse_res)
+            result["catalog"] = str(catalog.relative_to(root))
+        else:
+            parse_res = {}
+        result["filed_to"] = plan["target_rel"]
+        result["parse"] = parse_res
+
+    result["obsidian"] = _course_ob_draft(plan["dest_rel"])
+    result["original_kept_in_inbox"] = plan["inbox_rel"]
+    result["index_rebuilt"] = {"ok": None, "skipped": True} if (args.no_reindex or args.dry_run) else _rebuild_index(brain_root)
+    flagged = (parse_res or {}).get("flagged_needs_review", 0)
+    result["next_step"] = (
+        "全文检索已可命中（lib.search / brain-search）。"
+        + ("课程项：按 obsidian.entry 合进 course-view-manifest 再 m4_link 物化。" if result["obsidian"] else "")
+        + (f"⚠ {flagged} 个无文本层件已归档但未进检索，需 --ocr 重跑或到 orangepi DocPack。" if flagged else "")
+    )
+    if not args.keep_token and not args.dry_run:
+        for suffix in (".plan.json", ".approved"):
+            p = fdir / f"{args.token}{suffix}"
+            if p.exists():
+                p.unlink()
+        result["approval_consumed"] = True
+    _print(result)
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Finalize a staged brain/_inbox item (file/zip/dir) into knowledge/ (owner-token gated).")
+    parser.add_argument("--brain-root", help="brain root; defaults to BRAIN_ROOT or known mounts")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_plan = sub.add_parser("plan", help="preview a finalize (no knowledge write); emits a plan sha")
+    p_plan.add_argument("--inbox", required=True, help="brain/_inbox-relative path of the staged file/zip/dir")
+    p_plan.add_argument("--dest", required=True, help="knowledge-relative destination dir, e.g. knowledge/templates/latex")
+    p_plan.add_argument("--name", help="bundle subdir name under dest (zip/dir); defaults to a slug of the item")
+    p_plan.add_argument("--summary", help="one-line description for the catalog (recommended for bundles)")
+    p_plan.add_argument("--notify", action="store_true", help="ping the owner via Feishu that this plan awaits approval")
+    p_plan.add_argument("--dry-run", action="store_true")
+
+    p_appr = sub.add_parser("approve", help="OWNER-ONLY: issue the confirmation token for a plan sha")
+    p_appr.add_argument("plan_sha")
+
+    p_apply = sub.add_parser("apply", help="execute a finalize; refuses without the owner approval")
+    p_apply.add_argument("--token", required=True, help="the owner-approved plan_sha")
+    p_apply.add_argument("--ocr", action="store_true", help="OCR scanned PDFs into flat searchable md (slow)")
+    p_apply.add_argument("--docpack", action="store_true", help="scanned PDFs -> structured DocPack (page images + OCR'd content.md)")
+    p_apply.add_argument("--ocr-max-pages", type=int, default=50)
+    p_apply.add_argument("--no-reindex", action="store_true", help="skip the BM25 index rebuild")
+    p_apply.add_argument("--keep-token", action="store_true", help="do not consume the one-time approval")
+    p_apply.add_argument("--dry-run", action="store_true")
+
+    args = parser.parse_args(argv)
+    _force_utf8()
+    if args.command == "plan":
+        return cmd_plan(args)
+    if args.command == "approve":
+        return cmd_approve(args)
+    if args.command == "apply":
+        return cmd_apply(args)
+    parser.error("unknown command")
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

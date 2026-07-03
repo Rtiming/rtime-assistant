@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rtime-automation": {
+      "cwd": ".",
+      "command": "./scripts/rtime-automation-mcp.sh",
+      "args": []
+    }
+  }
+}

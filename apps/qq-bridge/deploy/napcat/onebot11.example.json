@@ -1,0 +1,15 @@
+{
+  "network": {
+    "websocketReverse": [
+      {
+        "enable": true,
+        "url": "ws://qq-bridge:8080/onebot/v11",
+        "messagePostFormat": "string",
+        "token": "",
+        "reconnectInterval": 5000
+      }
+    ]
+  },
+  "messagePostFormat": "string",
+  "reportSelfMessage": false
+}

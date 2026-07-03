@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rtime.local/schemas/docpack/manifest.schema.json",
+  "title": "DocPack manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "docpack_id",
+    "created_at",
+    "source",
+    "display",
+    "outputs",
+    "risks"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "docpack_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tool": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256",
+        "media_type",
+        "size_bytes"
+      ],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "media_type": { "type": "string", "minLength": 1 },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "zotero_item": { "type": "string" },
+        "zotero_collection": { "type": "string" }
+      }
+    },
+    "display": {
+      "type": "object",
+      "required": [
+        "page_count",
+        "pages_dir"
+      ],
+      "properties": {
+        "display_pdf": { "type": "string" },
+        "pages_dir": { "type": "string", "minLength": 1 },
+        "page_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "required": [
+        "content_md",
+        "layout_json",
+        "verify_json",
+        "citations_json",
+        "chunks_jsonl"
+      ],
+      "properties": {
+        "content_md": { "type": "string", "minLength": 1 },
+        "concept_md": { "type": "string" },
+        "layout_json": { "type": "string", "minLength": 1 },
+        "verify_json": { "type": "string", "minLength": 1 },
+        "citations_json": { "type": "string", "minLength": 1 },
+        "chunks_jsonl": { "type": "string", "minLength": 1 },
+        "review_md": { "type": "string" },
+        "quality_md": { "type": "string" }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

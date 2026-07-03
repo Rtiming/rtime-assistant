@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""rtime 同步健康巡检：检测共享 brain/brain-notes 的设备是否长期离线，或出现 .sync-conflict 文件，
+命中则向 reminders.jsonl 排一条 notify（复用 reminder-sender 发飞书）。24h 内同一告警不重复。
+
+环境变量（均有默认，匹配公开部署形态）：
+  RTIME_SYNC_OFFLINE_HOURS   离线告警阈值小时，默认 48
+  RTIME_REMINDERS_PATH       reminders.jsonl 路径
+  RTIME_SYNC_ROOTS           冲突扫描根（冒号分隔），默认两个同步盘
+  RTIME_SYNC_STATE           去重状态文件
+  SYNCTHING_CONFIG           syncthing config.xml（默认自动定位）
+用法： rtime-sync-health [--test]   --test 立即发一条测试飞书以验证链路
+"""
+from __future__ import annotations
+import json, os, re, sys, glob, subprocess, urllib.request
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+
+TZ = timezone(timedelta(hours=8))
+OFFLINE_HOURS = float(os.environ.get("RTIME_SYNC_OFFLINE_HOURS", "48"))
+HOME = Path.home()
+
+def _first(*paths):
+    for p in paths:
+        if p and Path(p).exists():
+            return Path(p)
+    return None
+
+REMINDERS = Path(os.environ.get("RTIME_REMINDERS_PATH")
+    or _first("/mnt/brain/_system/reminders.jsonl",
+              str(HOME / "brain/_system/reminders.jsonl"))
+    or "/mnt/brain/_system/reminders.jsonl")
+SYNC_ROOTS = os.environ.get("RTIME_SYNC_ROOTS") or ":".join(filter(None, [
+    str(Path(REMINDERS).parents[1]),                       # .../brain
+    str(Path(REMINDERS).parents[2] / "brain-notes"),       # .../brain-notes
+]))
+STATE = Path(os.environ.get("RTIME_SYNC_STATE", str(HOME / ".local/state/rtime-sync-health.json")))
+CFG = _first(os.environ.get("SYNCTHING_CONFIG"),
+             str(HOME / ".local/state/syncthing/config.xml"),
+             str(HOME / ".config/syncthing/config.xml"))
+
+
+def now():
+    return datetime.now(TZ)
+
+
+def load_cfg(text):
+    apikey = (re.search(r"<apikey>([^<]+)</apikey>", text) or [None, None])[1]
+    gui = None
+    g = re.search(r"<gui[^>]*>(.*?)</gui>", text, re.S)
+    if g:
+        a = re.search(r"<address>([^<]+)</address>", g.group(1))
+        gui = a.group(1) if a else None
+    gui = gui or "127.0.0.1:8384"
+    devs = dict(re.findall(r'<device id="([^"]+)" name="([^"]+)"', text))
+    # brain-notes 共享的设备 id（只盯这些）
+    share = set()
+    for m in re.finditer(r"<folder\b[^>]*\bid=\"(brain-notes|brain)\"[^>]*>(.*?)</folder>", text, re.S):
+        for d in re.findall(r'<device id="([^"]+)"', m.group(2)):
+            share.add(d)
+    return apikey, gui, devs, share
+
+
+def api(gui, apikey, path):
+    req = urllib.request.Request(f"http://{gui}{path}", headers={"X-API-Key": apikey})
+    with urllib.request.urlopen(req, timeout=15) as r:
+        return json.loads(r.read().decode())
+
+
+def parse_iso(s):
+    try:
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
+def detect():
+    text = CFG.read_text(encoding="utf-8")
+    apikey, gui, devs, share = load_cfg(text)
+    myid = api(gui, apikey, "/rest/system/status").get("myID")
+    conns = api(gui, apikey, "/rest/system/connections").get("connections", {})
+    stats = api(gui, apikey, "/rest/stats/device")
+    alerts = {}  # key -> message
+    for did in share:
+        if did == myid:
+            continue
+        name = devs.get(did, did[:7])
+        if conns.get(did, {}).get("connected"):
+            continue
+        last = parse_iso((stats.get(did) or {}).get("lastSeen", ""))
+        if not last or last.year < 2000:
+            continue  # 从未连过，不误报
+        hrs = (datetime.now(timezone.utc) - last.astimezone(timezone.utc)).total_seconds() / 3600
+        if hrs >= OFFLINE_HOURS:
+            alerts[f"offline:{name}"] = f"设备「{name}」已离线 {int(hrs)} 小时（最后在线 {last.astimezone(TZ):%m-%d %H:%M}），其间的改动尚未同步过去。"
+    # 冲突文件
+    conflicts = []
+    for root in SYNC_ROOTS.split(":"):
+        if root and Path(root).exists():
+            try:
+                out = subprocess.run(["find", root, "-name", "*.sync-conflict-*", "-type", "f",
+                                      "-not", "-path", "*/.obsidian/*", "-not", "-path", "*/.stversions/*",
+                                      "-not", "-path", "*/.trash/*", "-not", "-path", "*/.git/*"],
+                                     capture_output=True, text=True, timeout=120).stdout
+                conflicts += [l for l in out.splitlines() if l.strip()]
+            except Exception:
+                pass
+    if conflicts:
+        alerts["conflict"] = f"发现 {len(conflicts)} 个同步冲突文件（.sync-conflict-*），需要你合并，例如：{Path(conflicts[0]).name}"
+    return alerts
+
+
+def enqueue_feishu(message):
+    rows = []
+    target = None
+    if REMINDERS.exists():
+        for line in REMINDERS.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                r = json.loads(line)
+            except Exception:
+                continue
+            rows.append(r)
+            if r.get("target") and r.get("status") in ("done", "pending") and "smoke" not in str(r.get("id", "")):
+                target = r["target"]
+    if not target:
+        print("no target in reminders.jsonl; cannot send", file=sys.stderr)
+        return False
+    rec = {"id": f"sync-health-{int(now().timestamp() * 1000)}", "created": now().isoformat(timespec="seconds"),
+           "due": now().isoformat(timespec="seconds"), "repeat": "none", "mode": "notify",
+           "message": message, "target": target, "status": "pending"}
+    with REMINDERS.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(rec, ensure_ascii=False, separators=(",", ":")) + "\n")
+    return True
+
+
+def main():
+    if not CFG:
+        print("syncthing config not found", file=sys.stderr)
+        return 1
+    if "--test" in sys.argv:
+        ok = enqueue_feishu("✅ 同步健康巡检已上线测试：以后某设备离线超过 "
+                            + str(int(OFFLINE_HOURS)) + "h 或出现同步冲突，会在这里提醒你。")
+        print("test alert queued" if ok else "test failed")
+        return 0
+    alerts = detect()
+    state = {}
+    if STATE.exists():
+        try:
+            state = json.loads(STATE.read_text(encoding="utf-8"))
+        except Exception:
+            state = {}
+    nowiso = now().isoformat(timespec="seconds")
+    to_send = []
+    for key, msg in alerts.items():
+        last = parse_iso(state.get(key, ""))
+        if last and (now() - last.astimezone(TZ)).total_seconds() < 24 * 3600:
+            continue  # 24h 内已报过，不重复
+        to_send.append((key, msg))
+    # 清理已恢复的条目
+    state = {k: v for k, v in state.items() if k in alerts}
+    if to_send:
+        body = "⚠️ Syncthing 同步告警：\n" + "\n".join("· " + m for _, m in to_send)
+        if enqueue_feishu(body):
+            for key, _ in to_send:
+                state[key] = nowiso
+    STATE.parent.mkdir(parents=True, exist_ok=True)
+    STATE.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+    print(f"checked; alerts={list(alerts)}; sent={[k for k,_ in to_send]}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

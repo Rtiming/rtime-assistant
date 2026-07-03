@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "brain-docpack": {
+      "cwd": ".",
+      "command": "./scripts/brain-docpack-mcp.sh",
+      "args": []
+    }
+  }
+}

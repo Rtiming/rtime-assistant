@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+set -euo pipefail
+
+export PATH="$PATH:$HOME/.npm-global/bin:/usr/local/bin:/usr/bin:/bin"
+
+# USTC agent-tools path: claude CLI -> LiteLLM (Anthropic /v1/messages -> USTC
+# OpenAI /v1 protocol translation, deploy/litellm/config.yaml). The LiteLLM base
+# URL is deployment topology, not a registry value: compose network uses
+# http://litellm:4000, host network / local CLI uses the 127.0.0.1:4000 default.
+#
+# Non-secret model DEFAULTS come from the registry-generated model-defaults.sh
+# sourced next to this wrapper (REG_*). The inline ${REG_*:-literal} keeps this
+# wrapper working if that file is absent; all three (registry, model-defaults.sh,
+# the inline literals) are kept equal by scripts/check-entrypoint-drift.py.
+# KEEP IN SYNC: packages/rtime-models/model-registry.json
+DEFAULTS_FILE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" >/dev/null 2>&1 && pwd)/model-defaults.sh"
+if [ -r "$DEFAULTS_FILE" ]; then
+  # shellcheck source=/dev/null
+  . "$DEFAULTS_FILE"
+fi
+
+KEY="${RTIME_LITELLM_MASTER_KEY:-}"
+KEYFILE="${RTIME_LITELLM_MASTER_KEY_FILE:-$HOME/.config/rtime-assistant/litellm-master-key}"
+if [ -z "${KEY:-}" ] && [ -f "$KEYFILE" ]; then
+  KEY="$(cat "$KEYFILE")"
+fi
+
+if [ -z "${KEY:-}" ]; then
+  echo "claude-ustc: missing LiteLLM master key (RTIME_LITELLM_MASTER_KEY or RTIME_LITELLM_MASTER_KEY_FILE)" >&2
+  exit 1
+fi
+
+USTC_MODEL="${RTIME_USTC_AGENT_MODEL:-${REG_USTC_MODEL:-deepseek-v4-flash-ascend}}"
+
+if [ -n "${CLAUDE_BIN:-}" ]; then
+  CLI="$CLAUDE_BIN"
+elif [ -x "$HOME/.npm-global/bin/claude" ]; then
+  CLI="$HOME/.npm-global/bin/claude"
+else
+  CLI="$(command -v claude || true)"
+fi
+
+if [ -z "$CLI" ]; then
+  echo "claude-ustc: missing claude CLI" >&2
+  exit 1
+fi
+
+# USTC chat aliases -> model ids the LiteLLM config serves.
+# KEEP IN SYNC: packages/rtime-models/model-registry.json (ustc-openai aliases)
+# and deploy/litellm/config.yaml model_list.
+resolve_ustc_model() {
+  case "$1" in
+    ds|deepseek)
+      printf 'deepseek-v4-flash-ascend'
+      ;;
+    qwen|qianwen|qwen-chat)
+      printf 'qwen3.6-chat'
+      ;;
+    qwen-reasoner)
+      printf 'qwen3.6-reasoner'
+      ;;
+    *)
+      printf '%s' "$1"
+      ;;
+  esac
+}
+
+# Resolve --model before exporting so ALL tier envs follow the requested model
+# (subagent/haiku calls then hit the same LiteLLM entry as the main model).
+args=()
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --model)
+      if [ "$#" -gt 1 ]; then
+        USTC_MODEL="$(resolve_ustc_model "$2")"
+        args+=("--model" "$USTC_MODEL")
+        shift 2
+      else
+        args+=("$1")
+        shift
+      fi
+      ;;
+    --model=*)
+      USTC_MODEL="$(resolve_ustc_model "${1#--model=}")"
+      args+=("--model=$USTC_MODEL")
+      shift
+      ;;
+    *)
+      args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+export ANTHROPIC_BASE_URL="${RTIME_LITELLM_BASE_URL:-http://127.0.0.1:4000}"
+export ANTHROPIC_AUTH_TOKEN="$KEY"
+export ANTHROPIC_MODEL="$USTC_MODEL"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="${RTIME_USTC_OPUS_MODEL:-$USTC_MODEL}"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="${RTIME_USTC_SONNET_MODEL:-$USTC_MODEL}"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="${RTIME_USTC_HAIKU_MODEL:-$USTC_MODEL}"
+export ANTHROPIC_SMALL_FAST_MODEL="${RTIME_USTC_SMALL_FAST_MODEL:-$USTC_MODEL}"
+# PoC-verified suppression flags: keep the CLI off experimental betas and
+# non-essential side calls the translated endpoint does not implement.
+export CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1
+export DISABLE_NON_ESSENTIAL_MODEL_CALLS=1
+
+if [[ "$CLI" == *.py ]]; then
+  exec python3 "$CLI" "${args[@]}"
+fi
+
+exec "$CLI" "${args[@]}"

@@ -1,0 +1,70 @@
+# LiteLLM proxy config — Anthropic /v1/messages -> USTC OpenAI /v1 protocol
+# translation, so the claude CLI (claude-ustc wrapper) gets FULL agent tools on
+# USTC models. PoC verified 2026-07: tool loop end-to-end in ~17s on
+# deepseek-v4-flash-ascend.
+#
+# Secrets NEVER live in this file: USTC_LLM_API_KEY and LITELLM_MASTER_KEY come
+# from the container environment (docker.env via compose). See compose.prod.yml
+# `litellm` service and docs/model-providers.zh-CN.md.
+#
+# KEEP IN SYNC: packages/rtime-models/model-registry.json (ustc-openai
+# routing_models) and the alias table in deploy/bin/claude-ustc — every model id
+# claude-rtime can route to claude-ustc needs an entry here, otherwise LiteLLM
+# returns 400 model-not-found.
+
+model_list:
+  # --- USTC (https://api.llm.ustc.edu.cn/v1), one entry per routed model id ---
+  - model_name: deepseek-v4-flash-ascend
+    litellm_params:
+      model: openai/deepseek-v4-flash-ascend
+      api_base: https://api.llm.ustc.edu.cn/v1
+      api_key: os.environ/USTC_LLM_API_KEY
+  - model_name: qwen3.6-chat
+    litellm_params:
+      model: openai/qwen3.6-chat
+      api_base: https://api.llm.ustc.edu.cn/v1
+      api_key: os.environ/USTC_LLM_API_KEY
+  - model_name: qwen3.6-reasoner
+    litellm_params:
+      model: openai/qwen3.6-reasoner
+      api_base: https://api.llm.ustc.edu.cn/v1
+      api_key: os.environ/USTC_LLM_API_KEY
+  # Legacy USTC routing ids kept for parity with RTIME_USTC_MODELS.
+  - model_name: qwen-chat
+    litellm_params:
+      model: openai/qwen-chat
+      api_base: https://api.llm.ustc.edu.cn/v1
+      api_key: os.environ/USTC_LLM_API_KEY
+  - model_name: qwen-reasoner
+    litellm_params:
+      model: openai/qwen-reasoner
+      api_base: https://api.llm.ustc.edu.cn/v1
+      api_key: os.environ/USTC_LLM_API_KEY
+  - model_name: smart/default
+    litellm_params:
+      model: openai/smart/default
+      api_base: https://api.llm.ustc.edu.cn/v1
+      api_key: os.environ/USTC_LLM_API_KEY
+  - model_name: smart/reasoning
+    litellm_params:
+      model: openai/smart/reasoning
+      api_base: https://api.llm.ustc.edu.cn/v1
+      api_key: os.environ/USTC_LLM_API_KEY
+
+  # --- Optional unified entry: local/edge Ollama OpenAI endpoint as a backup route.
+  # The primary Ollama path is zero-proxy (claude-ollama straight at the native
+  # Anthropic endpoint); this entry only exists so ONE LiteLLM URL can serve
+  # both providers when that is convenient. api_key "ollama" is a fixed literal,
+  # not a secret. ---
+  - model_name: qwen3.5:9b
+    litellm_params:
+      model: openai/qwen3.5:9b
+      api_base: http://127.0.0.1:11434/v1
+      api_key: ollama
+
+litellm_settings:
+  # USTC's endpoint rejects some Anthropic-side params; drop instead of 400.
+  drop_params: true
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY

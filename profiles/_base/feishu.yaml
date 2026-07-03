@@ -1,0 +1,12 @@
+# 飞书渠道级默认 profile(最小骨架)。飞书桥接入 loader 属 T2 后续动作;
+# 本轮只占位声明该渠道的默认渲染与权限基线,字段随飞书迁移时补齐。
+schema_version: 1
+profile:
+  id: _base-feishu
+identity:
+  name: 飞书个人助手
+permissions:
+  read_only: false
+  permission_mode: default
+output:
+  render: rich          # 飞书富文本(latex_unicode / 卡片),不做 QQ 那套 strip

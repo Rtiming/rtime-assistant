@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rtime-assistant-runtime": {
+      "cwd": ".",
+      "command": "./scripts/rtime-runtime-mcp.sh",
+      "args": []
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "_comment": [
+    "Subset read-only door for the student-union consumer. This policy is meant for a",
+    "SECOND gateway process (deploy/systemd/user/rtime-library-gateway-public.service,",
+    "HTTP 127.0.0.1:8781) — isolation is process-level: independent process + this",
+    "policy file + its own port. It does NOT rely on the self-reported MCP client name",
+    "(unauthenticated); 'clients' below defines ONLY 'default', so every caller of this",
+    "process gets the same restrictive rule no matter what name it reports.",
+    "",
+    "allowed_path_prefixes confines EVERY read to these brain subtrees (gate-enforced:",
+    "path args must resolve inside them; search/recent/tree/list get the prefix",
+    "injected or must pass one; other reads without a path are denied).",
+    ">>> CONFIRM THE REAL PREFIXES AT DEPLOY TIME: verified 2026-07-02 against the",
+    ">>> live brain (lib.search): activity content lives under",
+    ">>> knowledge/institutions/ustc/activities/ — there is NO knowledge/activities",
+    ">>> top-level dir, so the single ustc prefix below covers everything public.",
+    ">>> Re-verify with lib.tree on the owner instance before enabling the unit.",
+    "",
+    "Writes are denied by THREE independent locks: default_write=deny (tier switch),",
+    "the client deny globs below (lib.settings.*, lib.contribute, lib.finalize,",
+    "lib.course-intake, lib.jobs.*), and the allow list (non-empty => anything not",
+    "listed is denied, including every write and lib.jobs.get/list reads).",
+    "",
+    "'methods' is intentionally OMITTED: tiers then come from METHOD_TIERS in gate.py,",
+    "so this file can never drift behind newly added methods (a new method would be",
+    "denied by the allow list until explicitly added here).",
+    "",
+    "audit_log is separate from the owner instance's audit.jsonl so the two processes",
+    "never interleave their audit streams."
+  ],
+  "default_read": "allow",
+  "default_write": "deny",
+  "excluded_top_dirs": ["personal-data", "profile"],
+  "redact_sensitive": true,
+  "redact_student_pii": true,
+  "hide_excluded_in_results": true,
+  "allowed_path_prefixes": [
+    "knowledge/institutions/ustc"
+  ],
+  "audit_log": "{STATE}/rtime-library-gateway/audit-public.jsonl",
+  "clients": {
+    "default": {
+      "allow": [
+        "lib.doctor",
+        "lib.policy",
+        "lib.search",
+        "lib.read",
+        "lib.tree",
+        "lib.stat",
+        "lib.recent",
+        "lib.list"
+      ],
+      "deny": [
+        "lib.settings.*",
+        "lib.contribute",
+        "lib.finalize",
+        "lib.course-intake",
+        "lib.jobs.*"
+      ]
+    }
+  }
+}

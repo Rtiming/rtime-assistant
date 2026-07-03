@@ -1,0 +1,396 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Controlled web fetch/search/download helper for automated Claude Code runs."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import html
+import ipaddress
+import os
+import re
+import socket
+import stat
+import sys
+import time
+from html.parser import HTMLParser
+from http.cookiejar import LoadError, MozillaCookieJar
+from pathlib import Path
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
+
+
+MAX_BYTES = 24000
+MAX_LINK_BYTES = 240000
+MAX_TEXT_OUTPUT = 12000
+MAX_DOWNLOAD_BYTES = int(os.environ.get("RTIME_WEB_FETCH_MAX_DOWNLOAD_BYTES", str(200 * 1024 * 1024)))
+TIMEOUT = 20
+USER_AGENT = "rtime-assistant-web-fetch/1.0"
+TAILSCALE_CGNAT = ipaddress.ip_network("".join(("100", ".64.0.0/10")))
+SESSION_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
+SESSION_DIR = Path(
+    os.environ.get(
+        "RTIME_WEB_SESSION_DIR",
+        str(Path.home() / ".local/state/rtime-assistant/web-sessions"),
+    )
+).expanduser()
+DOWNLOAD_DIR = Path(
+    os.environ.get(
+        "RTIME_WEB_DOWNLOAD_DIR",
+        str(Path.home() / ".local/state/rtime-assistant/web-downloads"),
+    )
+).expanduser()
+
+
+def die(message: str, code: int = 2) -> None:
+    print(f"error: {message}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def _is_blocked_ip(value: str) -> bool:
+    ip = ipaddress.ip_address(value)
+    return (
+        ip.is_loopback
+        or ip.is_private
+        or ip.is_link_local
+        or ip.is_multicast
+        or ip.is_reserved
+        or ip.is_unspecified
+        or ip in TAILSCALE_CGNAT
+    )
+
+
+def _validate_public_url(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in {"http", "https"}:
+        die("only http/https URLs are allowed")
+    if not parsed.hostname:
+        die("URL host is required")
+    host = parsed.hostname
+    if host.lower() in {"localhost", "metadata.google.internal"}:
+        die("local or metadata hosts are blocked")
+    try:
+        infos = socket.getaddrinfo(host, parsed.port or (443 if parsed.scheme == "https" else 80))
+    except socket.gaierror as exc:
+        die(f"DNS lookup failed for {host}: {exc}")
+    blocked = sorted({item[4][0] for item in infos if _is_blocked_ip(item[4][0])})
+    if blocked:
+        die(f"private/internal address blocked for {host}: {', '.join(blocked)}")
+    return url
+
+
+class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):  # type: ignore[override]
+        _validate_public_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+class _LinkCollector(HTMLParser):
+    def __init__(self, base_url: str) -> None:
+        super().__init__()
+        self.base_url = base_url
+        self.links: list[tuple[str, str]] = []
+        self._href: str | None = None
+        self._text: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag.lower() != "a" or self._href is not None:
+            return
+        values = dict(attrs)
+        href = values.get("href")
+        if not href:
+            return
+        self._href = urllib.parse.urljoin(self.base_url, href)
+        self._text = []
+
+    def handle_data(self, data: str) -> None:
+        if self._href is not None:
+            self._text.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() != "a" or self._href is None:
+            return
+        label = re.sub(r"\s+", " ", html.unescape("".join(self._text))).strip()
+        self.links.append((label or "(no text)", self._href))
+        self._href = None
+        self._text = []
+
+
+def _validate_session_name(session: str) -> str:
+    if not SESSION_NAME_RE.fullmatch(session):
+        die("session name must match [A-Za-z0-9][A-Za-z0-9_.-]{0,63}")
+    return session
+
+
+def _check_cookie_permissions(path: Path) -> None:
+    if os.name == "nt":
+        return
+    mode = stat.S_IMODE(path.stat().st_mode)
+    if mode & 0o077:
+        die(f"session cookie jar must not be group/world-readable; run: chmod 600 {path}")
+
+
+def _session_cookie_path(session: str | None) -> Path | None:
+    if not session:
+        return None
+    name = _validate_session_name(session)
+    path = SESSION_DIR / f"{name}.cookies.txt"
+    if not path.exists():
+        die(f"session cookie jar not found: {path}")
+    if not path.is_file():
+        die(f"session cookie jar is not a file: {path}")
+    _check_cookie_permissions(path)
+    return path
+
+
+def _build_opener(cookie_path: Path | None = None) -> urllib.request.OpenerDirector:
+    handlers: list[urllib.request.BaseHandler] = [_SafeRedirectHandler()]
+    if cookie_path:
+        jar = MozillaCookieJar(str(cookie_path))
+        try:
+            jar.load(ignore_discard=True, ignore_expires=False)
+        except (LoadError, OSError) as exc:
+            die(f"failed to load session cookie jar {cookie_path}: {exc}")
+        handlers.insert(0, urllib.request.HTTPCookieProcessor(jar))
+    return urllib.request.build_opener(*handlers)
+
+
+def _open_url(url: str, cookie_path: Path | None = None):
+    safe_url = _validate_public_url(url)
+    request = urllib.request.Request(
+        safe_url,
+        headers={
+            "User-Agent": USER_AGENT,
+            "Accept": "text/html,application/xhtml+xml,application/xml,text/plain;q=0.9,*/*;q=0.5",
+        },
+    )
+    return _build_opener(cookie_path).open(request, timeout=TIMEOUT)
+
+
+def _request(url: str, session: str | None = None, max_bytes: int = MAX_BYTES) -> tuple[str, str, bytes, bool]:
+    cookie_path = _session_cookie_path(session)
+    with _open_url(url, cookie_path) as response:
+        data = response.read(max_bytes + 1)
+        final_url = response.geturl()
+        content_type = response.headers.get("content-type", "")
+        status = f"{response.status} {response.reason}"
+    return status, f"{final_url}\ncontent-type: {content_type}", data[:max_bytes], len(data) > max_bytes
+
+
+def _decode(data: bytes) -> str:
+    return data.decode("utf-8", errors="replace")
+
+
+def _html_to_text(text: str) -> str:
+    text = re.sub(r"(?is)<(script|style).*?</\1>", " ", text)
+    text = re.sub(r"(?s)<[^>]+>", " ", text)
+    text = html.unescape(text)
+    text = re.sub(r"[ \t\r\f\v]+", " ", text)
+    text = re.sub(r"\n\s*\n+", "\n\n", text)
+    return text.strip()
+
+
+def fetch_url(url: str, session: str | None = None) -> int:
+    status, meta, data, truncated = _request(url, session=session)
+    text = _html_to_text(_decode(data))
+    print(f"status: {status}")
+    print(meta)
+    if truncated:
+        print(f"truncated: first {MAX_BYTES} bytes")
+    print()
+    print(text[:MAX_TEXT_OUTPUT] if text else "(empty body)")
+    return 0
+
+
+def search(query: str, limit: int) -> int:
+    if not query.strip():
+        die("search query is empty")
+    limit = max(1, min(limit, 10))
+    params = urllib.parse.urlencode({"q": query, "format": "rss"})
+    url = f"https://www.bing.com/search?{params}"
+    status, meta, data, _truncated = _request(url)
+    root = ET.fromstring(data)
+    channel = root.find("channel")
+    items = [] if channel is None else channel.findall("item")
+    print(f"status: {status}")
+    print(meta)
+    print()
+    if not items:
+        print("(no search results parsed)")
+        return 0
+    for index, item in enumerate(items[:limit], start=1):
+        title = (item.findtext("title") or "").strip()
+        link = (item.findtext("link") or "").strip()
+        desc = _html_to_text(item.findtext("description") or "")
+        print(f"{index}. {title}")
+        print(link)
+        if desc:
+            print(desc[:600])
+        print()
+    return 0
+
+
+def list_links(url: str, session: str | None, limit: int) -> int:
+    limit = max(1, min(limit, 200))
+    status, meta, data, truncated = _request(url, session=session, max_bytes=MAX_LINK_BYTES)
+    final_url = meta.splitlines()[0]
+    parser = _LinkCollector(final_url)
+    parser.feed(_decode(data))
+    print(f"status: {status}")
+    print(meta)
+    if truncated:
+        print(f"truncated: first {MAX_LINK_BYTES} bytes")
+    print()
+    if not parser.links:
+        print("(no links parsed)")
+        return 0
+    for index, (label, href) in enumerate(parser.links[:limit], start=1):
+        print(f"{index}. {label}")
+        print(href)
+        print()
+    return 0
+
+
+def _safe_filename(name: str) -> str:
+    name = urllib.parse.unquote(name or "").strip().strip("\"'")
+    name = name.replace("\\", "/").split("/")[-1]
+    name = re.sub(r"[\x00-\x1f<>:\"|?*]+", "_", name).strip(" .")
+    if not name or name in {".", ".."}:
+        return "download.bin"
+    if len(name) <= 180:
+        return name
+    stem, dot, suffix = name.rpartition(".")
+    if dot and len(suffix) <= 16:
+        return f"{stem[: 179 - len(suffix)]}.{suffix}"
+    return name[:180]
+
+
+def _filename_from_content_disposition(value: str) -> str:
+    if not value:
+        return ""
+    encoded = re.search(r"filename\*\s*=\s*UTF-8''([^;]+)", value, re.IGNORECASE)
+    if encoded:
+        return urllib.parse.unquote(encoded.group(1).strip().strip("\"'"))
+    quoted = re.search(r"filename\s*=\s*\"([^\"]+)\"", value, re.IGNORECASE)
+    if quoted:
+        return quoted.group(1)
+    plain = re.search(r"filename\s*=\s*([^;]+)", value, re.IGNORECASE)
+    return plain.group(1).strip().strip("\"'") if plain else ""
+
+
+def _suggested_filename(final_url: str, content_disposition: str, explicit: str | None) -> str:
+    if explicit:
+        return _safe_filename(explicit)
+    from_header = _filename_from_content_disposition(content_disposition)
+    if from_header:
+        return _safe_filename(from_header)
+    parsed = urllib.parse.urlparse(final_url)
+    return _safe_filename(Path(parsed.path).name)
+
+
+def _unique_path(path: Path) -> Path:
+    if not path.exists():
+        return path
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    stem = path.stem or "download"
+    suffix = path.suffix
+    candidate = path.with_name(f"{stem}-{stamp}{suffix}")
+    counter = 2
+    while candidate.exists():
+        candidate = path.with_name(f"{stem}-{stamp}-{counter}{suffix}")
+        counter += 1
+    return candidate
+
+
+def download_url(url: str, session: str | None, filename: str | None) -> int:
+    cookie_path = _session_cookie_path(session)
+    DOWNLOAD_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
+    tmp_path: Path | None = None
+    with _open_url(url, cookie_path) as response:
+        final_url = response.geturl()
+        content_type = response.headers.get("content-type", "")
+        suggested = _suggested_filename(
+            final_url,
+            response.headers.get("content-disposition", ""),
+            filename,
+        )
+        destination = _unique_path(DOWNLOAD_DIR / suggested)
+        tmp_path = destination.with_name(f".{destination.name}.tmp-{os.getpid()}")
+        digest = hashlib.sha256()
+        total = 0
+        try:
+            with tmp_path.open("wb") as fh:
+                while True:
+                    chunk = response.read(1024 * 128)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > MAX_DOWNLOAD_BYTES:
+                        die(f"download exceeds max bytes: {MAX_DOWNLOAD_BYTES}")
+                    digest.update(chunk)
+                    fh.write(chunk)
+            os.replace(tmp_path, destination)
+        except BaseException:
+            if tmp_path and tmp_path.exists():
+                tmp_path.unlink()
+            raise
+    print(f"path: {destination}")
+    print(f"bytes: {total}")
+    print(f"sha256: {digest.hexdigest()}")
+    print(f"final-url: {final_url}")
+    print(f"content-type: {content_type}")
+    return 0
+
+
+def list_sessions() -> int:
+    SESSION_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
+    print(f"session-dir: {SESSION_DIR}")
+    sessions = sorted(SESSION_DIR.glob("*.cookies.txt"))
+    if not sessions:
+        print("(no sessions)")
+        return 0
+    for path in sessions:
+        mode = stat.S_IMODE(path.stat().st_mode)
+        name = path.name.removesuffix(".cookies.txt")
+        print(f"{name}\tmode={mode:o}\tmtime={time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(path.stat().st_mtime))}")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Controlled public web fetch/search/download helper.")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    fetch_parser = subparsers.add_parser("url", help="fetch a public http/https URL")
+    fetch_parser.add_argument("url")
+    fetch_parser.add_argument("--session", help="use a named Netscape cookie jar from the session dir")
+    search_parser = subparsers.add_parser("search", help="search public web results")
+    search_parser.add_argument("query")
+    search_parser.add_argument("--limit", type=int, default=5)
+    links_parser = subparsers.add_parser("links", help="list links from a public http/https URL")
+    links_parser.add_argument("url")
+    links_parser.add_argument("--session", help="use a named Netscape cookie jar from the session dir")
+    links_parser.add_argument("--limit", type=int, default=80)
+    download_parser = subparsers.add_parser("download", help="download a public http/https URL into the runtime download dir")
+    download_parser.add_argument("url")
+    download_parser.add_argument("--session", help="use a named Netscape cookie jar from the session dir")
+    download_parser.add_argument("--filename", help="safe output filename; directory components are ignored")
+    subparsers.add_parser("sessions", help="list configured session cookie jars without printing cookie values")
+    args = parser.parse_args(argv)
+    if args.command == "url":
+        return fetch_url(args.url, args.session)
+    if args.command == "search":
+        return search(args.query, args.limit)
+    if args.command == "links":
+        return list_links(args.url, args.session, args.limit)
+    if args.command == "download":
+        return download_url(args.url, args.session, args.filename)
+    if args.command == "sessions":
+        return list_sessions()
+    die("unknown command")
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

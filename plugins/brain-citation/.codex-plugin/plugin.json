@@ -1,0 +1,26 @@
+{
+  "name": "brain-citation",
+  "version": "0.1.0",
+  "description": "Read-only Obsidian/Zotero citation diagnostics for the rtime brain library.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Brain Citation",
+    "shortDescription": "Inspect Obsidian/Zotero citation crosswalks.",
+    "longDescription": "Brain Citation provides read-only diagnostics for Obsidian wikilinks, Zotero URI clues, BibTeX citekey coverage, DocPack citation anchors, and citation review risks in the rtime brain library.",
+    "developerName": "rtime",
+    "category": "Productivity",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Review my brain citation crosswalk.",
+      "Check Obsidian and Zotero citation readiness.",
+      "Find missing BibTeX coverage for citekeys."
+    ]
+  }
+}

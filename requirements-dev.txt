@@ -1,0 +1,14 @@
+# Dev/test dependencies for the repo's pytest suite — the reproducible "verify
+# env" the standards call for. Install with scripts/bootstrap-test-venv.sh.
+# Tests import only local modules otherwise (see tests/conftest.py for sys.path).
+pytest>=8
+pytest-cov>=5      # 覆盖率度量（ustc-kb audit/cms 底线 80%）
+ruff>=0.6          # lint + format（经 module-submit 门在 ustc-kb 上强制）
+jieba>=0.42        # brain_library indexer: Chinese BM25 tokenization
+beautifulsoup4>=4.12  # ustc_kb.cms imports bs4 at module top; tests fail to collect without it
+numpy>=1.24        # brain_library vector layer: degrade-path tests (light, model-independent)
+sqlite-vec>=0.1.1  # brain_library vector layer: vec0 table for the build-failure degrade test
+pydantic-settings>=2.0  # schema-driven config tests import rtime-config/admin-core models
+PyYAML>=6.0        # compose/profile tests parse YAML in the isolated test venv
+# onnxruntime/tokenizers intentionally omitted: the model-requiring vector tests skip in
+# CI (requires_model) so the gate stays light and independent of the embedding model.

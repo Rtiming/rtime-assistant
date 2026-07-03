@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+set -euo pipefail
+
+SESSION=kb
+export PATH="$HOME/.npm-global/bin:$PATH"
+
+if tmux has-session -t "$SESSION" 2>/dev/null; then
+  exec tmux attach -t "$SESSION"
+else
+  exec tmux new -s "$SESSION" -c "${BRAIN_ROOT:-/mnt/brain}" "$HOME/.npm-global/bin/claude"
+fi

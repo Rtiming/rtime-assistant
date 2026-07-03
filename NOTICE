@@ -1,0 +1,23 @@
+rtime-assistant
+Copyright (C) 2026 王韬智 (rtime)
+
+Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0-only).
+See LICENSE for the full text. Decision record: docs/design/open-source-architecture-2026-07.zh-CN.md
+
+Per-file annotation: source files carry an SPDX header
+(SPDX-License-Identifier: AGPL-3.0-only); stamp/verify with
+scripts/add-spdx-headers.py [--check]. Generated files and vendored
+third-party code are exempt and keep their own notices.
+
+Third-party notices
+-------------------
+- apps/feishu-bridge is a fork of an upstream Feishu/Lark bridge released
+  under the MIT License, Copyright (c) 2025 Jonathan. The upstream MIT text
+  is preserved at apps/feishu-bridge/LICENSE; modifications in this
+  repository are licensed AGPL-3.0-only.
+- tools/chat-intake/wechat-mp-rss is vendored we-mp-rss, MIT License,
+  Copyright (c) 2025 RACHEL. It keeps its own LICENSE and is NOT relicensed;
+  no AGPL headers are stamped there.
+- Voice transcription may use OpenAI Whisper model weights (MIT License,
+  Copyright (c) 2022 OpenAI); model files are downloaded/stored outside this
+  repository.

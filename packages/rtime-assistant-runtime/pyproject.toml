@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtime-assistant-runtime"
+version = "0.1.0"
+description = "Read-only runtime diagnostics for rtime-assistant services, logs, and templates."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+rtime-runtime = "rtime_assistant_runtime.cli:main"
+rtime-runtime-mcp = "rtime_assistant_runtime.mcp_server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

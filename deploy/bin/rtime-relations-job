@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Run the M10 relations job through plan/apply for systemd timers."""
+
+from __future__ import annotations
+
+import argparse
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+def _env_path(name: str, default: str) -> Path:
+    return Path(os.environ.get(name, default)).expanduser()
+
+
+def _run(cmd: list[str], cwd: Path) -> None:
+    subprocess.run(cmd, cwd=cwd, check=True)
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run M10 relations job via plan/apply")
+    parser.add_argument("--limit-related", type=int, default=5)
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv or sys.argv[1:])
+    repo = _env_path("RTIME_ASSISTANT_REPO", str(Path.home() / "rtime-assistant"))
+    brain = _env_path("RTIME_BRAIN_ROOT", "/mnt/brain")
+    run_dir = _env_path("RTIME_RELATIONS_RUN_DIR", str(Path.home() / ".local/state/rtime-assistant/pipeline/run-17"))
+    state_dir = _env_path("RTIME_RELATIONS_STATE_DIR", str(Path.home() / ".local/state/rtime-assistant/relations"))
+    script = repo / "scripts/brain-intake/m10_relations.py"
+    common = [
+        sys.executable,
+        str(script),
+        "--brain-root",
+        str(brain),
+        "--run-dir",
+        str(run_dir),
+        "--state-dir",
+        str(state_dir),
+        "--limit-related",
+        str(max(1, args.limit_related)),
+    ]
+    _run(common[:2] + ["--plan"] + common[2:], repo)
+    plan = run_dir / "m10-relations-plan.json"
+    _run(common[:2] + ["--apply", "--approved-plan", str(plan)] + common[2:], repo)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

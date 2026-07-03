@@ -1,0 +1,41 @@
+{
+  "name": "obsidian-rtime-assistant",
+  "version": "0.7.11",
+  "description": "Obsidian side-panel adapter for rtime-assistant.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs watch",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "gateway": "node dev/local-gateway.mjs",
+    "simulate": "node dev/simulate-plugin.mjs",
+    "test:conversations": "node dev/test-conversations.mjs",
+    "simulate:composer": "node dev/simulate-composer-request.mjs",
+    "simulate:live": "node dev/simulate-plugin.mjs --live",
+    "smoke:gateway": "node dev/smoke-gateway.mjs",
+    "e2e:gateway": "node dev/e2e-node-transport.mjs",
+    "test:context": "node dev/test-context.mjs",
+    "test:markdown": "node dev/test-markdown.mjs",
+    "test:attachments": "node dev/test-attachments.mjs",
+    "test:sse": "node dev/test-sse.mjs",
+    "test:runner": "node dev/test-ask-runner.mjs",
+    "package:plugin": "npm run build && node dev/package-plugin.mjs",
+    "publish:release": "node dev/publish-release.mjs",
+    "check": "npm run typecheck && npm run build && npm run simulate && npm run test:conversations && npm run test:context && npm run test:markdown && npm run test:attachments && npm run test:sse && npm run test:runner",
+    "test": "npm run build && npm run simulate && npm run test:conversations && npm run test:context && npm run test:markdown && npm run test:attachments && npm run test:sse && npm run test:runner",
+    "typecheck": "tsc -noEmit -skipLibCheck"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "rtime-assistant"
+  ],
+  "author": "rtime",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "builtin-modules": "^5.0.0",
+    "esbuild": "^0.27.0",
+    "obsidian": "^1.8.7",
+    "typescript": "^5.9.0"
+  }
+}

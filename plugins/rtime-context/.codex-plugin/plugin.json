@@ -1,0 +1,26 @@
+{
+  "name": "rtime-context",
+  "version": "0.1.0",
+  "description": "Read-only ContextUnlockPlan and Context Pack planning for rtime assistant workflows.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Rtime Context",
+    "shortDescription": "Plan and explain dynamic context unlocking.",
+    "longDescription": "Rtime Context provides read-only ContextUnlockPlan, Context Pack skeleton, and why-context explanation surfaces for routing tasks across workspace, brain, rtime-hub, runtime evidence, and sensitive-exclusion policies.",
+    "developerName": "rtime",
+    "category": "Productivity",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Plan context for this task.",
+      "Build a Context Pack skeleton.",
+      "Explain why this context should be loaded."
+    ]
+  }
+}

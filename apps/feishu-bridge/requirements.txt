@@ -1,0 +1,8 @@
+lark-oapi>=1.3.0
+python-dotenv>=1.0.0
+# Schema-driven config base (P2 config 收编 批 1): bot_config.FeishuBridgeConfig is a
+# pydantic-settings model. The rtime-config source itself is COPYed onto /app/packages
+# by docker/feishu-bridge.Dockerfile + put on sys.path by _shared_runtime.py; these are
+# its runtime deps, installed here so the import works in the Docker image.
+pydantic>=2.5
+pydantic-settings>=2.0

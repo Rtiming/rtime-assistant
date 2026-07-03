@@ -1,0 +1,493 @@
+name: rtime-assistant-prod
+
+services:
+  feishu-bridge:
+    image: ${RTIME_ASSISTANT_IMAGE:-rtime-assistant/feishu-bridge}:${RTIME_ASSISTANT_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: docker/feishu-bridge.Dockerfile
+      target: runtime
+      args:
+        INSTALL_CLAUDE_CODE: ${INSTALL_CLAUDE_CODE:-1}
+    platform: ${RTIME_ASSISTANT_PLATFORM:-linux/arm64}
+    init: true
+    restart: unless-stopped
+    user: "${RTIME_ASSISTANT_UID:-1000}:${RTIME_ASSISTANT_GID:-1000}"
+    working_dir: /app/apps/feishu-bridge
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      HOME: /var/lib/rtime-assistant
+      PATH: /usr/local/bin:/usr/bin:/bin
+      # T2 profile consumption for feishu — GATED OFF by default (empty). Feishu's
+      # live behaviour (incl. the empty-MCP=inherit-~/.claude.json semantics, design
+      # §八.12) is UNCHANGED until an owner explicitly sets FEISHU_RTIME_PROFILE. When
+      # set, the profile's explicit mcp_servers ("未列出=不注入") takes over — a
+      # behaviour change flagged for owner review before flipping (see PR notes).
+      RTIME_PROFILE: ${FEISHU_RTIME_PROFILE:-}
+      RTIME_PROFILES_ROOT: /etc/rtime/profiles
+      FEISHU_CONFIG_JSON: /run/secrets/rtime-assistant/feishu.json
+      # A1.5 通道无关分片归档:设 FEISHU_ARCHIVE_ROOT(如 /var/lib/rtime-assistant/
+      # chat-archive)即启用;空=飞书零归档(现状,空env不遮蔽 dd243b7)。
+      FEISHU_ARCHIVE_ROOT: ${FEISHU_ARCHIVE_ROOT:-}
+      FEISHU_ARCHIVE_MODE: ${FEISHU_ARCHIVE_MODE:-}
+      CLAUDE_BIN: ${CLAUDE_BIN:-/usr/local/bin/claude}
+      CLAUDE_CLI_PATH: ${CLAUDE_CLI_PATH:-/usr/local/bin/claude-rtime}
+      CLAUDE_KIMI_KEYFILE: /run/secrets/rtime-assistant/claude-kimi-key
+      RTIME_CLAUDE_FALLBACK: ${RTIME_CLAUDE_FALLBACK:-/usr/local/bin/claude-kimi}
+      RTIME_DEEPSEEK_CLAUDE_WRAPPER: ${RTIME_DEEPSEEK_CLAUDE_WRAPPER:-/usr/local/bin/claude-deepseek}
+      RTIME_QWEN_CLAUDE_WRAPPER: ${RTIME_QWEN_CLAUDE_WRAPPER:-/usr/local/bin/claude-qwen}
+      RTIME_DEEPSEEK_API_KEY: ${RTIME_DEEPSEEK_API_KEY:-}
+      RTIME_DEEPSEEK_API_KEY_FILE: /run/secrets/rtime-assistant/deepseek-api-key
+      RTIME_DEEPSEEK_ANTHROPIC_BASE_URL: ${RTIME_DEEPSEEK_ANTHROPIC_BASE_URL:-https://api.deepseek.com/anthropic}
+      RTIME_DEEPSEEK_MODEL: ${RTIME_DEEPSEEK_MODEL:-deepseek-v4-pro[1m]}
+      RTIME_DEEPSEEK_FAST_MODEL: ${RTIME_DEEPSEEK_FAST_MODEL:-deepseek-v4-flash}
+      RTIME_DEEPSEEK_CODE_MODELS: ${RTIME_DEEPSEEK_CODE_MODELS:-deepseek-v4-pro,deepseek-v4-pro[1m],deepseek-v4-flash}
+      RTIME_QWEN_API_KEY: ${RTIME_QWEN_API_KEY:-}
+      RTIME_QWEN_API_KEY_FILE: /run/secrets/rtime-assistant/qwen-api-key
+      RTIME_QWEN_ANTHROPIC_BASE_URL: ${RTIME_QWEN_ANTHROPIC_BASE_URL:-https://dashscope-intl.aliyuncs.com/apps/anthropic}
+      RTIME_QWEN_MODEL: ${RTIME_QWEN_MODEL:-qwen3-coder-next}
+      RTIME_QWEN_FAST_MODEL: ${RTIME_QWEN_FAST_MODEL:-qwen3-coder-flash}
+      RTIME_QWEN_QUALITY_MODEL: ${RTIME_QWEN_QUALITY_MODEL:-qwen3-coder-plus}
+      RTIME_QWEN_CODE_MODELS: ${RTIME_QWEN_CODE_MODELS:-qwen3-coder-next,qwen3-coder-plus,qwen3-coder-plus-2025-09-23,qwen3-coder-flash}
+      RTIME_CODE_MODEL_ALIASES_JSON: ${RTIME_CODE_MODEL_ALIASES_JSON:-}
+      RTIME_USTC_BASE_URL: ${RTIME_USTC_BASE_URL:-https://api.llm.ustc.edu.cn/v1}
+      RTIME_USTC_API_KEY: ${RTIME_USTC_API_KEY:-}
+      RTIME_USTC_API_KEY_FILE: /run/secrets/rtime-assistant/ustc-api-key
+      RTIME_USTC_MODELS: ${RTIME_USTC_MODELS:-deepseek-v4-flash-ascend,qwen-chat,qwen-reasoner,qwen3.6-chat,qwen3.6-reasoner,smart/default,smart/reasoning}
+      RTIME_USTC_MODEL_ALIASES_JSON: ${RTIME_USTC_MODEL_ALIASES_JSON:-}
+      RTIME_USTC_MAX_TOKENS: ${RTIME_USTC_MAX_TOKENS:-8192}
+      RTIME_USTC_TIMEOUT: ${RTIME_USTC_TIMEOUT:-180}
+      # USTC agent-tools path (claude-ustc -> litellm). 1 = full tools (default);
+      # 0 = legacy tool-less inline chat in claude-rtime.
+      RTIME_USTC_AGENT: ${RTIME_USTC_AGENT:-1}
+      RTIME_USTC_CLAUDE_WRAPPER: ${RTIME_USTC_CLAUDE_WRAPPER:-/usr/local/bin/claude-ustc}
+      RTIME_LITELLM_BASE_URL: ${RTIME_LITELLM_BASE_URL:-http://litellm:4000}
+      RTIME_LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
+      # Local Ollama agent path (srv03 Jetson; slow prefill, offline fallback).
+      RTIME_OLLAMA_CLAUDE_WRAPPER: ${RTIME_OLLAMA_CLAUDE_WRAPPER:-/usr/local/bin/claude-ollama}
+      RTIME_OLLAMA_BASE_URL: ${RTIME_OLLAMA_BASE_URL:-http://127.0.0.1:11434}
+      RTIME_OLLAMA_MODEL: ${RTIME_OLLAMA_MODEL:-qwen3.5:9b}
+      RTIME_OLLAMA_MODELS: ${RTIME_OLLAMA_MODELS:-qwen3.5:9b,qwen2.5:3b}
+      DEFAULT_CWD: ${DEFAULT_CWD:-/mnt/brain}
+      DEFAULT_MODEL: ${DEFAULT_MODEL:-}
+      MODEL_ALIASES_JSON: ${MODEL_ALIASES_JSON:-}
+      PERMISSION_MODE: ${PERMISSION_MODE:-default}
+      FEISHU_OWNER_PERSONAL_LIBRARY_ACCESS: ${FEISHU_OWNER_PERSONAL_LIBRARY_ACCESS:-0}
+      OUTPUT_STYLE: ${OUTPUT_STYLE:-segmented}
+      SHOW_TOOL_CALLS: ${SHOW_TOOL_CALLS:-0}
+      STREAM_CHUNK_SIZE: ${STREAM_CHUNK_SIZE:-20}
+      MESSAGE_DEBOUNCE_SECONDS: ${MESSAGE_DEBOUNCE_SECONDS:-2.0}
+      MESSAGE_DEBOUNCE_MAX_MESSAGES: ${MESSAGE_DEBOUNCE_MAX_MESSAGES:-20}
+      MESSAGE_DEBOUNCE_MAX_CHARS: ${MESSAGE_DEBOUNCE_MAX_CHARS:-12000}
+      WATCHDOG_MAX_UPTIME_SECONDS: ${WATCHDOG_MAX_UPTIME_SECONDS:-0}
+      CALLBACK_PORT: ${CALLBACK_PORT:-9981}
+      RTIME_ASSISTANT_RUN_LOG: /var/lib/rtime-assistant/feishu-bridge-run.jsonl
+      RTIME_WEB_SESSION_DIR: ${RTIME_WEB_SESSION_DIR:-/var/lib/rtime-assistant/web-sessions}
+      RTIME_WEB_DOWNLOAD_DIR: ${RTIME_WEB_DOWNLOAD_DIR:-/var/lib/rtime-assistant/web-downloads}
+      RTIME_REMINDER_DEFAULT_TARGET: ${RTIME_REMINDER_DEFAULT_TARGET:-}
+      ALLOWED_USERS: ${ALLOWED_USERS:-}
+      ADMIN_USERS: ${ADMIN_USERS:-}
+      ALLOWED_CHATS: ${ALLOWED_CHATS:-}
+      REQUIRE_MENTION_IN_GROUP: ${REQUIRE_MENTION_IN_GROUP:-1}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-}
+      ANTHROPIC_AUTH_TOKEN: ${ANTHROPIC_AUTH_TOKEN:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
+      ANTHROPIC_SMALL_FAST_MODEL: ${ANTHROPIC_SMALL_FAST_MODEL:-}
+      HTTP_PROXY: ${RTIME_ASSISTANT_HTTP_PROXY:-}
+      HTTPS_PROXY: ${RTIME_ASSISTANT_HTTPS_PROXY:-}
+      FTP_PROXY: ${RTIME_ASSISTANT_FTP_PROXY:-}
+      ALL_PROXY: ${RTIME_ASSISTANT_ALL_PROXY:-}
+      NO_PROXY: ${RTIME_ASSISTANT_NO_PROXY:-localhost,127.0.0.1}
+      http_proxy: ${RTIME_ASSISTANT_HTTP_PROXY:-}
+      https_proxy: ${RTIME_ASSISTANT_HTTPS_PROXY:-}
+      ftp_proxy: ${RTIME_ASSISTANT_FTP_PROXY:-}
+      all_proxy: ${RTIME_ASSISTANT_ALL_PROXY:-}
+      no_proxy: ${RTIME_ASSISTANT_NO_PROXY:-localhost,127.0.0.1}
+    volumes:
+      - type: bind
+        source: ${BRAIN_ROOT:-/srv/brain}
+        target: /mnt/brain
+      # T2: git profiles/ tree read-only (only consumed when FEISHU_RTIME_PROFILE set).
+      - type: bind
+        source: ${RTIME_PROFILES_DIR:-/srv/rtime-assistant/profiles}
+        target: /etc/rtime/profiles
+        read_only: true
+      - type: bind
+        source: ${RTIME_ASSISTANT_ROOT:-/srv/rtime-assistant}
+        target: /workspace/rtime-assistant
+      - type: bind
+        source: ${RTIME_ASSISTANT_STATE_DIR:-/var/lib/rtime-assistant}
+        target: /var/lib/rtime-assistant
+      - type: bind
+        source: ${CLAUDE_STATE_ROOT:-/var/lib/rtime-assistant/.claude}
+        target: /var/lib/rtime-assistant/.claude
+      - type: bind
+        source: ${CLAUDE_CONFIG_JSON:-/etc/rtime-assistant/.claude.json}
+        target: /var/lib/rtime-assistant/.claude.json
+      - type: bind
+        source: ${CLAUDE_KIMI_KEYFILE:-/run/secrets/claude-kimi-key}
+        target: /run/secrets/rtime-assistant/claude-kimi-key
+        read_only: true
+      - type: bind
+        source: ${RTIME_USTC_API_KEY_FILE:-/dev/null}
+        target: /run/secrets/rtime-assistant/ustc-api-key
+        read_only: true
+      - type: bind
+        source: ${RTIME_DEEPSEEK_API_KEY_FILE:-/dev/null}
+        target: /run/secrets/rtime-assistant/deepseek-api-key
+        read_only: true
+      - type: bind
+        source: ${RTIME_QWEN_API_KEY_FILE:-/dev/null}
+        target: /run/secrets/rtime-assistant/qwen-api-key
+        read_only: true
+      - type: bind
+        source: ${FEISHU_CONFIG_JSON:-/etc/rtime-assistant/feishu.json}
+        target: /run/secrets/rtime-assistant/feishu.json
+        read_only: true
+    ports:
+      - "${CALLBACK_BIND:-127.0.0.1}:${CALLBACK_PORT:-9981}:${CALLBACK_PORT:-9981}"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python -c "import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:${CALLBACK_PORT:-9981}/healthz', timeout=3).read()"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # --- LiteLLM protocol translator: Anthropic /v1/messages -> USTC OpenAI /v1,
+  # giving the claude CLI full agent tools on USTC models (claude-ustc wrapper).
+  # SECURITY: pin LITELLM_IMAGE to a digest at deploy time. LiteLLM 1.82.7/1.82.8
+  # on PyPI were compromised (2025-11 supply-chain attack); treat the container
+  # tag the same way — lock the exact version/digest, never track :latest. ---
+  litellm:
+    image: ${LITELLM_IMAGE:-ghcr.io/berriai/litellm:main-stable}
+    restart: unless-stopped
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      # Both provided by docker.env (--env-file): the upstream USTC key used by
+      # the proxy, and the master key claude-ustc uses to auth to the proxy.
+      USTC_LLM_API_KEY: ${USTC_LLM_API_KEY:-}
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
+      # Blank out inherited proxy env (the docker client config on orangepi
+      # injects the host's 127.0.0.1:7890 clash proxy into new containers; on
+      # the compose bridge network that address is the container itself, so
+      # upstream connects hang). api.llm.ustc.edu.cn is domestic — direct.
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      http_proxy: ""
+      https_proxy: ""
+      NO_PROXY: "*"
+      no_proxy: "*"
+    volumes:
+      - type: bind
+        source: ./deploy/litellm/config.yaml
+        target: /app/config.yaml
+        read_only: true
+    ports:
+      # localhost-only publish: the host-network qq-bridge and local CLI reach
+      # it at 127.0.0.1:4000; feishu-bridge uses the compose DNS name litellm.
+      - "127.0.0.1:4000:4000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python3 -c "import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness', timeout=3).read()"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # --- QQ bridge (OneBot v11 + NapCat). Gated behind `profiles: [qq]` so the default
+  # feishu-only `up` is untouched; deploy with `docker compose --profile qq up -d`.
+  # Both use host networking (NapCat dials the bridge at 127.0.0.1). The bridge image
+  # is layered FROM the feishu image (claude + kimi wrappers + brain). ---
+  qqbr-napcat:
+    # Pinned to the digest of the verified-working image (not :latest) for reproducibility.
+    image: ${QQ_NAPCAT_IMAGE:-mlikiowa/napcat-docker@sha256:b98d613f25ec92ad90ca85a55105068e103fd8638595237e157efff433f5fba3}
+    profiles: ["qq"]
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      ACCOUNT: ${QQ_ACCOUNT:-}  # quick-login from the saved session (no QR re-scan)
+      # 掉线自动恢复:会话失效/被踢后用 ACCOUNT+密码自动重登,无需扫码。值放
+      # docker.env(git 外),空=只走扫码。见 apps/qq-bridge/ops/qqbridge.env.example。
+      NAPCAT_QUICK_PASSWORD: ${QQ_QUICK_PASSWORD:-}
+      NAPCAT_UID: ${RTIME_ASSISTANT_UID:-1000}
+      NAPCAT_GID: ${RTIME_ASSISTANT_GID:-1000}
+      # QQ/NapCat must use the Orange Pi's direct domestic network. Docker client
+      # proxy config can otherwise inject host-only 127.0.0.1:7890 into containers.
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      FTP_PROXY: ""
+      ALL_PROXY: ""
+      http_proxy: ""
+      https_proxy: ""
+      ftp_proxy: ""
+      all_proxy: ""
+      NO_PROXY: "*"
+      no_proxy: "*"
+    volumes:
+      - type: bind
+        source: ${QQ_NAPCAT_QQ_DIR:-/var/lib/rtime-assistant/napcat/QQ}
+        target: /app/.config/QQ
+      - type: bind
+        source: ${QQ_NAPCAT_CONFIG_DIR:-/var/lib/rtime-assistant/napcat/config}
+        target: /app/napcat/config
+
+  qq-bridge:
+    image: ${QQ_BRIDGE_IMAGE:-rtime-assistant/qq-bridge}:${RTIME_ASSISTANT_IMAGE_TAG:-local}
+    profiles: ["qq"]
+    build:
+      context: .
+      dockerfile: apps/qq-bridge/deploy/Dockerfile.m2
+      args:
+        BASE: ${RTIME_ASSISTANT_IMAGE:-rtime-assistant/feishu-bridge}:${RTIME_ASSISTANT_IMAGE_TAG:-local}
+    network_mode: host
+    init: true
+    restart: unless-stopped
+    user: "${RTIME_ASSISTANT_UID:-1000}:${RTIME_ASSISTANT_GID:-1000}"
+    environment:
+      HOME: /var/lib/rtime-assistant
+      # T2 profile consumption (design §2.6): bind to the git profile by id. When set,
+      # the bridge builds effective config env>store>profile>default from
+      # /etc/rtime/profiles/<id>/ (mounted read-only below). Prod = studentunion (the
+      # public read-only Q&A instance). Empty => legacy env-only path (unchanged).
+      # NOTE: env below still WINS over the profile (top layer) — after cutover, delete
+      # the profile-owned keys from docker.env (see deploy/PROFILE-CUTOVER.md) so the
+      # profile's read_only / prompt / groups / scope actually take effect.
+      RTIME_PROFILE: ${QQ_RTIME_PROFILE:-studentunion}
+      RTIME_PROFILES_ROOT: /etc/rtime/profiles
+      CLAUDE_BIN: ${CLAUDE_BIN:-/usr/local/bin/claude}
+      CLAUDE_CLI_PATH: ${CLAUDE_CLI_PATH:-/usr/local/bin/claude-rtime}
+      CLAUDE_KIMI_KEYFILE: /run/secrets/rtime-assistant/claude-kimi-key
+      RTIME_CLAUDE_FALLBACK: ${RTIME_CLAUDE_FALLBACK:-/usr/local/bin/claude-kimi}
+      RTIME_DEEPSEEK_CLAUDE_WRAPPER: ${RTIME_DEEPSEEK_CLAUDE_WRAPPER:-/usr/local/bin/claude-deepseek}
+      RTIME_QWEN_CLAUDE_WRAPPER: ${RTIME_QWEN_CLAUDE_WRAPPER:-/usr/local/bin/claude-qwen}
+      # USTC agent path: host network -> claude-ustc's default 127.0.0.1:4000
+      # already reaches the litellm service (published on localhost above).
+      RTIME_USTC_AGENT: ${RTIME_USTC_AGENT:-1}
+      RTIME_USTC_CLAUDE_WRAPPER: ${RTIME_USTC_CLAUDE_WRAPPER:-/usr/local/bin/claude-ustc}
+      RTIME_LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
+      RTIME_OLLAMA_CLAUDE_WRAPPER: ${RTIME_OLLAMA_CLAUDE_WRAPPER:-/usr/local/bin/claude-ollama}
+      RTIME_OLLAMA_BASE_URL: ${RTIME_OLLAMA_BASE_URL:-http://127.0.0.1:11434}
+      RTIME_OLLAMA_MODEL: ${RTIME_OLLAMA_MODEL:-qwen3.5:9b}
+      RTIME_OLLAMA_MODELS: ${RTIME_OLLAMA_MODELS:-qwen3.5:9b,qwen2.5:3b}
+      DEFAULT_CWD: ${QQ_DEFAULT_CWD:-/mnt/brain}
+      DEFAULT_MODEL: ${QQ_DEFAULT_MODEL:-}
+      PERMISSION_MODE: ${QQ_PERMISSION_MODE:-bypassPermissions}
+      QQ_OWNER_IDS: ${QQ_OWNER_IDS:-}
+      # 用户分级: admin(空=沿用 QQ_OWNER_IDS) / 普通用户私聊白名单(空=私聊仅 admin)
+      # / 黑名单(优先级最高,公开群内也拒)。
+      QQ_ADMIN_IDS: ${QQ_ADMIN_IDS:-}
+      QQ_ALLOWED_USERS: ${QQ_ALLOWED_USERS:-}
+      QQ_BLOCKED_USERS: ${QQ_BLOCKED_USERS:-}
+      QQ_BRIDGE_WS_HOST: 127.0.0.1
+      QQ_BRIDGE_WS_PORT: ${QQ_BRIDGE_WS_PORT:-8080}
+      QQ_BRIDGE_ARCHIVE: ${QQ_BRIDGE_ARCHIVE:-/qq-state/messages.jsonl}
+      # A1 P1 通道无关分片归档:设 QQ_ARCHIVE_ROOT(如 /qq-state/chat-archive)即切
+      # envelope 按日分片,取代上面的 legacy 平铺文件;空=沿用 legacy(空env不遮蔽,dd243b7)。
+      QQ_ARCHIVE_ROOT: ${QQ_ARCHIVE_ROOT:-}
+      QQ_ARCHIVE_MODE: ${QQ_ARCHIVE_MODE:-}
+      # A3 决策3 管理员上报:设为 feishu_selfheal 通道(容器写队列→host守护发飞书,零新增密钥)。
+      # 空=通知工具在位但无通道(no-op)。队列目录 /var/lib/rtime-assistant/notify-queue
+      # = host ~/.local/state/rtime-assistant/notify-queue(bind mount,selfheal 默认watch)。
+      RTIME_ADMIN_NOTIFY: ${RTIME_ADMIN_NOTIFY:-}
+      QQ_GROUP_INVITE_POLICY: ${QQ_GROUP_INVITE_POLICY:-}
+      QQ_GROUP_ALLOWLIST: ${QQ_GROUP_ALLOWLIST:-}
+      # 自动退非白名单群总开关(默认1=开)。公开答疑实例(管理员手动管群)设 0 关闭。
+      QQ_GROUP_AUTOLEAVE: ${QQ_GROUP_AUTOLEAVE:-}
+      # 公开答疑实例(学生会)三件套: 公开群 / 只读硬门 / system prompt。主线:这些由
+      # profiles/studentunion/ 承载(RTIME_PROFILE=studentunion)。下列 env 是 env-only
+      # 兼容层:多数字段 last-wins 覆盖 profile,但 QQ_READ_ONLY 是 fail-closed 例外
+      # (只能加只读、不能减)—— 见下方 QQ_READ_ONLY 注释与 deploy/PROFILE-CUTOVER.md。
+      QQ_PUBLIC_GROUPS: ${QQ_PUBLIC_GROUPS:-}
+      # SECURITY: NO ``:-0`` default here. read_only is a fail-closed restriction
+      # (config.py _restriction_union / 设计 §2.9): env can only UPGRADE it (=1 forces
+      # only-read on), it can NEVER downgrade the profile's ``read_only: true``. A
+      # ``:-0`` default would inject a misleading 0 that LOOKS like it disables the
+      # door (it does not — it's a no-op) and would just spam a warning. Leave unset =>
+      # the studentunion profile drives read_only. Set QQ_READ_ONLY=1 only to force an
+      # env-only instance read-only when no profile is used.
+      QQ_READ_ONLY: ${QQ_READ_ONLY:-}
+      QQ_SYSTEM_PROMPT: ${QQ_SYSTEM_PROMPT:-}
+      QQ_SESSIONS_DIR: ${QQ_SESSIONS_DIR:-/qq-state/sessions}
+      QQ_MEDIA_DIR: ${QQ_MEDIA_DIR:-/qq-state/inbound}
+      QQ_NAPCAT_FILE_DIR: ${QQ_NAPCAT_FILE_DIR:-/napcat-files}
+      QQ_STREAM_OUTPUT: ${QQ_STREAM_OUTPUT:-1}
+      QQ_SHOW_TOOL_CALLS: ${QQ_SHOW_TOOL_CALLS:-0}
+      QQ_DEBUG: ${QQ_DEBUG:-0}
+      QQ_MCP_CONFIG: ${QQ_MCP_CONFIG:-}
+      # 块5 正则直答: rules JSON inside the container (mount it under /qq-state). Empty=off.
+      QQ_DIRECT_RULES: ${QQ_DIRECT_RULES:-}
+      QQ_RUN_TIMEOUT_SECONDS: ${QQ_RUN_TIMEOUT_SECONDS:-600}
+      QQ_DEBOUNCE_SECONDS: ${QQ_DEBOUNCE_SECONDS:-1.5}
+      # Voice STT: local sherpa-onnx Paraformer model dir (mounted below). Empty model
+      # dir => STT auto-off (voice degrades gracefully). NapCat HTTP API does SILK→WAV.
+      QQ_STT_MODEL_DIR: ${QQ_STT_MODEL_DIR:-/stt-model}
+      QQ_NAPCAT_HTTP: ${QQ_NAPCAT_HTTP:-http://127.0.0.1:3000}
+      RTIME_ASSISTANT_RUN_LOG: /var/lib/rtime-assistant/qq-bridge-run.jsonl
+    volumes:
+      # mirror feishu's claude creds / kimi key / state via EXPLICIT binds
+      # (decoupled from the old `--volumes-from feishu`).
+      # brain: 学生会公开只读实例——**不挂整库文件系统**(否则 read-only 门下 Read/Grep
+      # 仍能读到 personal-data)。挂一个空占位目录顶掉 /mnt/brain;库访问全部走 8781
+      # 只读 scope 网关(QQ_MCP_CONFIG),网关已把范围锁死在 knowledge/institutions/ustc。
+      # 要给 owner 私助恢复整库,把 source 改回 ${BRAIN_ROOT} 并去掉 QQ_READ_ONLY 即可。
+      - type: bind
+        source: ${QQ_BRAIN_MOUNT:-/var/lib/rtime-assistant/qq-brain-empty}
+        target: /mnt/brain
+        read_only: true
+      - type: bind
+        source: ${RTIME_ASSISTANT_STATE_DIR:-/var/lib/rtime-assistant}
+        target: /var/lib/rtime-assistant
+      - type: bind
+        source: ${CLAUDE_STATE_ROOT:-/var/lib/rtime-assistant/.claude}
+        target: /var/lib/rtime-assistant/.claude
+      - type: bind
+        source: ${CLAUDE_CONFIG_JSON:-/etc/rtime-assistant/.claude.json}
+        target: /var/lib/rtime-assistant/.claude.json
+      - type: bind
+        source: ${CLAUDE_KIMI_KEYFILE:-/run/secrets/claude-kimi-key}
+        target: /run/secrets/rtime-assistant/claude-kimi-key
+        read_only: true
+      - type: bind
+        source: ${RTIME_USTC_API_KEY_FILE:-/dev/null}
+        target: /run/secrets/rtime-assistant/ustc-api-key
+        read_only: true
+      - type: bind
+        source: ${RTIME_DEEPSEEK_API_KEY_FILE:-/dev/null}
+        target: /run/secrets/rtime-assistant/deepseek-api-key
+        read_only: true
+      - type: bind
+        source: ${RTIME_QWEN_API_KEY_FILE:-/dev/null}
+        target: /run/secrets/rtime-assistant/qwen-api-key
+        read_only: true
+      # T2: git profiles/ tree, read-only, at the fixed path the loader reads
+      # (RTIME_PROFILES_ROOT=/etc/rtime/profiles). Design §2.6: profile.yaml is read
+      # in-process, NOT env-transited — the whole tree is mounted, loader picks the id.
+      - type: bind
+        source: ${RTIME_PROFILES_DIR:-/srv/rtime-assistant/profiles}
+        target: /etc/rtime/profiles
+        read_only: true
+      # QQ-specific state
+      - type: bind
+        source: ${QQ_STATE_DIR:-/var/lib/rtime-assistant/qq}
+        target: /qq-state
+      # NOTE (P5 阶段0): the full ``/brain-index`` bind was REMOVED here. This is a
+      # scoped consumer — it reaches the library ONLY through the 8781 scope gateway
+      # (QQ_MCP_CONFIG), never a local index copy. Binding the full-library index
+      # (even read-only) let any process in this container open the sqlite directly
+      # and read personal-data rows, bypassing the gateway's allowed_path_prefixes
+      # (the index-scope bypass, gap 缺口一). web-chat (the newer scoped consumer)
+      # already has no index bind — that is the template. Defense-in-depth only: the
+      # code-level index-reject in gate.py is the primary enforcement.
+      - type: bind
+        source: ${QQ_NAPCAT_TEMP_DIR:-/var/lib/rtime-assistant/napcat/QQ/NapCat/temp}
+        target: /napcat-files
+        read_only: true
+      # Local STT model (sherpa-onnx Paraformer-zh int8); dir may be empty => STT off.
+      - type: bind
+        source: ${STT_MODEL_HOST_DIR:-/var/lib/rtime-assistant/models/paraformer-zh}
+        target: /stt-model
+        read_only: true
+
+  # --- web-chat (T5a/T5b): browser Q&A entry. Gated behind `profiles: [web]` so the
+  # default `up` is untouched; deploy with `docker compose --profile web up -d`.
+  # stdlib HTTP + JSON-over-SSE, running every turn through rtime-chat-runtime
+  # (same runtime path as the bridges). The image is layered FROM the feishu image
+  # (claude + wrappers + rtime-chat-runtime). Default bind 127.0.0.1:8788 (internal
+  # only); tailnet-open by flipping WEB_CHAT_BIND to 0.0.0.0 behind a Tailscale ACL.
+  # SECURITY (design §5.3): gateway-only consumer — NO /mnt/brain mount. Library
+  # access is via the selected profile's channels.web.mcp_servers (for studentunion,
+  # the same 8781 scoped gateway as QQ).
+  web-chat:
+    image: ${WEB_CHAT_IMAGE:-rtime-assistant/web-chat}:${RTIME_ASSISTANT_IMAGE_TAG:-local}
+    profiles: ["web"]
+    build:
+      context: .
+      dockerfile: apps/web-chat/deploy/Dockerfile.m2
+      args:
+        BASE: ${RTIME_ASSISTANT_IMAGE:-rtime-assistant/feishu-bridge}:${RTIME_ASSISTANT_IMAGE_TAG:-local}
+    platform: ${RTIME_ASSISTANT_PLATFORM:-linux/arm64}
+    init: true
+    restart: unless-stopped
+    user: "${RTIME_ASSISTANT_UID:-1000}:${RTIME_ASSISTANT_GID:-1000}"
+    working_dir: /app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      HOME: /var/lib/rtime-assistant
+      CLAUDE_BIN: ${CLAUDE_BIN:-/usr/local/bin/claude}
+      CLAUDE_CLI_PATH: ${CLAUDE_CLI_PATH:-/usr/local/bin/claude-rtime}
+      CLAUDE_KIMI_KEYFILE: /run/secrets/rtime-assistant/claude-kimi-key
+      RTIME_CLAUDE_FALLBACK: ${RTIME_CLAUDE_FALLBACK:-/usr/local/bin/claude-kimi}
+      RTIME_DEEPSEEK_CLAUDE_WRAPPER: ${RTIME_DEEPSEEK_CLAUDE_WRAPPER:-/usr/local/bin/claude-deepseek}
+      RTIME_QWEN_CLAUDE_WRAPPER: ${RTIME_QWEN_CLAUDE_WRAPPER:-/usr/local/bin/claude-qwen}
+      RTIME_USTC_AGENT: ${RTIME_USTC_AGENT:-1}
+      RTIME_USTC_CLAUDE_WRAPPER: ${RTIME_USTC_CLAUDE_WRAPPER:-/usr/local/bin/claude-ustc}
+      RTIME_LITELLM_BASE_URL: ${RTIME_LITELLM_BASE_URL:-http://litellm:4000}
+      RTIME_LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
+      DEFAULT_CWD: ${WEB_CHAT_DEFAULT_CWD:-/var/lib/rtime-assistant}
+      DEFAULT_MODEL: ${WEB_CHAT_DEFAULT_MODEL:-}
+      PERMISSION_MODE: ${WEB_CHAT_PERMISSION_MODE:-default}
+      # HTTP server bind (design §5.3). 0.0.0.0 only behind Tailscale ACL.
+      WEB_CHAT_BIND: ${WEB_CHAT_BIND:-127.0.0.1}
+      WEB_CHAT_PORT: ${WEB_CHAT_PORT:-8788}
+      RTIME_PROFILES_ROOT: /etc/rtime/profiles
+      # State (session store) dir INSIDE the container (bind-mounted below).
+      RTIME_WEB_CHAT_STATE_DIR: /web-chat-state
+      # Optional ad-hoc override. Empty => use the real git profiles/ loader;
+      # inline JSON array or a path to a JSON file bypasses profiles/ for one-off
+      # instances (see apps/web-chat/web_chat/profiles.py).
+      RTIME_WEB_CHAT_PROFILES: ${RTIME_WEB_CHAT_PROFILES:-}
+      # Process-default MCP config for the model CLI. A profile's
+      # channels.web.mcp_servers overrides this per session.
+      WEB_CHAT_MCP_CONFIG: ${WEB_CHAT_MCP_CONFIG:-}
+      WEB_CHAT_ARCHIVE_ROOT: ${WEB_CHAT_ARCHIVE_ROOT:-}
+      WEB_CHAT_ARCHIVE_MODE: ${WEB_CHAT_ARCHIVE_MODE:-}
+      WEB_CHAT_SHOW_TOOL_CALLS: ${WEB_CHAT_SHOW_TOOL_CALLS:-0}
+      WEB_CHAT_RUN_TIMEOUT_SECONDS: ${WEB_CHAT_RUN_TIMEOUT_SECONDS:-600}
+      WEB_CHAT_DEBUG: ${WEB_CHAT_DEBUG:-0}
+      RTIME_ASSISTANT_RUN_LOG: /var/lib/rtime-assistant/web-chat-run.jsonl
+    volumes:
+      # NO /mnt/brain mount by design (gateway-only consumer). Shared claude creds
+      # + kimi key + state, mirroring the other services' EXPLICIT binds.
+      - type: bind
+        source: ${RTIME_ASSISTANT_STATE_DIR:-/var/lib/rtime-assistant}
+        target: /var/lib/rtime-assistant
+      - type: bind
+        source: ${CLAUDE_STATE_ROOT:-/var/lib/rtime-assistant/.claude}
+        target: /var/lib/rtime-assistant/.claude
+      - type: bind
+        source: ${CLAUDE_CONFIG_JSON:-/etc/rtime-assistant/.claude.json}
+        target: /var/lib/rtime-assistant/.claude.json
+      - type: bind
+        source: ${CLAUDE_KIMI_KEYFILE:-/run/secrets/claude-kimi-key}
+        target: /run/secrets/rtime-assistant/claude-kimi-key
+        read_only: true
+      # web-chat-specific state (session store).
+      - type: bind
+        source: ${WEB_CHAT_STATE_DIR:-/var/lib/rtime-assistant/web-chat}
+        target: /web-chat-state
+      # T5b: git profiles/ tree, read-only. Web-chat lists profiles with channels.web.
+      - type: bind
+        source: ${RTIME_PROFILES_DIR:-/srv/rtime-assistant/profiles}
+        target: /etc/rtime/profiles
+        read_only: true
+    ports:
+      - "${WEB_CHAT_BIND:-127.0.0.1}:${WEB_CHAT_PORT:-8788}:${WEB_CHAT_PORT:-8788}"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python -c "import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:${WEB_CHAT_PORT:-8788}/healthz', timeout=3).read()"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

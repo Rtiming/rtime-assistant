@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtime-review"
+version = "0.1.0"
+description = "Read-only review-console data surfaces for rtime assistant workflows."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+rtime-review = "rtime_review.cli:main"
+rtime-review-mcp = "rtime_review.mcp_server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

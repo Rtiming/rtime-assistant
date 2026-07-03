@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtime-config"
+version = "0.1.0"
+description = "Schema-driven config foundation for rtime-assistant: pydantic-settings base class, shared field metadata (x-secret/x-reload/x-scope), and schema->markdown export. One model = validation + defaults + description + JSON Schema, shared by CLI/docs/future admin API."
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.5",
+    "pydantic-settings>=2.0",
+    # profile loader parses profile.yaml (declarative git profile layer, §二).
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+# Emit docs/config/<name>.md from a settings model's JSON Schema.
+rtime-config-doc = "rtime_config.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

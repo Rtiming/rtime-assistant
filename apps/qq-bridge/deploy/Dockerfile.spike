@@ -1,0 +1,17 @@
+# QQ bridge M1 echo spike.
+# Build context MUST be the repo root (needs packages/rtime-chat-runtime).
+#   docker build -f apps/qq-bridge/deploy/Dockerfile.spike -t qqbr-bridge .
+FROM python:3.12-slim
+
+WORKDIR /app
+RUN pip install --no-cache-dir "aiohttp>=3.9" "python-dotenv>=1.0"
+
+# Shared channel-agnostic primitives + the bridge package.
+COPY packages/rtime-chat-runtime /app/packages/rtime-chat-runtime
+COPY apps/qq-bridge/qq_bridge /app/qq_bridge
+
+ENV RTIME_CHAT_RUNTIME_SRC=/app/packages/rtime-chat-runtime/src \
+    PYTHONUNBUFFERED=1
+
+EXPOSE 8080
+CMD ["python", "-m", "qq_bridge"]

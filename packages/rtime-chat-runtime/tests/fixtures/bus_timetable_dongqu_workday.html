@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<title>班车查询</title>
+	<script src="https://weixine.ustc.edu.cn/ustcqy/newbustimetable_phone/js/mui.min.js" type="text/javascript"></script>
+	<script src="https://weixine.ustc.edu.cn/ustcqy/bustimetable/js/jquery-2.1.1.js" type="text/javascript"></script>
+	<script src="https://weixine.ustc.edu.cn/ustcqy/bustimetable/js/jquery-weui.js" type="text/javascript"></script>
+	<link rel="stylesheet" href="https://weixine.ustc.edu.cn/ustcqy/bustimetable/css/weui.css">
+	<link rel="stylesheet" href="https://weixine.ustc.edu.cn/ustcqy/bustimetable/css/weui-ext.css">
+	<link rel="stylesheet" href="https://weixine.ustc.edu.cn/ustcqy/bustimetable/css/jquery-weui.css">
+
+	<link href="https://weixine.ustc.edu.cn/ustcqy/newbustimetable_phone/css/base.css" rel="stylesheet" />
+	<link href="https://weixine.ustc.edu.cn/ustcqy/newbustimetable_phone/css/mui.min.css" rel="stylesheet" />
+	<link rel="stylesheet" href="https://weixine.ustc.edu.cn/ustcqy/newbustimetable_phone/font-awesome/css/font-awesome.css">
+	<link rel="stylesheet" href="https://weixine.ustc.edu.cn/ustcqy/newbustimetable_phone/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="https://weixine.ustc.edu.cn/ustcqy/newbustimetable_phone/css/style2
+
+		.css" />
+	<link href="https://weixine.ustc.edu.cn/ustcqy/newbustimetable_phone/css/mui.picker.css" rel="stylesheet" />
+	<link href="https://weixine.ustc.edu.cn/ustcqy/newbustimetable_phone/css/mui.poppicker.css" rel="stylesheet" />
+
+	<!--<script type="text/javascript" charset="utf-8">
+        mui.init();
+    </script>-->
+	<style>
+		body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, form, fieldset, th, td, input, select, textarea, option, button, p, abbr, address, artical, aside, b, bdo, blockquote, button, datalist, del, details, dialog, em, strong, dfn, code, samp, kbd, var, cite, footer, header, i, ins, legend, m, menu, nav, q, section, time
+		{
+			font-size: 14px;
+			color: #333333;
+		}
+		html,body {
+			color: #333333;
+			font-size: 14px;
+		}
+		body {
+			padding: 0 15px;
+			background-color: #f2f2f2;
+		}
+		.query-header {
+			background-color: #004d95!important;
+			background-image: linear-gradient(to bottom, rgba(0,77,149,0.7) , rgba(0,77,149,1));
+			opacity: 1;
+			height: 64px;
+			line-height: 64px;
+		}
+		.mui-bar-nav~.mui-content {
+			padding-top: 62px;
+		}
+		.query-title {
+			font-size: 18px;
+		}
+		.mui-bar .mui-title {
+			top: 12px;
+		}
+		.query-header .query-title {
+			text-align: left;
+		}
+		.clr {
+			clear: both;
+		}
+		.timeUl{
+			text-decoration: none;
+			list-style: none;
+			padding: 0px 15px;
+
+		}
+		.timeUl li{
+			width: 25%;
+			float:left;
+			font-size: 18px;
+		}
+		.plate-icon {
+			padding: 11px 0 15px 15px;
+			float: left;
+		}
+		li.plate-icon.plate-address {
+			padding: 11px 5px;
+		}
+		.weui_cell_bd {
+			float: left;
+			padding-right: 12px;
+		}
+		.plate-icon input[type=checkbox], input[type=radio] {
+			vertical-align: middle;
+		}
+
+		/* 去掉input、button点击后的背景色 */
+		.plate1 .mui-btn.mui-active:enabled,
+		.plate1 .mui-btn:enabled:active,
+		.plate1 button.mui-active:enabled,
+		.plate1 button:enabled:active,
+		.plate1 input[type=button].mui-active:enabled,
+		.plate1 input[type=button]:enabled:active,
+		.plate1 input[type=reset].mui-active:enabled,
+		.plate1 input[type=reset]:enabled:active,
+		.plate1 input[type=submit].mui-active:enabled,
+		.plate1 input[type=submit]:enabled:active {
+			color: #333;
+			background: none;
+		}
+		.transit-list ul li {
+			border-bottom: 1px solid #eeeeee;
+		}
+		.transit-list ul li .mui-btn.mui-active:enabled,
+		.transit-list ul li .mui-btn:enabled:active,
+		.transit-list ul li button.mui-active:enabled,
+		.transit-list ul li button:enabled:active,
+		.transit-list ul li input[type=button].mui-active:enabled,
+		.transit-list ul li input[type=button]:enabled:active,
+		.transit-list ul li input[type=reset].mui-active:enabled,
+		.transit-list ul li input[type=reset]:enabled:active,
+		.transit-list ul li input[type=submit].mui-active:enabled,
+		.transit-list ul li input[type=submit]:enabled:active {
+			color: #333;
+			background: none;
+		}
+		#keyword {
+			font-size: 14px!important;
+			color: #bbbbbb;
+		}
+		#keyword1 {
+			font-size: 14px!important;
+			color: #bbbbbb;
+		}
+		#school_select_div > .mui-control-item {
+			font-size: 16px!important;
+			color: #878787;
+		}
+		#school_select_div > .mui-control-item.mui-active {
+			color: #333333;
+		}
+		.transit-list ul li button {
+			border: 1px solid #4285fc;
+			font-size: 15px;
+			border-radius: 4px;
+		}
+		.transit-list h5 {
+			font-size: 16px;
+		}
+		.transit-list ul li p {
+			font-size: 14px;
+		}
+		#select_tip_msg {
+			font-size: 12px;
+			color: #878787;
+			padding-left: 0;
+		}
+        .select_tip_msg {
+            font-size: 12px;
+            color: #878787;
+            padding-left: 0;
+        }
+		.mui-list-search .mui-list-bottom:after {
+			background-color:#eeeeee;
+		}
+		.mui-slider .mui-segmented-control.mui-segmented-control-inverted~.mui-slider-group .mui-slider-item {
+			border-top-color: #eeeeee;
+			border-bottom-color: #eeeeee;
+		}
+		.mui-table-view-cell:after {
+			background-color:#eeeeee;
+		}
+		.mui-table-view:after {
+			background-color:#eeeeee;
+		}
+		#changeSearchType {
+			display: flex;
+		}
+		#changeSearchType > .plate-icon {
+			width: 50%;
+			flex: 1;
+		}
+		input[type=checkbox], input[type=radio] {
+			width: 20px;
+			height: 20px;
+			transform: translateY(-2px);
+		}
+		.fa-exchange:before {
+			color: rgb(0,117,255)!important;
+		}
+	</style>
+</head>
+<body>
+<header class="mui-bar mui-bar-nav query-header">
+	<h1 class="mui-title query-title">班车查询</h1>
+</header>
+<form class="mui-content" action="https://weixine.ustc.edu.cn/ustcqy/mobile/busTimetable" method="get">
+	<div class="mui-content plate1">
+		<ul class="mui-table-view">
+			<li>
+				<div class="mui-table-view" id="changeSearchType">
+					<div class="plate-icon">
+						<label>
+							<input onclick="changValues(this.value)" type="radio" checked checked name="category" value="校园班车" />
+							<i>校园班车</i>
+						</label>
+					</div>
+					<div class="plate-icon plate-address">
+						<label>
+							<input onclick="changValues(this.value)" type="radio"   name="category"  value="高新园区班车" />
+							<i>高新园区班车</i>
+						</label>
+					</div>
+				</div>
+			</li>
+
+			<div class="clr" style="border-bottom: 1px solid #eeeeee; width: 100%; margin-left: 15px;"></div>
+
+			<li class="mui-table-view-cell mui-list-search">
+				<div class="mui-list-search-content">
+					<div class="mui-table-view-cell mui-list-bottom">
+						<i>起点：</i> <input id='keyword' class="mui-btn mui-btn-block transit-botton" name="startpoint" type="button" value="东区">
+					</div>
+					<div class="mui-table-view-cell">
+						<i>终点：</i> <input id='keyword1' class="mui-btn mui-btn-block transit-botton" name="endpoint" type='button' value="点击选择终点">
+					</div>
+				</div>
+
+				<div class="c-span2 wa-form3-pl0 wa-form3-pr0 wa-form3-route-exchange">
+					<i class="wa-form3-split"></i>
+					<i class="fa fa-exchange fa-rotate-90"></i>
+				</div>
+			</li>
+
+			<li class="plate-icon">
+								<div class="weui_cell_bd weui_cell_primary">
+					<label>
+						<input type="radio" onclick="changValues02(this.value)" checked checked name="week[]" value="工作日" />工作日
+					</label>&nbsp;&nbsp;
+				</div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<label>
+						<input type="radio" onclick="changValues02(this.value)"   name="week[]" value="节假日" />节假日
+					</label>&nbsp;&nbsp;
+				</div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<label>
+						<input type="checkbox" id="newTime" onclick="changValues02(this.value)"  name="week[]" value="当前时间" />当前时间
+					</label>
+				</div>
+			</li>
+			<div class="clr" style="border-bottom: 1px solid #eeeeee; width: 100%; margin-left: 15px;"></div>
+
+			<li class="mui-table-view-cell">
+				<div id="select_tip_msg" style=" ">
+                                                                        2026年3月1日试行。蓝色#标注的为本趟次有公交车辆运行。
+                                            				</div>
+			</li>
+		</ul>
+	</div>
+
+	<script language="JavaScript">
+
+		function changValues(values){
+			if(values=='高新园区班车') {
+				window.location = "https://weixine.ustc.edu.cn/ustcqy/mobile/busTimetable/xyy";
+			}else{
+				window.location = "https://weixine.ustc.edu.cn/ustcqy/mobile/busTimetable?category=" + values + "&week%5B%5D=工作日" + "&";
+			}
+		}
+
+		function changValues02(values){
+			var radionum = document.getElementsByName('category');
+			var category = '';
+			for(var i=0;i<radionum.length;i++){
+				if(radionum[i].checked){
+					category = radionum[i].value;
+				}
+			}
+			var checkNowTime = document.getElementById("newTime");
+			var urls = "";
+			if(values == "当前时间"){
+				if(checkNowTime.checked){
+					urls = urls+"&week%5B%5D=工作日";
+					urls = urls+"&week%5B%5D="+values;
+				}else{
+					urls = urls+"&week%5B%5D=工作日";
+				}
+			}else{
+				urls = urls+"&";
+				urls = urls+"&week%5B%5D="+values;
+			}
+			var keyword1 = $('#keyword1').val();
+			if(keyword1 == '点击选择终点'){ keyword1 = '' };
+			var keyword = $('#keyword').val();
+			if(keyword == '点击选择起点'){ keyword = '' };
+			urls = urls+"&startpoint="+keyword;
+			urls = urls+"&endpoint="+keyword1;
+			window.location = "https://weixine.ustc.edu.cn/ustcqy/mobile/busTimetable?category="+category+urls;
+		}
+
+		function changValues03(values){
+			var radionum = document.getElementsByName('category');
+			var category = '';
+			for(var i=0;i<radionum.length;i++){
+				if(radionum[i].checked){
+					category = radionum[i].value;
+				}
+			}
+			var urls = "&startpoint="+values;
+			var keyword1 = $('#keyword1').val();
+			if(keyword1!='点击选择终点'){
+				urls = urls+"&endpoint="+keyword1;
+			}
+			urls = urls+"&week%5B%5D=工作日"+"&";
+			//alert(values);
+			window.location = "https://weixine.ustc.edu.cn/ustcqy/mobile/busTimetable?category="+category+urls;
+		}
+
+		function changValues04(values){
+			var radionum = document.getElementsByName('category');
+			var category = '';
+			for(var i=0;i<radionum.length;i++){
+				if(radionum[i].checked){
+					category = radionum[i].value;
+				}
+			}
+			var urls = "&endpoint="+values;
+			var keyword = $('#keyword').val();
+			if(keyword!='点击选择起点'){
+				urls = urls+"&startpoint="+keyword;
+			}
+			urls = urls+"&week%5B%5D=工作日"+"&";
+			//alert(values);
+			window.location = "https://weixine.ustc.edu.cn/ustcqy/mobile/busTimetable?category="+category+urls;
+		}
+	</script>
+</form>
+<!--选项卡-->
+<div id="" class="mui-slider transit-slider">
+	<div id="school_select_div" class="mui-slider-indicator mui-segmented-control mui-segmented-control-inverted">
+		<a class="mui-control-item  mui-active "  style="border-bottom: 2px solid #0062CC;"  href="javascript:changValues03('东区')">
+			东校区
+		</a>
+		<a class="mui-control-item "   href="javascript:changValues03('南区')" >
+			南校区
+		</a>
+		<a class="mui-control-item "   href="javascript:changValues03('西区')" >
+			西校区
+		</a>
+	</div>
+	<div class="mui-slider-group mui-scroll-wrapper" style="overflow-y: auto;">
+		<div id="" class="mui-slider-item mui-control-content mui-scroll mui-active">
+			<div id="" class="" >
+				<div class="transit-list">
+					<ul class="mui-table-view">
+													<li>
+								<button>东区</button><i class="fa fa-caret-right "></i>
+																<button>
+									南区
+								</button>
+								<div><h5>发车时间：</h5>
+									<p style="color: blue;font-weight: bold;">7:30</p><p>08:30</p><p>11:35</p><p>11:45<span style="color:blue;">#</span></p><p>12:10</p><p>12:35</p><p>14:30</p><p>17:25</p><p>17:45<span style="color:blue;">#</span></p><p>18:10<span style="color:blue;">#</span></p><p>19:00</p><p>20:30</p><p>21:35<span style="color:blue;">#</span></p><p>22:30</p>								</div>
+							</li>
+													<li>
+								<button>东区</button><i class="fa fa-caret-right "></i>
+								<button>北区</button><i class="fa fa-caret-right "></i>								<button>
+									西区
+								</button>
+								<div><h5>发车时间：</h5>
+									<p style="color: blue;font-weight: bold;">7:30</p><p>09:20<span style="color:blue;">#</span></p><p>09:35<span style="color:blue;">#</span></p><p>11:35</p><p>12:15<span style="color:blue;">#</span></p><p>13:30<span style="color:blue;">#</span></p><p>15:30<span style="color:blue;">#</span></p><p>15:50<span style="color:blue;">#</span></p><p>17:30<span style="color:blue;">#</span></p><p>17:50</p><p>18:40<span style="color:blue;">#</span></p><p>20:10<span style="color:blue;">#</span></p><p>21:15<span style="color:blue;">#</span></p><p>22:10<span style="color:blue;">#</span></p>								</div>
+							</li>
+											</ul>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+<script>
+	mui('body').on('tap','a',function(){document.location.href=this.href;});
+</script>
+
+<!--/选项卡-->
+<script src="https://weixine.ustc.edu.cn/ustcqy/newbustimetable_phone/js/mui.picker.js" type="text/javascript"></script>
+<script src="https://weixine.ustc.edu.cn/ustcqy/newbustimetable_phone/js/mui.poppicker.js" type="text/javascript"></script>
+<script type="text/javascript">
+	mui.init({
+		swipeBack:true //启用右滑关闭功能
+	});
+
+	//PopPicker选择器
+	var keyword=$("#keyword")[0];
+	if(keyword)
+	{
+		var buslinelist = [{"value":"0","text":"\u5168\u90e8"},{"value":"1","text":"\u4e1c\u533a"},{"value":"2","text":"\u5317\u533a"},{"value":"3","text":"\u5357\u533a"},{"value":"4","text":"\u897f\u533a"}];
+		console.log(buslinelist);
+		var picker=new mui.PopPicker();
+		picker.setData(buslinelist);
+		document.querySelector("#keyword").addEventListener("tap",function(){
+			picker.show(function(items){
+				$("#keyword").val(items[0].text);
+				changValues03(items[0].text);
+			});
+		});
+	}
+	//PopPicker选择器
+	var keyword=$("#keyword1")[0];
+	if(keyword)
+	{
+		var buslinelist = [{"value":"0","text":"\u5168\u90e8"},{"value":"1","text":"\u4e1c\u533a"},{"value":"2","text":"\u5317\u533a"},{"value":"3","text":"\u5357\u533a"},{"value":"4","text":"\u897f\u533a"}];
+		var picker=new mui.PopPicker();
+		picker.setData(buslinelist);
+		document.querySelector("#keyword1").addEventListener("tap",function(){
+			picker.show(function(items){
+				$("#keyword1").val(items[0].text);
+				changValues04(items[0].text);
+			});
+		});
+	}
+</script>
+
+<script type="text/javascript">
+	$(".c-span2").click(function () {
+		var start = $("#keyword").val();
+		var stop = $("#keyword1").val();
+		console.log(start, stop);
+
+		if(start=='点击选择起点' && stop=='点击选择终点'){
+			alert('请选择起点或终点');
+		}else{
+			if(start=='点击选择起点'){
+				$("#keyword").val(stop);
+				$("#keyword1").val('点击选择终点');
+				start = $("#keyword").val();
+				stop = $("#keyword1").val();
+				console.log(start, stop);
+				changValues03(start);
+			}else if(stop=='点击选择终点'){
+				$("#keyword").val('点击选择起点');
+				$("#keyword1").val(start);
+				start = $("#keyword").val();
+				stop = $("#keyword1").val();
+				console.log(start, stop);
+				changValues04(stop);
+			}else{
+				$("#keyword").val(stop);
+				$("#keyword1").val(start);
+				start = $("#keyword").val();
+				stop = $("#keyword1").val();
+				console.log(start, stop);
+				changValues03(start);
+			}
+		}
+	})
+</script>
+</body>
+
+</html>

@@ -1,0 +1,36 @@
+# QQ 渠道级默认 profile —— 单层继承的唯一父(design §2.2)。
+# 具体实例 profile(如 studentunion/owner,T2 建)用 `extends: _base/qq` 继承本文件,
+# 再以显式字段整体替换少数项。这里放"改一处全渠道受益"的 QQ 默认。
+#
+# 注意:profile 只承载声明层,secrets(access_token 等)绝不入 profile —— 走 env/
+# keyfile(design §2.5)。account_ref 只是指向 NapCat 状态目录/凭据的名字,不含凭据值。
+schema_version: 1
+profile:
+  id: _base-qq
+identity:
+  name: QQ 个人助手
+  # 从 config.py 内置常量 QQ_CHAT_SYSTEM_PROMPT 迁出的默认系统提示词(§2.8):
+  # 一处真相,离开 env/compose;实例可用自己的 prompts/system.md 整体替换。
+  system_prompt_file: prompts/qq-system.md
+model:
+  default: kimi         # "" => wrapper 默认(kimi-code);此处显式命名默认别名
+  pinned_for_non_admin: true
+permissions:
+  read_only: false      # owner 渠道默认可写;只读实例(学生会)在自己的 profile 里开
+  permission_mode: default
+library:
+  redact_sensitive: false
+  hide_excluded_in_results: false
+plugins:
+  # QQ 空 MCP 语义:未列出任何 server => 不注入(跳过 ~1.4s 冷启);实例按需加 gateway。
+  mcp_servers: {}
+users:
+  admins: []
+  allowed: []
+  blocked: []
+channels:
+  qq:
+    group_invite_policy: reject
+    autoleave: true     # 默认自动退非白名单群;公开答疑实例在自己 profile 里设 false
+output:
+  render: plain_text    # QQ 纯文本渲染(确定性 strip 在渲染层,T6)

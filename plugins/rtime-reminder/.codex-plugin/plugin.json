@@ -1,0 +1,26 @@
+{
+  "name": "rtime-reminder",
+  "version": "0.1.0",
+  "description": "Write-capable rtime Feishu reminder registration tools with a narrow JSONL contract.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Rtime Reminder",
+    "shortDescription": "Register, list, and cancel rtime Feishu reminders.",
+    "longDescription": "Rtime Reminder provides a narrow write-capable reminder registration surface backed by brain/_system/reminders.jsonl. It avoids Claude Code Cron for Feishu phone push reminders and returns metadata without exposing reminder bodies or Feishu target values.",
+    "developerName": "rtime",
+    "category": "Productivity",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Register a reminder for tomorrow morning.",
+      "List pending reminder metadata.",
+      "Cancel a reminder by id."
+    ]
+  }
+}

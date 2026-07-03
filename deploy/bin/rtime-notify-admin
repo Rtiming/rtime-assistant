@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Escalate to the admin(s) through configured channels (A3 决策3).
+
+Narrow tool the assistant calls at its discretion when a situation warrants a
+human's attention (can't answer, needs人工, suspected issue, worth flagging).
+Channels are configured in env RTIME_ADMIN_NOTIFY (JSON array); this tool only
+dispatches — it never reads the library, Docker, or secrets beyond the channel
+config it is given. JSON stdout is metadata-only (per-channel ok/detail); the
+message body is NOT echoed to logs.
+
+Usage:
+  rtime-notify-admin --summary "有同学连续问社团注册截止,库里查不到" \
+      [--reason "答不上/需人工"] [--urgency low|normal|high] [--source studentunion-qq]
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+
+def _import_notify():
+    try:
+        from rtime_chat_runtime.admin_notify import notify_admin  # type: ignore
+        return notify_admin
+    except ModuleNotFoundError:
+        pass
+    # Container: qq/feishu images ship the package src and export its path in
+    # RTIME_CHAT_RUNTIME_SRC (not on PYTHONPATH for bare subprocesses). Dev: walk
+    # up from this script to the repo's packages/ tree. Try both.
+    import os
+
+    candidates = []
+    env_src = os.environ.get("RTIME_CHAT_RUNTIME_SRC", "").strip()
+    if env_src:
+        candidates.append(Path(env_src))
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        candidates.append(parent / "packages" / "rtime-chat-runtime" / "src")
+    for src in candidates:
+        if src.is_dir():
+            sys.path.insert(0, str(src))
+            break
+    from rtime_chat_runtime.admin_notify import notify_admin  # type: ignore
+    return notify_admin
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="rtime-notify-admin",
+        description="向配置的通道给管理员发一条上报(飞书/webhook/邮箱;QQ扩展点)。",
+    )
+    parser.add_argument("--summary", required=True, help="上报内容(模型自拟的简要说明)")
+    parser.add_argument("--reason", default="", help="事由类别,如 答不上/需人工/疑似问题")
+    parser.add_argument("--urgency", default="normal", choices=["low", "normal", "high"])
+    parser.add_argument("--source", default="assistant", help="来源标识,如 studentunion-qq")
+    args = parser.parse_args(argv)
+
+    notify_admin = _import_notify()
+    result = notify_admin(
+        args.summary,
+        reason=args.reason,
+        urgency=args.urgency,
+        source=args.source,
+    )
+    # 元数据 only:不回显正文;若未配置通道,明确告诉调用方(模型)以免误以为已送达。
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    if result.get("no_channel"):
+        return 3  # 未配置任何通道
+    return 0 if result.get("ok") else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

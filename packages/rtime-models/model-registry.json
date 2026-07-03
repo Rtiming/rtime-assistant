@@ -1,0 +1,486 @@
+{
+  "schema_version": 1,
+  "_comment": "Single non-secret source of truth for rtime model directory + routing. Secrets NEVER live here; each provider lists secret_env_names and the live secret is read from env/keyfile at runtime. alias / model-set / tier values are DEFAULTS only — every consumer keeps its env override (RTIME_*_MODELS, MODEL_ALIASES_JSON, RTIME_*_MODEL, base-url envs). Consumers: apps/assistant-gateway/{models,providers,gateway}.py, apps/feishu-bridge/{commands,bot_config}.py, deploy/bin/{claude-rtime,model-defaults.sh}. See packages/rtime-models/README.md + docs/maintainability-standards.zh-CN.md §三 P3.",
+  "default_model": "",
+  "providers": [
+    {
+      "id": "gateway-default",
+      "label": "Gateway default",
+      "protocol": "claude-wrapper/agent-tools",
+      "base_url": null,
+      "wrapper": null,
+      "secret_env_names": [],
+      "catalog": true,
+      "models": [
+        {
+          "id": "",
+          "label": "Gateway default model",
+          "cli_model": "",
+          "aliases": ["kimi"],
+          "default": true,
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        }
+      ]
+    },
+    {
+      "id": "kimi-code-wrapper",
+      "label": "Kimi Code wrapper",
+      "protocol": "claude-wrapper/agent-tools",
+      "base_url": "https://api.kimi.com/coding",
+      "wrapper": "claude-kimi",
+      "secret_env_names": ["CLAUDE_KIMI_KEYFILE"],
+      "catalog": true,
+      "models": [
+        {
+          "id": "kimi-code",
+          "label": "Kimi Code wrapper default",
+          "cli_model": "kimi-code",
+          "aliases": [],
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": 256000,
+            "thinking": "provider-default"
+          }
+        }
+      ]
+    },
+    {
+      "id": "moonshot-openai",
+      "label": "Moonshot/Kimi OpenAI-compatible",
+      "protocol": "openai-chat",
+      "base_url": "https://api.moonshot.ai/v1",
+      "base_url_cfg_key": "moonshot_base_url",
+      "wrapper": null,
+      "secret_env_names": [
+        "RTIME_MOONSHOT_API_KEY",
+        "MOONSHOT_API_KEY",
+        "KIMI_API_KEY",
+        "RTIME_MOONSHOT_API_KEY_FILE",
+        "MOONSHOT_API_KEY_FILE",
+        "KIMI_API_KEY_FILE"
+      ],
+      "file_extract": true,
+      "catalog": true,
+      "capability_rule": "moonshot",
+      "catalog_models_env": "RTIME_KIMI_OPENAI_MODELS",
+      "catalog_models": ["kimi-k2.7-code", "kimi-k2.6", "kimi-k2.5"],
+      "models": [
+        {
+          "id": "kimi-k2.7-code",
+          "label": "kimi-k2.7-code",
+          "cli_model": "kimi-k2.7-code",
+          "aliases": [],
+          "capabilities": {
+            "agent_tools": false,
+            "code": true,
+            "chat": true,
+            "vision": true,
+            "file_extract": true,
+            "long_context": 256000,
+            "thinking": "required"
+          }
+        },
+        {
+          "id": "kimi-k2.6",
+          "label": "kimi-k2.6",
+          "cli_model": "kimi-k2.6",
+          "aliases": [],
+          "capabilities": {
+            "agent_tools": false,
+            "code": true,
+            "chat": true,
+            "vision": true,
+            "file_extract": true,
+            "long_context": 256000,
+            "thinking": "supported"
+          }
+        },
+        {
+          "id": "kimi-k2.5",
+          "label": "kimi-k2.5",
+          "cli_model": "kimi-k2.5",
+          "aliases": [],
+          "capabilities": {
+            "agent_tools": false,
+            "code": true,
+            "chat": true,
+            "vision": false,
+            "file_extract": true,
+            "long_context": 256000,
+            "thinking": "supported"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ustc-openai",
+      "label": "USTC OpenAI-compatible",
+      "protocol": "openai-chat",
+      "base_url": "https://api.llm.ustc.edu.cn/v1",
+      "base_url_cfg_key": "ustc_base_url",
+      "wrapper": null,
+      "agent_wrapper": "claude-ustc",
+      "note": "agent_tools=true via the claude-ustc wrapper -> LiteLLM protocol translation (deploy/litellm/config.yaml, Anthropic /v1/messages -> USTC OpenAI /v1). RTIME_USTC_AGENT=0 falls back to the legacy tool-less inline chat path in claude-rtime.",
+      "secret_env_names": ["RTIME_USTC_API_KEY", "RTIME_USTC_API_KEY_FILE"],
+      "secret_file_cfg_key": "ustc_api_key_file",
+      "catalog": true,
+      "capability_rule": "ustc",
+      "catalog_models_env": "RTIME_USTC_MODELS",
+      "catalog_models": ["deepseek-v4-flash-ascend", "qwen3.6-chat", "qwen3.6-reasoner"],
+      "routing_models_env": "RTIME_USTC_MODELS",
+      "routing_models": [
+        "deepseek-v4-flash-ascend",
+        "qwen-chat",
+        "qwen-reasoner",
+        "qwen3.6-chat",
+        "qwen3.6-reasoner",
+        "smart/default",
+        "smart/reasoning"
+      ],
+      "tiers": {
+        "default": "deepseek-v4-flash-ascend"
+      },
+      "tier_env": {
+        "default": "RTIME_USTC_AGENT_MODEL"
+      },
+      "models": [
+        {
+          "id": "deepseek-v4-flash-ascend",
+          "label": "deepseek-v4-flash-ascend",
+          "cli_model": "deepseek-v4-flash-ascend",
+          "aliases": ["ds", "deepseek"],
+          "note": "agent tools via LiteLLM (claude-ustc); PoC tool loop verified ~17s",
+          "capabilities": {
+            "agent_tools": true,
+            "code": false,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        },
+        {
+          "id": "qwen3.6-chat",
+          "label": "qwen3.6-chat",
+          "cli_model": "qwen3.6-chat",
+          "aliases": ["qwen", "qianwen", "qwen-chat"],
+          "note": "agent tools via LiteLLM (claude-ustc)",
+          "capabilities": {
+            "agent_tools": true,
+            "code": false,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        },
+        {
+          "id": "qwen3.6-reasoner",
+          "label": "qwen3.6-reasoner",
+          "cli_model": "qwen3.6-reasoner",
+          "aliases": ["qwen-reasoner"],
+          "note": "agent tools via LiteLLM (claude-ustc)",
+          "capabilities": {
+            "agent_tools": true,
+            "code": false,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "supported"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ollama",
+      "label": "Ollama (local/edge, claude-ollama wrapper)",
+      "protocol": "claude-wrapper/agent-tools",
+      "base_url": "http://127.0.0.1:11434",
+      "base_url_env": "RTIME_OLLAMA_BASE_URL",
+      "wrapper": "claude-ollama",
+      "note": "Ollama v0.14+ native Anthropic /v1/messages, zero proxy. Token is the fixed literal 'ollama' (no secret). Edge devices may be slow depending on hardware. Server side should set OLLAMA_CONTEXT_LENGTH=32768 when large agent prompts are used.",
+      "secret_env_names": [],
+      "catalog": false,
+      "tiers": {
+        "default": "qwen3.5:9b"
+      },
+      "tier_env": {
+        "default": "RTIME_OLLAMA_MODEL"
+      },
+      "routing_models_env": "RTIME_OLLAMA_MODELS",
+      "routing_models": ["qwen3.5:9b", "qwen2.5:3b"],
+      "models": [
+        {
+          "id": "qwen3.5:9b",
+          "label": "Qwen3.5 9B (local Ollama)",
+          "cli_model": "qwen3.5:9b",
+          "aliases": ["ollama", "qwen-local"],
+          "note": "agent tool loop verified on srv03; all three CLI tiers pin to this one model to avoid Jetson model-swap thrash",
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        },
+        {
+          "id": "qwen2.5:3b",
+          "label": "Qwen2.5 3B (local Ollama)",
+          "cli_model": "qwen2.5:3b",
+          "aliases": [],
+          "note": "small chat-only model; too weak for the agent tool loop",
+          "capabilities": {
+            "agent_tools": false,
+            "code": false,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        }
+      ]
+    },
+    {
+      "id": "claude-anthropic",
+      "label": "Anthropic Claude (Feishu /model)",
+      "protocol": "anthropic-compatible",
+      "base_url": null,
+      "wrapper": null,
+      "secret_env_names": [],
+      "catalog": false,
+      "models": [
+        {
+          "id": "claude-opus-4-6",
+          "label": "Claude Opus",
+          "cli_model": "claude-opus-4-6",
+          "aliases": ["opus"],
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": true,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        },
+        {
+          "id": "claude-sonnet-4-6",
+          "label": "Claude Sonnet",
+          "cli_model": "claude-sonnet-4-6",
+          "aliases": ["sonnet"],
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": true,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        },
+        {
+          "id": "claude-haiku-4-5-20251001",
+          "label": "Claude Haiku",
+          "cli_model": "claude-haiku-4-5-20251001",
+          "aliases": ["haiku"],
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": true,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        }
+      ]
+    },
+    {
+      "id": "deepseek-code",
+      "label": "DeepSeek Code (claude-deepseek wrapper)",
+      "protocol": "claude-wrapper/agent-tools",
+      "base_url": "https://api.deepseek.com/anthropic",
+      "base_url_env": "RTIME_DEEPSEEK_ANTHROPIC_BASE_URL",
+      "wrapper": "claude-deepseek",
+      "secret_env_names": [
+        "RTIME_DEEPSEEK_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "RTIME_DEEPSEEK_API_KEY_FILE",
+        "DEEPSEEK_API_KEY_FILE"
+      ],
+      "catalog": false,
+      "tiers": {
+        "default": "deepseek-v4-pro[1m]",
+        "fast": "deepseek-v4-flash"
+      },
+      "tier_env": {
+        "default": "RTIME_DEEPSEEK_MODEL",
+        "fast": "RTIME_DEEPSEEK_FAST_MODEL"
+      },
+      "code_models_env": "RTIME_DEEPSEEK_CODE_MODELS",
+      "code_models": ["deepseek-v4-pro", "deepseek-v4-pro[1m]", "deepseek-v4-flash"],
+      "models": [
+        {
+          "id": "deepseek-v4-pro[1m]",
+          "label": "DeepSeek v4 Pro (1M)",
+          "cli_model": "deepseek-v4-pro[1m]",
+          "aliases": ["deepseek-code", "ds-code", "deepseek-coder"],
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": 1000000,
+            "thinking": "provider-default"
+          }
+        },
+        {
+          "id": "deepseek-v4-flash",
+          "label": "DeepSeek v4 Flash",
+          "cli_model": "deepseek-v4-flash",
+          "aliases": [],
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "label": "DeepSeek v4 Pro",
+          "cli_model": "deepseek-v4-pro",
+          "aliases": [],
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qwen-code",
+      "label": "Qwen Code (claude-qwen wrapper)",
+      "protocol": "claude-wrapper/agent-tools",
+      "base_url": "https://dashscope-intl.aliyuncs.com/apps/anthropic",
+      "base_url_env": "RTIME_QWEN_ANTHROPIC_BASE_URL",
+      "wrapper": "claude-qwen",
+      "secret_env_names": [
+        "RTIME_QWEN_API_KEY",
+        "QWEN_API_KEY",
+        "DASHSCOPE_API_KEY",
+        "RTIME_QWEN_API_KEY_FILE",
+        "QWEN_API_KEY_FILE"
+      ],
+      "catalog": false,
+      "tiers": {
+        "default": "qwen3-coder-next",
+        "fast": "qwen3-coder-flash",
+        "quality": "qwen3-coder-plus"
+      },
+      "tier_env": {
+        "default": "RTIME_QWEN_MODEL",
+        "fast": "RTIME_QWEN_FAST_MODEL",
+        "quality": "RTIME_QWEN_QUALITY_MODEL"
+      },
+      "code_models_env": "RTIME_QWEN_CODE_MODELS",
+      "code_models": [
+        "qwen3-coder-next",
+        "qwen3-coder-plus",
+        "qwen3-coder-plus-2025-09-23",
+        "qwen3-coder-flash"
+      ],
+      "models": [
+        {
+          "id": "qwen3-coder-next",
+          "label": "Qwen3 Coder Next",
+          "cli_model": "qwen3-coder-next",
+          "aliases": ["qwen-code", "qwen-coder"],
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        },
+        {
+          "id": "qwen3-coder-flash",
+          "label": "Qwen3 Coder Flash",
+          "cli_model": "qwen3-coder-flash",
+          "aliases": [],
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        },
+        {
+          "id": "qwen3-coder-plus",
+          "label": "Qwen3 Coder Plus",
+          "cli_model": "qwen3-coder-plus",
+          "aliases": [],
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        },
+        {
+          "id": "qwen3-coder-plus-2025-09-23",
+          "label": "Qwen3 Coder Plus (2025-09-23)",
+          "cli_model": "qwen3-coder-plus-2025-09-23",
+          "aliases": [],
+          "capabilities": {
+            "agent_tools": true,
+            "code": true,
+            "chat": true,
+            "vision": false,
+            "file_extract": false,
+            "long_context": null,
+            "thinking": "provider-default"
+          }
+        }
+      ]
+    }
+  ]
+}

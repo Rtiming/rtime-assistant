@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brain-library"
+version = "0.1.0"
+description = "Read-only library index diagnostics for the rtime brain knowledge library."
+requires-python = ">=3.10"
+dependencies = ["jieba>=0.42.1"]
+
+# Optional semantic-vector layer (schema 4 hybrid search). Without these the index
+# builds/queries BM25-only and degrades gracefully — never a hard import error.
+[project.optional-dependencies]
+vector = ["numpy>=1.24", "onnxruntime>=1.16", "tokenizers>=0.15", "sqlite-vec>=0.1.1"]
+
+[project.scripts]
+brain-library = "brain_library.cli:main"
+brain-library-mcp = "brain_library.mcp_server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

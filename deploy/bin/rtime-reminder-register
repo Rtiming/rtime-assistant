@@ -1,0 +1,294 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Narrow JSONL writer for rtime Feishu reminders."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+import time
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
+
+
+REPEAT_VALUES = {"none", "hourly", "daily", "weekly"}
+MODE_VALUES = {"notify", "wake"}
+DEFAULT_TZ = timezone(timedelta(hours=8))
+
+
+def _die(message: str, code: int = 2) -> None:
+    print(f"error: {message}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def _default_paths() -> list[Path]:
+    paths: list[Path] = []
+    env_path = os.environ.get("RTIME_REMINDERS_PATH")
+    if env_path:
+        paths.append(Path(env_path).expanduser())
+    paths.extend(
+        [
+            Path("/mnt/brain/_system/reminders.jsonl"),
+            Path.home() / "brain" / "_system" / "reminders.jsonl",
+        ]
+    )
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for path in paths:
+        key = str(path)
+        if key not in seen:
+            seen.add(key)
+            unique.append(path)
+    return unique
+
+
+def _reminders_path(raw: str | None) -> Path:
+    if raw:
+        return Path(raw).expanduser()
+    for path in _default_paths():
+        if path.exists():
+            return path
+    return _default_paths()[0]
+
+
+def _parse_due(raw: str) -> str:
+    text = raw.strip()
+    if not text:
+        _die("--due is required")
+    parsed_text = text[:-1] + "+00:00" if text.endswith("Z") else text
+    try:
+        value = datetime.fromisoformat(parsed_text)
+    except ValueError:
+        _die("--due must be an ISO datetime, for example 2026-06-11T09:30:00+08:00")
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=DEFAULT_TZ)
+    return value.astimezone(DEFAULT_TZ).isoformat(timespec="seconds")
+
+
+def _now_iso() -> str:
+    return datetime.now(DEFAULT_TZ).isoformat(timespec="seconds")
+
+
+def _default_wake_prompt(message: str, due: str) -> str:
+    return "\n".join(
+        [
+            "你是 rtime 的定时唤醒提醒任务。现在到了计划触发时间，请生成一条要发给用户的飞书消息。",
+            "",
+            f"登记时计划触发时间：{due}",
+            f"提醒标题：{message}",
+            "",
+            "执行要求：",
+            "1. 输出只包含要发给用户的正文，不要解释你正在运行定时任务。",
+            "2. 先明确提醒事项，再给出此刻最有用的下一步动作。",
+            "3. 如果提醒涉及考试、学习、出行、项目、审批或未完成任务，不要只复述标题；要结合标题中的事实给出可执行建议。",
+            "4. 不要假装知道未提供的信息；缺少上下文时直接说明不确定，并提醒用户按实际状态判断。",
+            "5. 语气可以直接，但不要输出内部路径、工具调用、JSON、open_id 或其他敏感信息。",
+        ]
+    )
+
+
+def _default_target(explicit: str | None) -> str:
+    if explicit:
+        return explicit.strip()
+    env_target = os.environ.get("RTIME_REMINDER_DEFAULT_TARGET", "").strip()
+    if env_target:
+        return env_target
+    allowed = [item.strip() for item in os.environ.get("ALLOWED_USERS", "").split(",") if item.strip()]
+    if len(allowed) == 1 and allowed[0].startswith("ou_"):
+        return allowed[0]
+    _die("target is required; set --target, RTIME_REMINDER_DEFAULT_TARGET, or a single ALLOWED_USERS open_id")
+    return ""
+
+
+def _load_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    records: list[dict[str, Any]] = []
+    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            item = json.loads(line)
+        except json.JSONDecodeError as exc:
+            _die(f"invalid JSONL at line {line_no}: {exc.msg}")
+        if not isinstance(item, dict):
+            _die(f"invalid JSONL at line {line_no}: record must be an object")
+        records.append(item)
+    return records
+
+
+def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    text = "".join(json.dumps(item, ensure_ascii=False, separators=(",", ":")) + "\n" for item in records)
+    path.write_text(text, encoding="utf-8")
+
+
+def _append_jsonl(path: Path, record: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
+
+
+def _print(data: dict[str, Any]) -> None:
+    print(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+
+
+def add_reminder(args: argparse.Namespace) -> int:
+    message = args.message.strip()
+    if not message:
+        _die("--message is required")
+    due = _parse_due(args.due)
+    prompt = (args.prompt or "").strip()
+    # run-21 防呆：给了 --prompt 却没显式 --mode 时，按 wake 登记（上下文型提醒），
+    # 避免静默退回 notify 把 prompt 丢掉；只有显式传入 --mode 才覆盖此推断。
+    mode = args.mode or ("wake" if prompt else "notify")
+    if mode not in MODE_VALUES:
+        _die(f"--mode must be one of: {', '.join(sorted(MODE_VALUES))}")
+    if args.mode is None and mode == "wake":
+        print("note: 未显式指定 --mode 但检测到 --prompt，已按 wake 登记", file=sys.stderr)
+    if mode == "wake" and not prompt:
+        prompt = _default_wake_prompt(message, due)
+    repeat = args.repeat or "none"
+    if repeat not in REPEAT_VALUES:
+        _die(f"--repeat must be one of: {', '.join(sorted(REPEAT_VALUES))}")
+    record = {
+        "id": args.id or str(int(time.time() * 1000)),
+        "created": _now_iso(),
+        "due": due,
+        "repeat": repeat,
+        "mode": mode,
+        "message": message,
+        "target": _default_target(args.target),
+        "status": "pending",
+    }
+    if mode == "wake":
+        record["prompt"] = prompt
+        if args.cwd:
+            record["cwd"] = args.cwd
+        if args.model:
+            record["model"] = args.model
+        if args.permission_mode:
+            record["permission_mode"] = args.permission_mode
+    path = _reminders_path(args.path)
+    if not args.dry_run:
+        _append_jsonl(path, record)
+    _print(
+        {
+            "ok": True,
+            "action": "add",
+            "dry_run": bool(args.dry_run),
+            "id": record["id"],
+            "path": str(path),
+            "due": record["due"],
+            "repeat": record["repeat"],
+            "mode": record["mode"],
+            "status": record["status"],
+            "message_chars": len(message),
+            "prompt_chars": len(prompt),
+            "target_set": True,
+            "privacy": {
+                "message_text_returned": False,
+                "prompt_text_returned": False,
+                "target_value_returned": False,
+            },
+        }
+    )
+    return 0
+
+
+def list_reminders(args: argparse.Namespace) -> int:
+    path = _reminders_path(args.path)
+    records = _load_jsonl(path)
+    status_filter = args.status
+    rows: list[dict[str, Any]] = []
+    for index, item in enumerate(records, start=1):
+        if status_filter and item.get("status") != status_filter:
+            continue
+        rows.append(
+            {
+                "line": index,
+                "id": item.get("id"),
+                "status": item.get("status"),
+                "due": item.get("due"),
+                "repeat": item.get("repeat") or "none",
+                "mode": item.get("mode") or "notify",
+                "message_chars": len(item.get("message") or ""),
+                "prompt_chars": len(item.get("prompt") or ""),
+                "target_set": bool(item.get("target")),
+            }
+        )
+    _print(
+        {
+            "ok": True,
+            "action": "list",
+            "path": str(path),
+            "count": len(rows),
+            "items": rows[-args.limit :],
+            "privacy": {
+                "message_text_returned": False,
+                "prompt_text_returned": False,
+                "target_value_returned": False,
+            },
+        }
+    )
+    return 0
+
+
+def cancel_reminder(args: argparse.Namespace) -> int:
+    if not args.id.strip():
+        _die("--id is required")
+    path = _reminders_path(args.path)
+    records = _load_jsonl(path)
+    changed = 0
+    for item in records:
+        if str(item.get("id")) == args.id:
+            if item.get("status") != "cancelled":
+                item["status"] = "cancelled"
+                changed += 1
+    if changed:
+        _write_jsonl(path, records)
+    _print({"ok": bool(changed), "action": "cancel", "id": args.id, "path": str(path), "changed": changed})
+    return 0 if changed else 1
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Register/list/cancel rtime Feishu reminders.")
+    parser.add_argument("--path", help="reminders JSONL path; defaults to brain/_system/reminders.jsonl")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    add_parser = subparsers.add_parser("add", help="append a pending reminder")
+    add_parser.add_argument("--due", required=True, help="ISO datetime, preferably with timezone")
+    add_parser.add_argument("--message", required=True, help="reminder text")
+    add_parser.add_argument("--mode", default=None, choices=sorted(MODE_VALUES))
+    add_parser.add_argument(
+        "--prompt",
+        help="assistant wake prompt; for --mode wake, defaults to a self-contained reminder task prompt",
+    )
+    add_parser.add_argument("--repeat", default="none", choices=sorted(REPEAT_VALUES))
+    add_parser.add_argument("--target", help="Feishu open_id; defaults to env")
+    add_parser.add_argument("--cwd", help="assistant working directory for --mode wake")
+    add_parser.add_argument("--model", help="assistant model alias/name for --mode wake")
+    add_parser.add_argument("--permission-mode", help="Claude Code permission mode for --mode wake")
+    add_parser.add_argument("--id", help="optional stable reminder id")
+    add_parser.add_argument("--dry-run", action="store_true")
+    add_parser.set_defaults(func=add_reminder)
+
+    list_parser = subparsers.add_parser("list", help="list reminder metadata without private bodies")
+    list_parser.add_argument("--status", choices=["pending", "done", "cancelled", "failed"])
+    list_parser.add_argument("--limit", type=int, default=20)
+    list_parser.set_defaults(func=list_reminders)
+
+    cancel_parser = subparsers.add_parser("cancel", help="mark a reminder cancelled by id")
+    cancel_parser.add_argument("--id", required=True)
+    cancel_parser.set_defaults(func=cancel_reminder)
+
+    args = parser.parse_args(argv)
+    return int(args.func(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

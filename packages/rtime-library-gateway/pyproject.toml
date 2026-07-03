@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtime-library-gateway"
+version = "0.1.0"
+description = "Unified library access gateway MCP: one permission gate and audit over rtime read tools plus the three narrow-write settings tools."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+rtime-library-gateway = "rtime_library_gateway.cli:main"
+rtime-library-gateway-mcp = "rtime_library_gateway.mcp_server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

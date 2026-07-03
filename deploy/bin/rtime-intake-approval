@@ -1,0 +1,185 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Send a Feishu '✅ 批准入库' card to the owner and wait for the click (② one-tap approve).
+
+Used by lib.finalize / lib.course-intake notify. It sends an interactive card with an approve
+button (value ``action=intake-approve``) to the owner via the Feishu API, then polls
+``brain/_inbox/.finalize/<sha>.approved`` for up to ``--timeout`` seconds. The button click is
+handled by the feishu-bridge ``on_card_action`` handler, which (after verifying the clicker is
+the owner) runs the owner-only ``rtime-finalize approve <sha>`` and writes the ``.approved``
+token. So the trusted **owner click** — not an agent — is what approves; an agent can only send
+the card and wait.
+
+Credentials (FEISHU_APP_ID / FEISHU_APP_SECRET) and the owner open_id
+(RTIME_REMINDER_DEFAULT_TARGET or the single ALLOWED_USERS) are read from the environment,
+falling back to ``~/.config/rtime-assistant/docker.env``. If they are not configured the tool
+soft-fails (``sent=false``) so the caller can fall back to a text reminder — it never blocks.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import ssl
+import sys
+import time
+import urllib.request
+from pathlib import Path
+
+FEISHU_BASE = "https://open.feishu.cn/open-apis"
+CONFIG_KEYS = ("FEISHU_APP_ID", "FEISHU_APP_SECRET", "ALLOWED_USERS", "RTIME_REMINDER_DEFAULT_TARGET")
+
+
+def _force_utf8() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8")
+            except (ValueError, OSError):
+                pass
+
+
+def _print(data: dict) -> None:
+    print(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+
+
+def _config() -> dict:
+    cfg = {k: os.environ.get(k, "").strip() for k in CONFIG_KEYS}
+    cfg_dir = Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))) / "rtime-assistant"
+    # docker.env fallback for any missing key (owner open_id lives here as
+    # RTIME_REMINDER_DEFAULT_TARGET / ALLOWED_USERS).
+    env_path = cfg_dir / "docker.env"
+    if env_path.is_file():
+        try:
+            for line in env_path.read_text(encoding="utf-8", errors="replace").splitlines():
+                line = line.strip()
+                if line.startswith("#") or "=" not in line:
+                    continue
+                key, _, value = line.partition("=")
+                key = key.strip()
+                if key in CONFIG_KEYS and not cfg.get(key):
+                    cfg[key] = value.strip().strip('"').strip("'")
+        except OSError:
+            pass
+    # feishu.json fallback for the app credentials ({"appId","appSecret"}); same source
+    # bot_config.py uses (FEISHU_CONFIG_JSON env, else ~/.config/rtime-assistant/feishu.json).
+    if not (cfg["FEISHU_APP_ID"] and cfg["FEISHU_APP_SECRET"]):
+        fj = Path(os.environ.get("FEISHU_CONFIG_JSON", str(cfg_dir / "feishu.json"))).expanduser()
+        if fj.is_file():
+            try:
+                data = json.loads(fj.read_text(encoding="utf-8"))
+                cfg["FEISHU_APP_ID"] = cfg["FEISHU_APP_ID"] or str(data.get("appId", ""))
+                cfg["FEISHU_APP_SECRET"] = cfg["FEISHU_APP_SECRET"] or str(data.get("appSecret", ""))
+            except (OSError, ValueError):
+                pass
+    return cfg
+
+
+def _owner_open_id(cfg: dict) -> str:
+    if cfg.get("RTIME_REMINDER_DEFAULT_TARGET"):
+        return cfg["RTIME_REMINDER_DEFAULT_TARGET"]
+    allowed = [item.strip() for item in cfg.get("ALLOWED_USERS", "").split(",") if item.strip()]
+    return allowed[0] if allowed else ""
+
+
+def _post(url: str, body: dict, headers: dict, ctx: ssl.SSLContext) -> dict:
+    req = urllib.request.Request(
+        url, data=json.dumps(body).encode("utf-8"),
+        headers={"Content-Type": "application/json", **headers}, method="POST",
+    )
+    with urllib.request.urlopen(req, context=ctx, timeout=15) as resp:
+        return json.loads(resp.read())
+
+
+def _token(cfg: dict, ctx: ssl.SSLContext) -> str:
+    payload = _post(
+        f"{FEISHU_BASE}/auth/v3/tenant_access_token/internal",
+        {"app_id": cfg["FEISHU_APP_ID"], "app_secret": cfg["FEISHU_APP_SECRET"]}, {}, ctx,
+    )
+    if payload.get("code") != 0:
+        raise RuntimeError(f"token failed: {payload.get('code')} {payload.get('msg')}")
+    return payload["tenant_access_token"]
+
+
+def _approve_card(sha: str, tool: str, summary: str) -> str:
+    value = {"action": "intake-approve", "sha": sha, "tool": tool}
+    return json.dumps({
+        "schema": "2.0",
+        "body": {"elements": [
+            {"tag": "markdown", "content": summary},
+            {"tag": "button", "text": {"tag": "plain_text", "content": "✅ 批准入库"},
+             "type": "primary", "size": "medium", "name": "approve",
+             "value": value, "behaviors": [{"type": "callback", "value": value}]},
+        ]},
+    }, ensure_ascii=False)
+
+
+def _brain_root() -> Path:
+    for candidate in (os.environ.get("BRAIN_ROOT"), "/mnt/brain", str(Path.home() / "brain"),
+                      str(Path.home() / "OrangePi-Store" / "sync" / "brain")):
+        if candidate and Path(candidate).exists():
+            return Path(candidate)
+    return Path("/mnt/brain")
+
+
+def cmd_request(args: argparse.Namespace) -> int:
+    sha = args.sha
+    approved_path = _brain_root() / "_inbox" / ".finalize" / f"{sha}.approved"
+    cfg = _config()
+    open_id = _owner_open_id(cfg)
+    if not (cfg["FEISHU_APP_ID"] and cfg["FEISHU_APP_SECRET"] and open_id):
+        _print({"ok": True, "sent": False, "approved": approved_path.is_file(),
+                "reason": "feishu app creds / owner open_id not configured"})
+        return 0
+    ctx = ssl.create_default_context()
+    summary = args.summary or f"🗂 待审批入库 `{sha}`，确认无误请点下方按钮批准。"
+    try:
+        token = _token(cfg, ctx)
+        resp = _post(
+            f"{FEISHU_BASE}/im/v1/messages?receive_id_type=open_id",
+            {"receive_id": open_id, "msg_type": "interactive", "content": _approve_card(sha, args.tool, summary)},
+            {"Authorization": f"Bearer {token}"}, ctx,
+        )
+        sent = resp.get("code") == 0
+        message_id = (resp.get("data") or {}).get("message_id", "")
+        if not sent:
+            _print({"ok": True, "sent": False, "approved": approved_path.is_file(),
+                    "reason": f"send failed: {resp.get('code')} {resp.get('msg')}"})
+            return 0
+    except Exception as exc:  # noqa: BLE001 - soft-fail; caller falls back to text reminder
+        _print({"ok": True, "sent": False, "approved": approved_path.is_file(), "reason": str(exc)[:200]})
+        return 0
+
+    deadline = time.monotonic() + max(5, args.timeout)
+    approved = approved_path.is_file()
+    while not approved and time.monotonic() < deadline:
+        time.sleep(2)
+        approved = approved_path.is_file()
+    _print({"ok": True, "sent": True, "approved": approved, "message_id": message_id,
+            "timeout_s": args.timeout,
+            "next": ("owner approved — run lib.finalize/course-intake op=apply" if approved
+                     else "no click within timeout — likely not delivered or not tappable; owner can approve via CLI")})
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Send a Feishu approve card and wait for the owner's click.")
+    sub = parser.add_subparsers(dest="command", required=True)
+    req = sub.add_parser("request", help="send the approve card and poll for the click")
+    req.add_argument("--sha", required=True, help="the finalize/course-intake plan_sha")
+    req.add_argument("--tool", default="finalize", choices=["finalize", "course-intake"])
+    req.add_argument("--summary", default="", help="card markdown summary")
+    req.add_argument("--timeout", type=int, default=60, help="seconds to wait for the click")
+    args = parser.parse_args(argv)
+    _force_utf8()
+    if args.command == "request":
+        return cmd_request(args)
+    parser.error("unknown command")
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

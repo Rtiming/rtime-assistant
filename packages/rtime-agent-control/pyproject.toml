@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtime-agent-control"
+version = "0.1.0"
+description = "Read-only agent control-plane diagnostics and MCP config planning for rtime-assistant."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+rtime-agent-control = "rtime_agent_control.cli:main"
+rtime-agent-control-mcp = "rtime_agent_control.mcp_server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

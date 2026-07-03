@@ -1,0 +1,26 @@
+{
+  "name": "rtime-assistant-runtime",
+  "version": "0.1.0",
+  "description": "Read-only runtime diagnostics for the rtime assistant bridge.",
+  "author": {
+    "name": "rtime"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Rtime Assistant Runtime",
+    "shortDescription": "Inspect bridge logs, templates, and runtime state.",
+    "longDescription": "Rtime Assistant Runtime provides read-only diagnostics for the rtime assistant bridge, including systemd template checks, redacted run-log summaries, and safe runtime doctor checks.",
+    "developerName": "rtime",
+    "category": "Productivity",
+    "capabilities": [
+      "LocalFiles",
+      "Developer"
+    ],
+    "defaultPrompt": [
+      "Check my runtime bridge status.",
+      "Summarize my assistant run log.",
+      "Review runtime service templates."
+    ]
+  }
+}

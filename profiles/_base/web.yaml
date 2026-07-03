@@ -1,0 +1,16 @@
+# 网页问答渠道级默认 profile。web-chat 应用经 T5b 接 loader:profile 声明
+# channels.web 即 web-enabled(进 /api/profiles);web 渲染原样透传(前端 marked +
+# KaTeX),访客身份本轮固定 web:anonymous。具体实例(owner/studentunion)在自身
+# profile.yaml 里声明 channels.web,不 extends 本文件(它们 extends _base/qq)。
+schema_version: 1
+profile:
+  id: _base-web
+identity:
+  name: 网页问答助手
+permissions:
+  read_only: true       # 内网 web 访客默认只读(公网化前的保守基线)
+  permission_mode: default
+channels:
+  web: {}               # 存在即 web-enabled;空块=用 profile-wide 默认(提示词/MCP)
+output:
+  render: markdown      # 原样透传,前端渲染

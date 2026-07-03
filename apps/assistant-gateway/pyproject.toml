@@ -1,0 +1,34 @@
+[project]
+name = "assistant-gateway"
+version = "0.1.0"
+description = "rtime-assistant Obsidian backend gateway (schema-driven config lane)"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    # P2 config 收编 批 2: gateway_config_schema.AssistantGatewayConfig is a
+    # pydantic-settings model on the rtime-config base (resolved from the sibling
+    # in-repo package via a path source; the systemd deploy uses the repo checkout +
+    # _shared_runtime shim, no pip install).
+    "rtime-config>=0.1.0",
+    # from_env() reads provider base URLs from the model registry loader.
+    "rtime-models>=0.1.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=9.0",
+    # the registration test projects onto the REAL assistant-gateway module via the
+    # admin-core registry.
+    "rtime-admin-core>=0.1.0",
+]
+
+# Resolve the sibling in-repo packages, not PyPI. Path sources (not workspace):
+# assistant-gateway is a standalone uv project (`uv run --project apps/assistant-
+# gateway …`), NOT a workspace member — mirrors apps/qq-bridge (see the root
+# pyproject.toml [tool.uv.workspace] note). The gateway itself still deploys as a
+# repo checkout via systemd (no pip install); this pyproject exists for the test /
+# doc-generation env only.
+[tool.uv.sources]
+rtime-config = { path = "../../packages/rtime-config", editable = true }
+rtime-models = { path = "../../packages/rtime-models", editable = true }
+rtime-admin-core = { path = "../../packages/rtime-admin-core", editable = true }

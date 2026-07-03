@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rtime-hub-connector": {
+      "cwd": ".",
+      "command": "./scripts/rtime-hub-mcp.sh",
+      "args": []
+    }
+  }
+}

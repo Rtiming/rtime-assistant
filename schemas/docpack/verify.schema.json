@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rtime.local/schemas/docpack/verify.schema.json",
+  "title": "DocPack verification record",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "source_sha256",
+    "pages"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ok", "needs_review", "failed"]
+    },
+    "source_sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "page",
+          "render_status",
+          "text_status",
+          "risks"
+        ],
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "image": { "type": "string" },
+          "render_status": {
+            "type": "string",
+            "enum": ["ok", "missing", "failed", "not_applicable"]
+          },
+          "text_status": {
+            "type": "string",
+            "enum": ["ok", "low_text", "ocr_required", "ocr_low_confidence", "failed", "not_applicable"]
+          },
+          "ocr_confidence": {
+            "type": "number",
+            "minimum": 0
+          },
+          "risks": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

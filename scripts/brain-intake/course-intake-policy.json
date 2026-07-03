@@ -1,0 +1,6 @@
+{
+  "_comment": "课程入库确认门策略。brain-course-ingest 以 --auto-approve --policy 读取本文件:severity=confirm 的问题(新建课程目录/大批量 include-all/misc 兜底/重复文件)自动放行;severity=blocker(疑似敏感文件名 possible-sensitive-files、同名异内容冲突 target-path-conflicts、空计划 empty-intake-plan)默认不放行,必须人工确认。按 id 微调:auto_approve_ids 强制放行某类,always_block_ids 强制拦某类。复核无误要强制全放行可临时 BRAIN_COURSE_FORCE=1 重跑(等价 --approved)。",
+  "auto_approve_severities": ["confirm"],
+  "auto_approve_ids": [],
+  "always_block_ids": []
+}

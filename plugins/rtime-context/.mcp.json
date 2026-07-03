@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rtime-context": {
+      "cwd": ".",
+      "command": "./scripts/rtime-context-mcp.sh",
+      "args": []
+    }
+  }
+}

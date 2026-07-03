@@ -1,0 +1,19 @@
+{
+  "name": "wechat-mp",
+  "command": "{HOME}/we-mp-rss-mcp/.venv/bin/python",
+  "args": [
+    "{HOME}/we-mp-rss-mcp/server.py"
+  ],
+  "env": {
+    "WEMP_BASE_URL": "http://127.0.0.1:8001",
+    "ARCHIVER_BASE_URL": "http://127.0.0.1:8011",
+    "WEMP_USERNAME": "admin",
+    "WEMP_PASSWORD": "<从部署机env文件填,勿提交真实值>"
+  },
+  "startup_timeout_sec": 60,
+  "targets": [
+    "claude",
+    "codex",
+    "kimi"
+  ]
+}

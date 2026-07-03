@@ -1,0 +1,273 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Write auditable rtime memory candidates.
+
+This is intentionally narrow: explicit memory intent writes only to
+brain/memory/review-queue, never directly to memory/cards. JSON output is
+metadata-only and does not echo the candidate text.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
+
+
+DEFAULT_TZ = timezone(timedelta(hours=8))
+SENSITIVE_RE = re.compile(
+    r"(open[_-]?id|union[_-]?id|tenant[_-]?key|app[_-]?secret|api[_-]?key|token|secret|credential|"
+    r"password|passwd|私钥|密钥|验证码|身份证|银行卡|ou_[A-Za-z0-9_-]{8,})",
+    re.IGNORECASE,
+)
+KINDS = {"memory-card", "feedback", "hypothesis"}
+SCOPES = {"assistant-personalization", "assistant-behavior", "study", "workflow", "project"}
+
+
+def _die(message: str, code: int = 2) -> None:
+    print(f"error: {message}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def _print(data: dict[str, Any]) -> None:
+    print(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+
+
+def _default_brain_roots() -> list[Path]:
+    paths: list[Path] = []
+    env_root = os.environ.get("BRAIN_ROOT")
+    if env_root:
+        paths.append(Path(env_root).expanduser())
+    paths.extend(
+        [
+            Path("/mnt/brain"),
+            Path.home() / "brain",
+        ]
+    )
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for path in paths:
+        key = str(path)
+        if key not in seen:
+            seen.add(key)
+            unique.append(path)
+    return unique
+
+
+def _brain_root(raw: str | None) -> Path:
+    if raw:
+        return Path(raw).expanduser()
+    for path in _default_brain_roots():
+        if path.exists():
+            return path
+    return _default_brain_roots()[0]
+
+
+def _review_dir(raw: str | None, brain_root: Path) -> Path:
+    if raw:
+        return Path(raw).expanduser()
+    env_path = os.environ.get("RTIME_MEMORY_REVIEW_QUEUE")
+    if env_path:
+        return Path(env_path).expanduser()
+    return brain_root / "memory/review-queue"
+
+
+def _now() -> datetime:
+    return datetime.now(DEFAULT_TZ)
+
+
+def _slug(text: str) -> str:
+    slug = "-".join(re.findall(r"[A-Za-z0-9]+", text.lower()))[:48].strip("-")
+    return slug or "memory-candidate"
+
+
+def _schema_path() -> Path | None:
+    candidates = [
+        Path.cwd() / "scripts/brain-intake/memory_schema.py",
+        Path(__file__).resolve().parents[2] / "scripts/brain-intake/memory_schema.py",
+        Path.home() / "rtime-assistant/scripts/brain-intake/memory_schema.py",
+        Path("/workspace/rtime-assistant/scripts/brain-intake/memory_schema.py"),
+    ]
+    for path in candidates:
+        if path.is_file():
+            return path
+    return None
+
+
+def _validate(path: Path) -> dict[str, Any]:
+    schema = _schema_path()
+    if schema is None:
+        return {"ok": True, "checked": 0, "skipped": "memory_schema.py not found"}
+    import subprocess
+
+    proc = subprocess.run(
+        [sys.executable, str(schema), "validate", str(path)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    try:
+        data = json.loads(proc.stdout or "{}")
+    except json.JSONDecodeError:
+        data = {"ok": False, "errors": {"validator": ["non-JSON output"]}}
+    data["returncode"] = proc.returncode
+    return data
+
+
+def _json_stdin_payload(args: argparse.Namespace) -> dict[str, Any]:
+    if not args.json_stdin:
+        return {}
+    raw = sys.stdin.read()
+    if not raw.strip():
+        _die("--json-stdin requires a JSON object on stdin")
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        _die(f"invalid JSON stdin: {exc.msg}")
+    if not isinstance(data, dict):
+        _die("JSON stdin must be an object")
+    return data
+
+
+def add_candidate(args: argparse.Namespace) -> int:
+    stdin_payload = _json_stdin_payload(args)
+    claim = str(stdin_payload.get("claim") or args.claim or "").strip()
+    if not claim:
+        _die("--claim is required")
+    kind = str(stdin_payload.get("kind") or args.kind)
+    if kind not in KINDS:
+        _die(f"--kind must be one of: {', '.join(sorted(KINDS))}")
+    scope = str(stdin_payload.get("scope") or args.scope)
+    if scope not in SCOPES:
+        _die(f"--scope must be one of: {', '.join(sorted(SCOPES))}")
+    entry = str(stdin_payload.get("entry") or args.entry or "cli").strip() or "cli"
+    source = str(stdin_payload.get("source") or args.source or f"rtime-memory-candidate:{entry}").strip()
+    sensitivity = str(stdin_payload.get("sensitivity") or args.sensitivity or "normal").strip()
+    if sensitivity not in {"normal", "sensitive"}:
+        _die("--sensitivity must be normal or sensitive")
+    if sensitivity == "sensitive" or SENSITIVE_RE.search(claim):
+        _print(
+            {
+                "ok": True,
+                "action": "hold",
+                "written": False,
+                "reason": "sensitive_signal",
+                "entry": entry,
+                "claim_chars": len(claim),
+                "privacy": {"claim_text_returned": False},
+            }
+        )
+        return 0
+
+    brain_root = _brain_root(args.brain_root)
+    review_dir = _review_dir(args.review_dir, brain_root)
+    today = _now().date()
+    expires = today + timedelta(days=args.expires_days)
+    import hashlib
+
+    digest = hashlib.sha256(f"{entry}\n{kind}\n{scope}\n{claim}".encode("utf-8")).hexdigest()[:12]
+    path = review_dir / f"{today.isoformat()}-{_slug(claim)}-{digest}.md"
+    if path.exists():
+        _print(
+            {
+                "ok": True,
+                "action": "dedupe",
+                "written": False,
+                "path": str(path),
+                "entry": entry,
+                "claim_chars": len(claim),
+                "privacy": {"claim_text_returned": False},
+            }
+        )
+        return 0
+
+    if kind != "memory-card":
+        _die("only memory-card candidates are currently writable through this narrow tool")
+    text = "\n".join(
+        [
+            "---",
+            "type: memory-card",
+            f"claim: {json.dumps(claim, ensure_ascii=False)}",
+            f"scope: {scope}",
+            f"source: {json.dumps(source, ensure_ascii=False)}",
+            f"observed_at: {today.isoformat()}",
+            "confidence: user-stated",
+            "layer: situational",
+            f"expires: {expires.isoformat()}",
+            "supersedes: []",
+            "sensitivity: normal",
+            f"unlock_hints: [memory-candidate, {entry}]",
+            "---",
+            "候选由窄口工具写入 review-queue，等待人工或审核流程合并；不要自动写入长期 memory/cards。",
+            "",
+        ]
+    )
+    if not args.dry_run:
+        review_dir.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        validation = _validate(path)
+        if not validation.get("ok"):
+            path.unlink(missing_ok=True)
+            _print(
+                {
+                    "ok": False,
+                    "action": "write",
+                    "written": False,
+                    "reason": "schema_validation_failed",
+                    "validation": validation,
+                    "entry": entry,
+                    "claim_chars": len(claim),
+                    "privacy": {"claim_text_returned": False},
+                }
+            )
+            return 1
+    else:
+        validation = {"ok": True, "dry_run": True}
+    _print(
+        {
+            "ok": True,
+            "action": "add",
+            "dry_run": bool(args.dry_run),
+            "written": not args.dry_run,
+            "path": str(path),
+            "entry": entry,
+            "kind": kind,
+            "scope": scope,
+            "claim_chars": len(claim),
+            "validation_ok": bool(validation.get("ok")),
+            "privacy": {"claim_text_returned": False},
+        }
+    )
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Write rtime memory review-queue candidates.")
+    parser.add_argument("--brain-root", help="brain root; defaults to BRAIN_ROOT or known brain mounts")
+    parser.add_argument("--review-dir", help="review-queue directory; defaults to brain/memory/review-queue")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    add_parser = subparsers.add_parser("add", help="write one review-queue candidate")
+    add_parser.add_argument("--claim", help="candidate claim text; omitted when --json-stdin is used")
+    add_parser.add_argument("--json-stdin", action="store_true", help="read claim/options from stdin JSON")
+    add_parser.add_argument("--entry", default="cli")
+    add_parser.add_argument("--source", default="")
+    add_parser.add_argument("--kind", default="memory-card", choices=sorted(KINDS))
+    add_parser.add_argument("--scope", default="assistant-personalization", choices=sorted(SCOPES))
+    add_parser.add_argument("--sensitivity", default="normal", choices=["normal", "sensitive"])
+    add_parser.add_argument("--expires-days", type=int, default=90)
+    add_parser.add_argument("--dry-run", action="store_true")
+    add_parser.set_defaults(func=add_candidate)
+
+    args = parser.parse_args(argv)
+    return int(args.func(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

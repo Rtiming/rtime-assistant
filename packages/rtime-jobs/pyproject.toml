@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtime-jobs"
+version = "0.1.0"
+description = "Minimal local job queue + worker that isolates long intake/index tasks from the chat entry (submit a job, query status/result; a separate worker runs the heavy work)."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+rtime-jobs = "rtime_jobs.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

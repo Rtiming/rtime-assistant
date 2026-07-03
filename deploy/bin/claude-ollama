@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+set -euo pipefail
+
+export PATH="$PATH:$HOME/.npm-global/bin:/usr/local/bin:/usr/bin:/bin"
+
+# Local Ollama agent-tools path: claude CLI straight at Ollama's native
+# Anthropic /v1/messages endpoint (Ollama v0.14+; srv03 runs 0.17.7) -- zero
+# proxy. The token is the fixed literal "ollama" (Ollama ignores it; the CLI
+# just requires one). Jetson prefill is minutes-per-turn slow: hardware
+# characteristic, documented in docs/model-providers.zh-CN.md.
+#
+# Non-secret model DEFAULTS come from the registry-generated model-defaults.sh
+# sourced next to this wrapper (REG_*). The inline ${REG_*:-literal} keeps this
+# wrapper working if that file is absent; all three (registry, model-defaults.sh,
+# the inline literals) are kept equal by scripts/check-entrypoint-drift.py.
+# KEEP IN SYNC: packages/rtime-models/model-registry.json
+DEFAULTS_FILE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" >/dev/null 2>&1 && pwd)/model-defaults.sh"
+if [ -r "$DEFAULTS_FILE" ]; then
+  # shellcheck source=/dev/null
+  . "$DEFAULTS_FILE"
+fi
+
+OLLAMA_MODEL="${RTIME_OLLAMA_MODEL:-${REG_OLLAMA_MODEL:-qwen3.5:9b}}"
+
+if [ -n "${CLAUDE_BIN:-}" ]; then
+  CLI="$CLAUDE_BIN"
+elif [ -x "$HOME/.npm-global/bin/claude" ]; then
+  CLI="$HOME/.npm-global/bin/claude"
+else
+  CLI="$(command -v claude || true)"
+fi
+
+if [ -z "$CLI" ]; then
+  echo "claude-ollama: missing claude CLI" >&2
+  exit 1
+fi
+
+# KEEP IN SYNC: packages/rtime-models/model-registry.json (ollama aliases)
+resolve_ollama_model() {
+  case "$1" in
+    ollama|qwen-local)
+      printf '%s' "$OLLAMA_MODEL"
+      ;;
+    *)
+      printf '%s' "$1"
+      ;;
+  esac
+}
+
+# Resolve --model before exporting so ALL tiers pin to the ONE requested model
+# (a mismatched haiku/subagent tier would force a Jetson model swap per call).
+args=()
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --model)
+      if [ "$#" -gt 1 ]; then
+        OLLAMA_MODEL="$(resolve_ollama_model "$2")"
+        args+=("--model" "$OLLAMA_MODEL")
+        shift 2
+      else
+        args+=("$1")
+        shift
+      fi
+      ;;
+    --model=*)
+      OLLAMA_MODEL="$(resolve_ollama_model "${1#--model=}")"
+      args+=("--model=$OLLAMA_MODEL")
+      shift
+      ;;
+    *)
+      args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+export ANTHROPIC_BASE_URL="${RTIME_OLLAMA_BASE_URL:-${REG_OLLAMA_BASE_URL:-http://127.0.0.1:11434}}"
+export ANTHROPIC_AUTH_TOKEN="ollama"
+export ANTHROPIC_MODEL="$OLLAMA_MODEL"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$OLLAMA_MODEL"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$OLLAMA_MODEL"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$OLLAMA_MODEL"
+export ANTHROPIC_SMALL_FAST_MODEL="$OLLAMA_MODEL"
+# PoC-verified suppression flags: keep the CLI off experimental betas and
+# non-essential side calls the local endpoint does not implement.
+export CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1
+export DISABLE_NON_ESSENTIAL_MODEL_CALLS=1
+
+if [[ "$CLI" == *.py ]]; then
+  exec python3 "$CLI" "${args[@]}"
+fi
+
+exec "$CLI" "${args[@]}"

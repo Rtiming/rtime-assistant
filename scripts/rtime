@@ -1,0 +1,346 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""rtime —— 统一入口薄路由(thin router)。
+
+把一个动词转发到仓库里**已有**的命令,自己不实现任何业务逻辑——查表 + exec。
+目标:维护性计划 P4(见 docs/maintainability-standards.zh-CN.md),给"我要做什么"
+一个单一可发现的入口,免得入口散落在 packages/*/pyproject.toml 的 console script、
+scripts/*.py、deploy/bin/* 与各 systemd 单元里。导航式说明见 docs/entrypoints.zh-CN.md。
+
+设计约束:
+  * 纯标准库、离线、零依赖,跨平台(本身不写死任何个人主目录绝对路径)。
+  * 仓库根从本文件位置解析(scripts/ 的上一级),与 cwd 无关。
+  * 每个动词解析成一个/多个 Cmd 后再执行;``resolve(argv)`` 是纯函数,便于测试 dispatch。
+  * 包 CLI 一律用 ``python -m <module>`` + 临时 PYTHONPATH 调起(开发树零安装即可跑,
+    生产树同样有效),不依赖 console script 是否已 pip 安装。
+
+命名漂移备忘(KEEP IN SYNC: packages/*/pyproject.toml [project.scripts]):
+  console 名与目录/导入名不一致是已知且故意的——
+    rtime-runtime  -> 包目录 rtime-assistant-runtime / 导入名 rtime_assistant_runtime
+    rtime-hub-*    -> 包目录 rtime-hub-connector     / 导入名 rtime_hub_connector
+  下方 DOCTOR_TARGETS / 各 resolver 用的是**导入名 + 包目录**,改名时此处与 pyproject 同改。
+
+用法:
+    scripts/rtime <verb> [args...]
+    scripts/rtime --print <verb> [args...]   # 只打印将要执行的命令,不执行
+    scripts/rtime --help
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+from typing import Callable, NamedTuple
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+PY = sys.executable or "python3"
+
+
+class Cmd(NamedTuple):
+    """一条待执行命令。env 是叠加在 os.environ 上的增量;cwd 相对仓库根(None=仓库根)。"""
+
+    argv: list[str]
+    env: dict[str, str] | None = None
+    cwd: str | None = None
+    label: str | None = None
+
+
+class Plan(NamedTuple):
+    """动词解析结果。kind: exec(单条) / multi(多条,任一失败即非零) / builtin(进程内) / error。"""
+
+    kind: str
+    cmds: list[Cmd] = []
+    action: Callable[[list[str]], int] | None = None
+    message: str | None = None  # error 时的说明
+
+
+# ---------------------------------------------------------------------------
+# 包 CLI 调起助手:python -m <module>,PYTHONPATH 指向 packages/<dir>/src。
+# ---------------------------------------------------------------------------
+def pkg_cli(module: str, pkg_dir: str, args: list[str], *, label: str | None = None) -> Cmd:
+    src = str(REPO_ROOT / "packages" / pkg_dir / "src")
+    return Cmd([PY, "-m", module, *args], env={"PYTHONPATH": src}, label=label or module)
+
+
+def script(rel: str, args: list[str], *, label: str | None = None) -> Cmd:
+    """调起仓库内一个脚本(.py 用当前解释器,.sh 用 bash,其余直接执行)。"""
+    path = str(REPO_ROOT / rel)
+    if rel.endswith(".py"):
+        argv = [PY, path, *args]
+    elif rel.endswith(".sh"):
+        argv = ["bash", path, *args]
+    else:
+        argv = [path, *args]
+    return Cmd(argv, label=label or rel)
+
+
+# 各包 doctor 子命令(导入名, 包目录)。KEEP IN SYNC: packages/*/pyproject.toml。
+DOCTOR_TARGETS: dict[str, tuple[str, str]] = {
+    "docpack": ("brain_docpack", "brain-docpack"),
+    "library": ("brain_library", "brain-library"),
+    "citation": ("brain_citation", "brain-citation"),
+    "visualmd": ("brain_visualmd", "brain-visualmd"),
+    "runtime": ("rtime_assistant_runtime", "rtime-assistant-runtime"),
+    "hub": ("rtime_hub_connector", "rtime-hub-connector"),
+    "context": ("rtime_context", "rtime-context"),
+    "profile": ("rtime_profile", "rtime-profile"),
+    "automation": ("rtime_automation", "rtime-automation"),
+    "review": ("rtime_review", "rtime-review"),
+    "agent-control": ("rtime_agent_control", "rtime-agent-control"),
+    "library-gateway": ("rtime_library_gateway", "rtime-library-gateway"),
+}
+
+GATEWAY_UNIT = "assistant-gateway.service"
+
+
+# ---------------------------------------------------------------------------
+# 动词解析器:argv 是动词之后的参数。返回 Plan。
+# ---------------------------------------------------------------------------
+def resolve_doctor(args: list[str]) -> Plan:
+    if args and args[0] in ("--list", "-l"):
+        return Plan("builtin", action=_doctor_list)
+    if args and not args[0].startswith("-"):
+        name, *rest = args
+        if name not in DOCTOR_TARGETS:
+            known = ", ".join(sorted(DOCTOR_TARGETS))
+            return Plan("error", message=f"未知 doctor 目标 {name!r};可选: {known}(或 scripts/rtime doctor 跑全部)")
+        module, pkg_dir = DOCTOR_TARGETS[name]
+        return Plan("exec", [pkg_cli(module, pkg_dir, ["doctor", *rest], label=f"doctor:{name}")])
+    # 无目标:跑全部包 doctor,汇总。透传 args(如 --json)给每个。
+    cmds = [
+        pkg_cli(module, pkg_dir, ["doctor", *args], label=f"doctor:{name}")
+        for name, (module, pkg_dir) in DOCTOR_TARGETS.items()
+    ]
+    return Plan("multi", cmds)
+
+
+def _doctor_list(_args: list[str]) -> int:
+    for name, (module, pkg_dir) in DOCTOR_TARGETS.items():
+        print(f"{name:16} packages/{pkg_dir}  (python -m {module} doctor)")
+    return 0
+
+
+def resolve_dev(args: list[str]) -> Plan:
+    # 本地开发起步:uv workspace 一条 sync 拿到全部包可编辑安装(见 docs/uv-workspace.zh-CN.md)。
+    # 无 uv 的机器改用 scripts/bootstrap-test-venv.sh(见 docs/entrypoints.zh-CN.md)。
+    return Plan("exec", [Cmd(["uv", "sync", "--all-packages", *args], label="dev")])
+
+
+def resolve_module(args: list[str]) -> Plan:
+    # 转发到 scripts/module-submit-check.py。裸位置参当作模块 id(展开成 --module X);
+    # 带前导 '-' 的从那个 token 起原样透传。
+    forwarded: list[str] = []
+    seen_flag = False
+    for tok in args:
+        if tok.startswith("-"):
+            seen_flag = True
+        if seen_flag:
+            forwarded.append(tok)
+        else:
+            forwarded += ["--module", tok]
+    if not args:
+        forwarded = ["--list"]
+    return Plan("exec", [script("scripts/module-submit-check.py", forwarded, label="module")])
+
+
+def resolve_runtime(args: list[str]) -> Plan:
+    return pkg_exec("rtime_assistant_runtime", "rtime-assistant-runtime", args, "runtime")
+
+
+def pkg_exec(module: str, pkg_dir: str, args: list[str], label: str) -> Plan:
+    return Plan("exec", [pkg_cli(module, pkg_dir, args, label=label)])
+
+
+def resolve_gateway(args: list[str]) -> Plan:
+    action = args[0] if args else ""
+    rest = args[1:]
+    systemd = {"start", "stop", "restart", "status"}
+    if action in systemd:
+        return Plan("exec", [Cmd(["systemctl", "--user", action, GATEWAY_UNIT, *rest], label=f"gateway:{action}")])
+    if action == "logs":
+        return Plan("exec", [Cmd(["journalctl", "--user", "-u", GATEWAY_UNIT, *rest], label="gateway:logs")])
+    if action in ("health", "audit"):
+        return Plan("exec", [script("scripts/gateway-live-audit.sh", rest, label="gateway:audit")])
+    if action == "verify":
+        return Plan("exec", [script("scripts/gateway-deploy-verify.sh", rest, label="gateway:verify")])
+    return Plan(
+        "error",
+        message="gateway 动作: start|stop|restart|status|logs|health(=audit)|verify",
+    )
+
+
+def resolve_deploy(args: list[str]) -> Plan:
+    # 部署计划默认走生产 Compose 的 dry-run(只打印将执行的命令,不动真服务)。
+    if args and args[0] == "host":
+        return Plan("exec", [script("scripts/deploy-on-orangepi.sh", args[1:], label="deploy:host")])
+    forwarded = args if args else ["--dry-run"]
+    return Plan("exec", [script("scripts/docker-prod-check.sh", forwarded, label="deploy")])
+
+
+def resolve_mcp(args: list[str]) -> Plan:
+    if args and args[0] == "list":
+        return Plan("builtin", action=lambda a: _mcp_list("--json" in a))
+    return Plan("error", message="mcp 动作: list [--json]")
+
+
+def _mcp_list(as_json: bool) -> int:
+    plugins_dir = REPO_ROOT / "plugins"
+    rows: list[dict[str, object]] = []
+    if plugins_dir.is_dir():
+        for plugin in sorted(p for p in plugins_dir.iterdir() if p.is_dir()):
+            mcp_json = plugin / ".mcp.json"
+            if not mcp_json.is_file():
+                continue
+            try:
+                data = json.loads(mcp_json.read_text(encoding="utf-8"))
+            except ValueError:
+                rows.append({"plugin": plugin.name, "server": None, "command": None, "exists": False})
+                continue
+            for server, spec in data.get("mcpServers", {}).items():
+                command = spec.get("command", "")
+                exists = (plugin / command).resolve().is_file() if command else False
+                rows.append(
+                    {"plugin": plugin.name, "server": server, "command": command, "exists": exists}
+                )
+    if as_json:
+        print(json.dumps(rows, ensure_ascii=False, indent=2))
+        return 0
+    if not rows:
+        print("(未发现 plugins/*/.mcp.json)")
+        return 0
+    width = max(len(str(r["server"])) for r in rows)
+    for r in rows:
+        mark = "" if r["exists"] else "  [缺失 wrapper]"
+        print(f"{str(r['server']):{width}}  {r['command']}{mark}")
+    return 0
+
+
+def resolve_check(args: list[str]) -> Plan:
+    drift = script("scripts/check-entrypoint-drift.py", [], label="check:drift")
+    portable = script("tools/rtime-project-check.py", [], label="check:portable")
+    target = args[0] if args else ""
+    if target == "drift":
+        return Plan("exec", [drift])
+    if target in ("portable", "project"):
+        return Plan("exec", [portable])
+    return Plan("multi", [drift, portable])
+
+
+VERBS: dict[str, tuple[Callable[[list[str]], Plan], str]] = {
+    "doctor": (resolve_doctor, "各包健康自检(无参跑全部;<目标> 单跑;--list 列目标)"),
+    "dev": (resolve_dev, "本地开发起步(uv sync --all-packages)"),
+    "module": (resolve_module, "按模块跑提交门(scripts/module-submit-check.py;裸 id 即 --module id)"),
+    "runtime": (resolve_runtime, "rtime-runtime 运行时诊断 CLI(doctor/run-log/templates/...)"),
+    "gateway": (resolve_gateway, "assistant-gateway 起停/状态/日志/健康(start|stop|restart|status|logs|health|verify)"),
+    "deploy": (resolve_deploy, "部署计划(默认 docker-prod-check 干跑;deploy host 在 orangepi 落地)"),
+    "mcp": (resolve_mcp, "MCP 服务器(mcp list [--json])"),
+    "check": (resolve_check, "提交门(check-entrypoint-drift + rtime-project-check;可加 drift|portable)"),
+}
+
+
+def resolve(argv: list[str]) -> Plan:
+    """把完整 argv(不含程序名)解析成 Plan。纯函数,不执行任何命令。"""
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        return Plan("builtin", action=lambda _a: _usage(0))
+    verb, *rest = argv
+    entry = VERBS.get(verb)
+    if entry is None:
+        return Plan("error", message=f"未知动词 {verb!r}")
+    resolver, _help = entry
+    return resolver(rest)
+
+
+# ---------------------------------------------------------------------------
+# 执行层
+# ---------------------------------------------------------------------------
+def _merged_env(cmd: Cmd) -> dict[str, str]:
+    env = os.environ.copy()
+    for key, value in (cmd.env or {}).items():
+        if key == "PYTHONPATH" and env.get("PYTHONPATH"):
+            env[key] = value + os.pathsep + env["PYTHONPATH"]
+        else:
+            env[key] = value
+    return env
+
+
+def format_cmd(cmd: Cmd) -> str:
+    prefix = ""
+    if cmd.env:
+        prefix = " ".join(f"{k}={v}" for k, v in cmd.env.items()) + " "
+    return prefix + " ".join(cmd.argv)
+
+
+def run_cmd(cmd: Cmd) -> int:
+    cwd = str(REPO_ROOT / cmd.cwd) if cmd.cwd else str(REPO_ROOT)
+    try:
+        return subprocess.call(cmd.argv, env=_merged_env(cmd), cwd=cwd)
+    except FileNotFoundError as exc:
+        prog = cmd.argv[0]
+        print(f"rtime: 找不到命令 {prog!r}: {exc}", file=sys.stderr)
+        if prog == "uv":
+            print("  提示: 装 uv,或改用 scripts/bootstrap-test-venv.sh", file=sys.stderr)
+        elif prog in ("systemctl", "journalctl"):
+            print("  提示: gateway 起停只在装了 systemd 的运行机(orangepi)上可用", file=sys.stderr)
+        return 127
+    except KeyboardInterrupt:
+        return 130
+
+
+def _usage(code: int) -> int:
+    out = sys.stdout if code == 0 else sys.stderr
+    print("rtime —— 统一入口薄路由\n", file=out)
+    print("用法: scripts/rtime <verb> [args...]", file=out)
+    print("      scripts/rtime --print <verb> [args...]   # 只打印将执行的命令", file=out)
+    print("\n动词:", file=out)
+    for verb, (_resolver, help_text) in VERBS.items():
+        print(f"  {verb:9} {help_text}", file=out)
+    print("\n导航式入口说明: docs/entrypoints.zh-CN.md", file=out)
+    return code
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
+
+    print_only = False
+    if args and args[0] in ("--print", "-n"):
+        print_only = True
+        args = args[1:]
+
+    plan = resolve(args)
+
+    if plan.kind == "error":
+        print(f"rtime: {plan.message}", file=sys.stderr)
+        return _usage(2)
+
+    if plan.kind == "builtin":
+        assert plan.action is not None
+        return plan.action(args[1:] if args else [])
+
+    if print_only:
+        for cmd in plan.cmds:
+            print(format_cmd(cmd))
+        return 0
+
+    if plan.kind == "exec":
+        return run_cmd(plan.cmds[0])
+
+    # multi: 顺序执行,汇总。
+    failures: list[str] = []
+    for cmd in plan.cmds:
+        print(f"==> {cmd.label or format_cmd(cmd)}", file=sys.stderr)
+        code = run_cmd(cmd)
+        if code != 0:
+            failures.append(f"{cmd.label or cmd.argv[0]} (exit {code})")
+    if failures:
+        print(f"\nrtime: {len(failures)}/{len(plan.cmds)} 失败: {', '.join(failures)}", file=sys.stderr)
+        return 1
+    print(f"\nrtime: {len(plan.cmds)}/{len(plan.cmds)} 通过", file=sys.stderr)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rtime-agent-control": {
+      "cwd": ".",
+      "command": "./scripts/rtime-agent-control-mcp.sh",
+      "args": []
+    }
+  }
+}

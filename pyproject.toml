@@ -1,0 +1,51 @@
+# rtime-assistant monorepo —— uv workspace 根(只为可复现的开发/测试环境)。
+#
+# 目的:用一条 `uv sync` 拿到所有包的可编辑安装 + 一份锁定精确版本的 uv.lock,
+# 消除 Mac/Windows/orangepi 之间的"环境漂移"。这是 scripts/bootstrap-test-venv.sh
+# 的可复现替代,二者可并存;**运行时不变**——网关 dispatch 仍走 per-package PYTHONPATH
+# (见 packages/rtime-library-gateway/.../dispatch.py),本根不改任何运行行为。
+#
+# 用法:
+#   uv sync --all-packages           # 建 .venv 并把全部 workspace 成员可编辑装入 + dev 组
+#   uv run pytest tests -q           # 在该环境里跑测试
+#   uv lock --check                  # 校验 uv.lock 是否与 pyproject 同步
+# 说明见 docs/uv-workspace.zh-CN.md。
+[project]
+name = "rtime-assistant-workspace"
+version = "0.0.0"
+description = "rtime-assistant monorepo workspace root (dev/test environment only)"
+requires-python = ">=3.10"
+dependencies = []
+
+# 根本身不是要发布的包,只作 workspace 容器。
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+# 凡有 pyproject 的成员都纳入(11 个 packages + feishu-bridge app)。
+# qq-bridge 刻意**不**入 members:它是带自有 uv.lock 的独立项目
+# (`uv run --project apps/qq-bridge …`),对 rtime-config 走 path 源
+# (apps/qq-bridge/pyproject.toml [tool.uv.sources]),避免嵌套锁与 workspace 锁两套真相。
+members = ["packages/*", "apps/feishu-bridge"]
+
+# dev/test 依赖与 requirements-dev.txt 保持一致(改一处同步另一处)。
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.6",
+    "jieba>=0.42.1",
+    "pydantic-settings>=2.0",
+    "PyYAML>=6.0",
+]
+
+# ruff：lint + format。当前经 module-submit 门(scripts/module-submit-check.py)
+# 在 ustc-kb 上强制(ruff/pytest-cov 缺失时优雅跳过，不阻塞无该工具的机器)；
+# 全仓 80 处 legacy 待单独 chore 清理后再扩面到 pre-commit。
+[tool.ruff]
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+# E501(行长)交给 formatter 管代码折行；长字符串/中文 docstring(CJK 宽字符)不计较。
+ignore = ["E501"]

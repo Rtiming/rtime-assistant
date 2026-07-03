@@ -1,0 +1,6450 @@
+{
+ "_about": "各学院/系 + 管理机构等 USTC 组织单位自动发现清单（colleges.build 生成，源 yxjs.htm + xxgk/gljg.htm）。重跑 ustc-kb colleges-discover 刷新。kind=college 落 colleges/<id>，kind=admin 落 orgs/<id>。",
+ "sources": [
+  "https://www.ustc.edu.cn/yxjs.htm",
+  "https://www.ustc.edu.cn/xxgk/gljg.htm"
+ ],
+ "colleges": {
+  "sgy": {
+   "name": "少年班学院",
+   "base": "https://sgy.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/sgy",
+   "columns": [
+    {
+     "url": "http://sgy.ustc.edu.cn/37827/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://sgy.ustc.edu.cn/37827/list.htm",
+     "cms": "siyuan",
+     "label": "少院概况"
+    },
+    {
+     "url": "https://sgy.ustc.edu.cn/37832/list.htm",
+     "cms": "siyuan",
+     "label": "教学指导"
+    },
+    {
+     "url": "https://sgy.ustc.edu.cn/37821/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://sgy.ustc.edu.cn/37822/list.htm",
+     "cms": "siyuan",
+     "label": "新闻资讯"
+    },
+    {
+     "url": "http://sgy.ustc.edu.cn/37833/list.htm",
+     "cms": "siyuan",
+     "label": "特色培养"
+    },
+    {
+     "url": "https://sgy.ustc.edu.cn/37824/list.htm",
+     "cms": "siyuan",
+     "label": "招生信息"
+    },
+    {
+     "url": "https://sgy.ustc.edu.cn/37826/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "http://sgy.ustc.edu.cn/37822/list.htm",
+     "cms": "siyuan",
+     "label": "更多资讯\nMORE"
+    }
+   ],
+   "contact": ""
+  },
+  "math": {
+   "name": "数学科学学院",
+   "base": "https://math.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/math",
+   "columns": [
+    {
+     "url": "https://math.ustc.edu.cn/xygk/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/xyld/list.htm",
+     "cms": "siyuan",
+     "label": "学院领导"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/zysz_35033/list.htm",
+     "cms": "siyuan",
+     "label": "专业设置"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/ptjg/list.htm",
+     "cms": "siyuan",
+     "label": "平台机构"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/szdw/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/azcp/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/jypy/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/bksjy/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/yjsjy/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/djwh/list.htm",
+     "cms": "siyuan",
+     "label": "党建文化"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/xsgz_32687/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/dwtz/list.htm",
+     "cms": "siyuan",
+     "label": "党务通知"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/zsjy/list.htm",
+     "cms": "siyuan",
+     "label": "招生就业"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/yjszs/list.htm",
+     "cms": "siyuan",
+     "label": "研究生招生"
+    },
+    {
+     "url": "https://math.ustc.edu.cn/zyzx/list.htm",
+     "cms": "siyuan",
+     "label": "资源中心"
+    }
+   ],
+   "contact": ""
+  },
+  "physics": {
+   "name": "物理学院",
+   "base": "https://physics.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/physics",
+   "columns": [
+    {
+     "url": "https://physics.ustc.edu.cn/yjsjypy/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育培养"
+    },
+    {
+     "url": "https://physics.ustc.edu.cn/xsgz/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://physics.ustc.edu.cn/3584/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://physics.ustc.edu.cn/xsbg/list.htm",
+     "cms": "siyuan",
+     "label": "学术报告"
+    },
+    {
+     "url": "https://physics.ustc.edu.cn/3587/list.htm",
+     "cms": "siyuan",
+     "label": "教学传真"
+    },
+    {
+     "url": "https://physics.ustc.edu.cn/3586/list.htm",
+     "cms": "siyuan",
+     "label": "科研动态"
+    },
+    {
+     "url": "https://physics.ustc.edu.cn/3574/list.htm",
+     "cms": "siyuan",
+     "label": "文档表格"
+    }
+   ],
+   "contact": ""
+  },
+  "phys": {
+   "name": "物理系",
+   "base": "https://phys.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/phys",
+   "columns": [
+    {
+     "url": "https://phys.ustc.edu.cn/17574/list.htm",
+     "cms": "siyuan",
+     "label": "系况简介"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/wlxgk/list.htm",
+     "cms": "siyuan",
+     "label": "物理系概况"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/17679/list.htm",
+     "cms": "siyuan",
+     "label": "物理系领导"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/17680/list.htm",
+     "cms": "siyuan",
+     "label": "物理系教学委员会"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/17577/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/szgk/list.htm",
+     "cms": "siyuan",
+     "label": "师资概况"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/17575/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/17593/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/17594/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/17573/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/tzgg_17723/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/17578/list.htm",
+     "cms": "siyuan",
+     "label": "学术交流"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/dzjs/list.htm",
+     "cms": "siyuan",
+     "label": "党建园地"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/17621/list.htm",
+     "cms": "siyuan",
+     "label": "支部新闻"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/xsgz/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://phys.ustc.edu.cn/17580/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "mphy": {
+   "name": "近代物理系",
+   "base": "https://mphy.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/mphy",
+   "columns": [
+    {
+     "url": "https://mphy.ustc.edu.cn/2864/list.htm",
+     "cms": "siyuan",
+     "label": "系况简介"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/2861/list.htm",
+     "cms": "siyuan",
+     "label": "历任系领导"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/xrxldd/list.htm",
+     "cms": "siyuan",
+     "label": "现任系领导"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/2854/list.htm",
+     "cms": "siyuan",
+     "label": "联系方式"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/2841/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/17976/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/17977/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/2797/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/xgdt/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/xxcl/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/djxg/list.htm",
+     "cms": "siyuan",
+     "label": "党建学工"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/djyd_27341/list.htm",
+     "cms": "siyuan",
+     "label": "党建园地"
+    },
+    {
+     "url": "https://mphy.ustc.edu.cn/xgdt_27342/list.htm",
+     "cms": "siyuan",
+     "label": "学工动态"
+    }
+   ],
+   "contact": ""
+  },
+  "astro": {
+   "name": "天文学系",
+   "base": "https://astro.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/astro",
+   "columns": [
+    {
+     "url": "https://astro.ustc.edu.cn/11395/list.htm",
+     "cms": "siyuan",
+     "label": "关于我们"
+    },
+    {
+     "url": "https://astro.ustc.edu.cn/14994/list.htm",
+     "cms": "siyuan",
+     "label": "历史"
+    },
+    {
+     "url": "https://astro.ustc.edu.cn/14995/list.htm",
+     "cms": "siyuan",
+     "label": "现任系领导"
+    },
+    {
+     "url": "https://astro.ustc.edu.cn/lrld/list.htm",
+     "cms": "siyuan",
+     "label": "历任领导"
+    },
+    {
+     "url": "https://astro.ustc.edu.cn/14996/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://astro.ustc.edu.cn/11388/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://astro.ustc.edu.cn/jypy/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://astro.ustc.edu.cn/bkjy/list.htm",
+     "cms": "siyuan",
+     "label": "本科教育"
+    },
+    {
+     "url": "https://astro.ustc.edu.cn/yjsjy/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://astro.ustc.edu.cn/djyd/list.htm",
+     "cms": "siyuan",
+     "label": "党建园地"
+    }
+   ],
+   "contact": ""
+  },
+  "eap": {
+   "name": "工程与应用物理系",
+   "base": "https://eap.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/eap",
+   "columns": [
+    {
+     "url": "https://eap.ustc.edu.cn/15085/list.htm",
+     "cms": "siyuan",
+     "label": "系况简介"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15086/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15088/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15068/list.htm",
+     "cms": "siyuan",
+     "label": "新闻信息"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/zhxw/list.htm",
+     "cms": "siyuan",
+     "label": "综合新闻"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/jxxx/list.htm",
+     "cms": "siyuan",
+     "label": "教学信息"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/xsjl/list.htm",
+     "cms": "siyuan",
+     "label": "学术报告"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15069/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15089/list.htm",
+     "cms": "siyuan",
+     "label": "师资概览"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15070/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15095/list.htm",
+     "cms": "siyuan",
+     "label": "本科生培养"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15096/list.htm",
+     "cms": "siyuan",
+     "label": "研究生培养"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15072/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15073/list.htm",
+     "cms": "siyuan",
+     "label": "招生就业"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15104/list.htm",
+     "cms": "siyuan",
+     "label": "本科生招生"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15105/list.htm",
+     "cms": "siyuan",
+     "label": "研究生招生"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15107/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15075/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15110/list.htm",
+     "cms": "siyuan",
+     "label": "申请表格"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15076/list.htm",
+     "cms": "siyuan",
+     "label": "党建园地"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15111/list.htm",
+     "cms": "siyuan",
+     "label": "党建新闻"
+    },
+    {
+     "url": "https://eap.ustc.edu.cn/15115/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    }
+   ],
+   "contact": ""
+  },
+  "scms": {
+   "name": "化学与材料科学学院",
+   "base": "https://scms.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/scms",
+   "columns": [
+    {
+     "url": "http://scms.ustc.edu.cn/2425/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2425/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2424/list.htm",
+     "cms": "siyuan",
+     "label": "学院领导"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2423/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2415/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2407/list.htm",
+     "cms": "siyuan",
+     "label": "化学实验教学中心"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/szdw/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/41112/list.htm",
+     "cms": "siyuan",
+     "label": "各系师资"
+    },
+    {
+     "url": "http://scms.ustc.edu.cn/2384/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2384/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2387/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2386/list.htm",
+     "cms": "siyuan",
+     "label": "教学成果"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2379/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2381/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "http://scms.ustc.edu.cn/17973/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "http://scms.ustc.edu.cn/2377/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2377/list.htm",
+     "cms": "siyuan",
+     "label": "团学新闻"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2376/list.htm",
+     "cms": "siyuan",
+     "label": "重要通知"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/wdxz/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/yjszs/list.htm",
+     "cms": "siyuan",
+     "label": "招生就业"
+    },
+    {
+     "url": "http://scms.ustc.edu.cn/zxjs/list.htm",
+     "cms": "siyuan",
+     "label": "高层次人才培养中心"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/zxjs/list.htm",
+     "cms": "siyuan",
+     "label": "中心介绍"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/zxsz/list.htm",
+     "cms": "siyuan",
+     "label": "中心师资"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/zxxw/list.htm",
+     "cms": "siyuan",
+     "label": "中心新闻"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/xshd_39243/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://scms.ustc.edu.cn/2322/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "dcp": {
+   "name": "化学物理系",
+   "base": "https://dcp.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/dcp",
+   "columns": [
+    {
+     "url": "http://dcp.ustc.edu.cn/4492/list.htm",
+     "cms": "siyuan",
+     "label": "系况简介"
+    },
+    {
+     "url": "https://dcp.ustc.edu.cn/4492/list.htm",
+     "cms": "siyuan",
+     "label": "本系简介"
+    },
+    {
+     "url": "https://dcp.ustc.edu.cn/4491/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://dcp.ustc.edu.cn/4489/list.htm",
+     "cms": "siyuan",
+     "label": "学术交流"
+    },
+    {
+     "url": "https://dcp.ustc.edu.cn/4488/list.htm",
+     "cms": "siyuan",
+     "label": "历任领导"
+    },
+    {
+     "url": "http://dcp.ustc.edu.cn/4437/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://dcp.ustc.edu.cn/4437/list.htm",
+     "cms": "siyuan",
+     "label": "系师资表"
+    },
+    {
+     "url": "https://dcp.ustc.edu.cn/4421/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://dcp.ustc.edu.cn/4424/list.htm",
+     "cms": "siyuan",
+     "label": "本科生"
+    },
+    {
+     "url": "https://dcp.ustc.edu.cn/4423/list.htm",
+     "cms": "siyuan",
+     "label": "研究生"
+    }
+   ],
+   "contact": ""
+  },
+  "applchem": {
+   "name": "应用化学系",
+   "base": "https://applchem.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/applchem",
+   "columns": [
+    {
+     "url": "https://applchem.ustc.edu.cn/15348/list.htm",
+     "cms": "siyuan",
+     "label": "本系概况"
+    },
+    {
+     "url": "https://applchem.ustc.edu.cn/15349/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://applchem.ustc.edu.cn/15350/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://applchem.ustc.edu.cn/15351/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://applchem.ustc.edu.cn/15355/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    }
+   ],
+   "contact": ""
+  },
+  "mse": {
+   "name": "材料科学与工程系",
+   "base": "https://mse.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/mse",
+   "columns": [
+    {
+     "url": "http://mse.ustc.edu.cn/3343/list.htm",
+     "cms": "siyuan",
+     "label": "本系概况"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3343/list.htm",
+     "cms": "siyuan",
+     "label": "本系简介"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3342/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3340/list.htm",
+     "cms": "siyuan",
+     "label": "联系方式"
+    },
+    {
+     "url": "http://mse.ustc.edu.cn/3337/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3338/list.htm",
+     "cms": "siyuan",
+     "label": "博士生学术论坛"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3337/list.htm",
+     "cms": "siyuan",
+     "label": "新闻"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3336/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "http://mse.ustc.edu.cn/3334/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "http://mse.ustc.edu.cn/3326/list.htm",
+     "cms": "siyuan",
+     "label": "研究生培养"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3326/list.htm",
+     "cms": "siyuan",
+     "label": "博士生培养"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3325/list.htm",
+     "cms": "siyuan",
+     "label": "硕士生培养"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3322/list.htm",
+     "cms": "siyuan",
+     "label": "科研机构"
+    },
+    {
+     "url": "http://mse.ustc.edu.cn/3317/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "http://mse.ustc.edu.cn/3315/list.htm",
+     "cms": "siyuan",
+     "label": "学术资源"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3314/list.htm",
+     "cms": "siyuan",
+     "label": "学术期刊链接"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3313/list.htm",
+     "cms": "siyuan",
+     "label": "其它学术资源"
+    },
+    {
+     "url": "http://mse.ustc.edu.cn/3310/list.htm",
+     "cms": "siyuan",
+     "label": "招生就业"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3310/list.htm",
+     "cms": "siyuan",
+     "label": "本科生招生"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3309/list.htm",
+     "cms": "siyuan",
+     "label": "研究生招生"
+    },
+    {
+     "url": "https://mse.ustc.edu.cn/3302/list.htm",
+     "cms": "siyuan",
+     "label": "国家科教部门"
+    }
+   ],
+   "contact": ""
+  },
+  "chem": {
+   "name": "化学系",
+   "base": "https://chem.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/chem",
+   "columns": [
+    {
+     "url": "https://chem.ustc.edu.cn/bxgk/list.htm",
+     "cms": "siyuan",
+     "label": "本系概况"
+    },
+    {
+     "url": "http://chem.ustc.edu.cn/2467/list.htm",
+     "cms": "siyuan",
+     "label": "新闻信息"
+    },
+    {
+     "url": "https://chem.ustc.edu.cn/2467/list.htm",
+     "cms": "siyuan",
+     "label": "新闻"
+    },
+    {
+     "url": "https://chem.ustc.edu.cn/2465/list.htm",
+     "cms": "siyuan",
+     "label": "教学信息"
+    },
+    {
+     "url": "https://chem.ustc.edu.cn/2463/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://chem.ustc.edu.cn/2462/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "http://chem.ustc.edu.cn/2476/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://chem.ustc.edu.cn/2447/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://chem.ustc.edu.cn/2437/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://chem.ustc.edu.cn/2430/list.htm",
+     "cms": "siyuan",
+     "label": "党团组织"
+    }
+   ],
+   "contact": ""
+  },
+  "polymer": {
+   "name": "高分子科学与工程系",
+   "base": "https://polymer.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/polymer",
+   "columns": [
+    {
+     "url": "http://polymer.ustc.edu.cn/bxjj/list.htm",
+     "cms": "siyuan",
+     "label": "本系概况"
+    },
+    {
+     "url": "http://polymer.ustc.edu.cn/xnxw/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "http://polymer.ustc.edu.cn/zzjszb/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "http://polymer.ustc.edu.cn/djhd/list.htm",
+     "cms": "siyuan",
+     "label": "党建团学"
+    },
+    {
+     "url": "https://polymer.ustc.edu.cn/tzgg_25098/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://polymer.ustc.edu.cn/xnxw/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://polymer.ustc.edu.cn/djhd/list.htm",
+     "cms": "siyuan",
+     "label": "党建团学"
+    }
+   ],
+   "contact": ""
+  },
+  "ses": {
+   "name": "工程科学学院",
+   "base": "https://ses.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/ses",
+   "columns": [
+    {
+     "url": "http://ses.ustc.edu.cn/1715/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "http://ses.ustc.edu.cn/1684/list.htm",
+     "cms": "siyuan",
+     "label": "新闻公告"
+    },
+    {
+     "url": "http://ses.ustc.edu.cn/1672/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "http://ses.ustc.edu.cn/djyd/list.htm",
+     "cms": "siyuan",
+     "label": "党建思政"
+    },
+    {
+     "url": "http://ses.ustc.edu.cn/1688/list.htm",
+     "cms": "siyuan",
+     "label": "新闻信息"
+    },
+    {
+     "url": "http://ses.ustc.edu.cn/wdxz/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "http://ses.ustc.edu.cn/1670/list.htm",
+     "cms": "siyuan",
+     "label": "一级学科培养"
+    },
+    {
+     "url": "http://ses.ustc.edu.cn/1669/list.htm",
+     "cms": "siyuan",
+     "label": "二级学科培养"
+    },
+    {
+     "url": "http://ses.ustc.edu.cn/1621/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "http://ses.ustc.edu.cn/1690/list.htm",
+     "cms": "siyuan",
+     "label": "更多公告"
+    }
+   ],
+   "contact": ""
+  },
+  "mech": {
+   "name": "近代力学系",
+   "base": "https://mech.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/mech",
+   "columns": [
+    {
+     "url": "https://mech.ustc.edu.cn/4593/list.htm",
+     "cms": "siyuan",
+     "label": "系况简介"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4586/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4592/list.htm",
+     "cms": "siyuan",
+     "label": "师资简介"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4587/list.htm",
+     "cms": "siyuan",
+     "label": "师资名录"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4580/list.htm",
+     "cms": "siyuan",
+     "label": "研究生培养"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4584/list.htm",
+     "cms": "siyuan",
+     "label": "培养计划"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4581/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4573/list.htm",
+     "cms": "siyuan",
+     "label": "本科教学"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4579/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4576/list.htm",
+     "cms": "siyuan",
+     "label": "教学实验室"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4574/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4571/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4570/list.htm",
+     "cms": "siyuan",
+     "label": "招生就业"
+    },
+    {
+     "url": "https://mech.ustc.edu.cn/4569/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "pmpi": {
+   "name": "精密机械与精密仪器系",
+   "base": "https://pmpi.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/pmpi",
+   "columns": [
+    {
+     "url": "https://pmpi.ustc.edu.cn/xkjj/list.htm",
+     "cms": "siyuan",
+     "label": "系况简介"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/lsyg_16669/list.htm",
+     "cms": "siyuan",
+     "label": "系况简介"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/szdw_19779/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/jypy/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/jxsys/list.htm",
+     "cms": "siyuan",
+     "label": "教学实验室"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/pyfa/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/yjsjy/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/bksjy/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/djgz/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/xsfc/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/xyjz/list.htm",
+     "cms": "siyuan",
+     "label": "系友讲座"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/xyxw/list.htm",
+     "cms": "siyuan",
+     "label": "系友新闻"
+    },
+    {
+     "url": "https://pmpi.ustc.edu.cn/wdxz/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "tsee": {
+   "name": "热科学和能源工程系",
+   "base": "https://tsee.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/tsee",
+   "columns": [
+    {
+     "url": "https://tsee.ustc.edu.cn/3284/list.htm",
+     "cms": "siyuan",
+     "label": "本系概况"
+    },
+    {
+     "url": "https://tsee.ustc.edu.cn/3295/list.htm",
+     "cms": "siyuan",
+     "label": "系况简介"
+    },
+    {
+     "url": "https://tsee.ustc.edu.cn/3294/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://tsee.ustc.edu.cn/3293/list.htm",
+     "cms": "siyuan",
+     "label": "历任领导"
+    },
+    {
+     "url": "https://tsee.ustc.edu.cn/3286/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "http://tsee.ustc.edu.cn/3283/list.htm",
+     "cms": "siyuan",
+     "label": "新闻信息"
+    },
+    {
+     "url": "https://tsee.ustc.edu.cn/3279/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://tsee.ustc.edu.cn/3283/list.htm",
+     "cms": "siyuan",
+     "label": "新闻报道"
+    },
+    {
+     "url": "https://tsee.ustc.edu.cn/3280/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "http://tsee.ustc.edu.cn/3277/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "http://tsee.ustc.edu.cn/3270/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://tsee.ustc.edu.cn/3270/list.htm",
+     "cms": "siyuan",
+     "label": "师资介绍"
+    },
+    {
+     "url": "http://tsee.ustc.edu.cn/3257/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "http://tsee.ustc.edu.cn/zbfc/list.htm",
+     "cms": "siyuan",
+     "label": "党建园地"
+    },
+    {
+     "url": "https://tsee.ustc.edu.cn/zbfc/list.htm",
+     "cms": "siyuan",
+     "label": "支部动态"
+    },
+    {
+     "url": "https://tsee.ustc.edu.cn/3233/list.htm",
+     "cms": "siyuan",
+     "label": "科研机构"
+    }
+   ],
+   "contact": ""
+  },
+  "safetyse": {
+   "name": "安全科学与工程系",
+   "base": "https://safetyse.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/safetyse",
+   "columns": [
+    {
+     "url": "http://safetyse.ustc.edu.cn/4564/list.htm",
+     "cms": "siyuan",
+     "label": "本系概况"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4564/list.htm",
+     "cms": "siyuan",
+     "label": "本系简介"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4563/list.htm",
+     "cms": "siyuan",
+     "label": "机构设置"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4562/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4561/list.htm",
+     "cms": "siyuan",
+     "label": "历届领导"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4557/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "http://safetyse.ustc.edu.cn/4555/list.htm",
+     "cms": "siyuan",
+     "label": "新闻信息"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4555/list.htm",
+     "cms": "siyuan",
+     "label": "综合新闻"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4554/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4553/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/szdw/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "http://safetyse.ustc.edu.cn/4547/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4547/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4546/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4545/list.htm",
+     "cms": "siyuan",
+     "label": "研究生导师"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/4534/list.htm",
+     "cms": "siyuan",
+     "label": "学术报告"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/xshd/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "http://safetyse.ustc.edu.cn/4526/list.htm",
+     "cms": "siyuan",
+     "label": "党建思政"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/zcwj/list.htm",
+     "cms": "siyuan",
+     "label": "政策文件"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/djdt/list.htm",
+     "cms": "siyuan",
+     "label": "党建动态"
+    },
+    {
+     "url": "https://safetyse.ustc.edu.cn/ghhd/list.htm",
+     "cms": "siyuan",
+     "label": "工会动态"
+    }
+   ],
+   "contact": ""
+  },
+  "iid": {
+   "name": "信息与智能学部",
+   "base": "https://iid.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/iid",
+   "columns": [
+    {
+     "url": "https://iid.ustc.edu.cn/xbgk/list.htm",
+     "cms": "siyuan",
+     "label": "学部概况"
+    },
+    {
+     "url": "https://iid.ustc.edu.cn/xbld/list.htm",
+     "cms": "siyuan",
+     "label": "学部领导"
+    },
+    {
+     "url": "https://iid.ustc.edu.cn/xzjg/list.htm",
+     "cms": "siyuan",
+     "label": "分学术委员会"
+    },
+    {
+     "url": "http://iid.ustc.edu.cn/xbjs/list.htm",
+     "cms": "siyuan",
+     "label": "信息与智能学部简介"
+    },
+    {
+     "url": "http://iid.ustc.edu.cn/xbld/list.htm",
+     "cms": "siyuan",
+     "label": "学部领导"
+    },
+    {
+     "url": "http://iid.ustc.edu.cn/xzjg/list.htm",
+     "cms": "siyuan",
+     "label": "信息与智能学部分学术委员会"
+    }
+   ],
+   "contact": ""
+  },
+  "sist": {
+   "name": "信息科学技术学院",
+   "base": "https://sist.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/sist",
+   "columns": [
+    {
+     "url": "https://sist.ustc.edu.cn/5141/list.htm",
+     "cms": "siyuan",
+     "label": "新闻信息"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5146/list.htm",
+     "cms": "siyuan",
+     "label": "热点新闻"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5142/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5166/list.htm",
+     "cms": "siyuan",
+     "label": "机构设置"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5140/list.htm",
+     "cms": "siyuan",
+     "label": "师资动态"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5138/list.htm",
+     "cms": "siyuan",
+     "label": "学术荣誉"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/zlxz/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5119/list.htm",
+     "cms": "siyuan",
+     "label": "教学信息"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5118/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5117/list.htm",
+     "cms": "siyuan",
+     "label": "实验教学"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5111/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5109/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5108/list.htm",
+     "cms": "siyuan",
+     "label": "招生工作"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5107/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/xshd/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5104/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5132/list.htm",
+     "cms": "siyuan",
+     "label": "党建动态"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5128/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5101/list.htm",
+     "cms": "siyuan",
+     "label": "学工动态"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5095/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5089/list.htm",
+     "cms": "siyuan",
+     "label": "科研动态"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5086/list.htm",
+     "cms": "siyuan",
+     "label": "科研机构"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5085/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    },
+    {
+     "url": "https://sist.ustc.edu.cn/5079/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    }
+   ],
+   "contact": ""
+  },
+  "eeis": {
+   "name": "电子工程与信息科学系",
+   "base": "https://eeis.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/eeis",
+   "columns": [
+    {
+     "url": "https://eeis.ustc.edu.cn/2714/list.htm",
+     "cms": "siyuan",
+     "label": "系况简介"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2724/list.htm",
+     "cms": "siyuan",
+     "label": "历任领导"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2725/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2723/list.htm",
+     "cms": "siyuan",
+     "label": "教学委员会"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2716/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2715/list.htm",
+     "cms": "siyuan",
+     "label": "联系方式"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2701/list.htm",
+     "cms": "siyuan",
+     "label": "新闻信息"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2706/list.htm",
+     "cms": "siyuan",
+     "label": "新闻信息"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2702/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2705/list.htm",
+     "cms": "siyuan",
+     "label": "教学信息"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2703/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2584/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2699/list.htm",
+     "cms": "siyuan",
+     "label": "师资概况"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2579/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2580/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2583/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2582/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://eeis.ustc.edu.cn/2568/list.htm",
+     "cms": "siyuan",
+     "label": "科研机构"
+    }
+   ],
+   "contact": ""
+  },
+  "auto": {
+   "name": "自动化系",
+   "base": "https://auto.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/auto",
+   "columns": [
+    {
+     "url": "https://auto.ustc.edu.cn/25974/list.htm",
+     "cms": "siyuan",
+     "label": "本系概况"
+    },
+    {
+     "url": "https://auto.ustc.edu.cn/25975/list.htm",
+     "cms": "siyuan",
+     "label": "行政机构"
+    },
+    {
+     "url": "https://auto.ustc.edu.cn/25970/list.htm",
+     "cms": "siyuan",
+     "label": "师资力量"
+    },
+    {
+     "url": "https://auto.ustc.edu.cn/4283/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://auto.ustc.edu.cn/4286/list.htm",
+     "cms": "siyuan",
+     "label": "本科生"
+    },
+    {
+     "url": "https://auto.ustc.edu.cn/4285/list.htm",
+     "cms": "siyuan",
+     "label": "研究生"
+    },
+    {
+     "url": "https://auto.ustc.edu.cn/25980/list.htm",
+     "cms": "siyuan",
+     "label": "科研动态"
+    },
+    {
+     "url": "https://auto.ustc.edu.cn/25971/list.htm",
+     "cms": "siyuan",
+     "label": "党建园地"
+    },
+    {
+     "url": "https://auto.ustc.edu.cn/25985/list.htm",
+     "cms": "siyuan",
+     "label": "党建动态"
+    },
+    {
+     "url": "https://auto.ustc.edu.cn/25989/list.htm",
+     "cms": "siyuan",
+     "label": "校友资讯"
+    },
+    {
+     "url": "https://auto.ustc.edu.cn/25973/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    }
+   ],
+   "contact": ""
+  },
+  "cs": {
+   "name": "计算机科学与技术学院",
+   "base": "https://cs.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/cs",
+   "columns": [
+    {
+     "url": "https://cs.ustc.edu.cn/19972/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20148/list.htm",
+     "cms": "siyuan",
+     "label": "院况简介"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20150/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20151/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20153/list.htm",
+     "cms": "siyuan",
+     "label": "联系方式"
+    },
+    {
+     "url": "http://cs.ustc.edu.cn/zgj_23225/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/19974/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20156/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20158/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/37112/list.htm",
+     "cms": "siyuan",
+     "label": "活动新闻"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/xsbg_38189/list.htm",
+     "cms": "siyuan",
+     "label": "学术报告"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/37115/list.htm",
+     "cms": "siyuan",
+     "label": "学术交流会"
+    },
+    {
+     "url": "http://cs.ustc.edu.cn/20159/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20159/list.htm",
+     "cms": "siyuan",
+     "label": "动态公告"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20160/list.htm",
+     "cms": "siyuan",
+     "label": "招生工作"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20161/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20165/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/xslt/list.htm",
+     "cms": "siyuan",
+     "label": "学术论坛"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20166/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20167/list.htm",
+     "cms": "siyuan",
+     "label": "招生工作"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20168/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20173/list.htm",
+     "cms": "siyuan",
+     "label": "科研动态"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/xsbg/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/19978/list.htm",
+     "cms": "siyuan",
+     "label": "党建园地"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20178/list.htm",
+     "cms": "siyuan",
+     "label": "党建动态"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/tzgg_35904/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20181/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/19979/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20185/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/20186/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/22379/list.htm",
+     "cms": "siyuan",
+     "label": "本科生"
+    },
+    {
+     "url": "https://cs.ustc.edu.cn/22380/list.htm",
+     "cms": "siyuan",
+     "label": "研究生"
+    },
+    {
+     "url": "http://cs.ustc.edu.cn/20160/list.htm",
+     "cms": "siyuan",
+     "label": "招生工作"
+    }
+   ],
+   "contact": ""
+  },
+  "saids": {
+   "name": "人工智能与数据科学学院",
+   "base": "https://saids.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/saids",
+   "columns": [
+    {
+     "url": "https://saids.ustc.edu.cn/15407/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15421/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15422/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15423/list.htm",
+     "cms": "siyuan",
+     "label": "机构设置"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15426/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/szdw/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15409/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15430/list.htm",
+     "cms": "siyuan",
+     "label": "本科生"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15431/list.htm",
+     "cms": "siyuan",
+     "label": "研究生"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15432/list.htm",
+     "cms": "siyuan",
+     "label": "招生信息"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15410/list.htm",
+     "cms": "siyuan",
+     "label": "新闻公告"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15434/list.htm",
+     "cms": "siyuan",
+     "label": "学院动态"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15435/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15436/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/djyd/list.htm",
+     "cms": "siyuan",
+     "label": "党建园地"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/djxx/list.htm",
+     "cms": "siyuan",
+     "label": "党建动态"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15412/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15440/list.htm",
+     "cms": "siyuan",
+     "label": "学工动态"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15413/list.htm",
+     "cms": "siyuan",
+     "label": "资源中心"
+    },
+    {
+     "url": "https://saids.ustc.edu.cn/15443/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "cybersec": {
+   "name": "网络空间安全学院",
+   "base": "https://cybersec.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/cybersec",
+   "columns": [
+    {
+     "url": "https://cybersec.ustc.edu.cn/xygk_23804/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/szdw_23805/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/bksjy/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/bszn/list.htm",
+     "cms": "siyuan",
+     "label": "教学动态"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/pyfa/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/jxrl/list.htm",
+     "cms": "siyuan",
+     "label": "教学日历"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/zlxz/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/yjsjy/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/tzgg_23826/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/zsgz/list.htm",
+     "cms": "siyuan",
+     "label": "招生工作"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/jypy_23828/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/zlxz_23830/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/kydt/list.htm",
+     "cms": "siyuan",
+     "label": "科研动态"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/xshd/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/djgz/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/djdt/list.htm",
+     "cms": "siyuan",
+     "label": "党建动态"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/gzzd/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://cybersec.ustc.edu.cn/zlxz_34997/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    }
+   ],
+   "contact": ""
+  },
+  "sme": {
+   "name": "集成电路学院(国家示范性微电子学院)",
+   "base": "https://sme.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/sme",
+   "columns": [
+    {
+     "url": "http://sme.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/zzjg/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "http://sme.ustc.edu.cn/ys/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "http://sme.ustc.edu.cn/kydt/list.htm",
+     "cms": "siyuan",
+     "label": "学术科研"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/kydt/list.htm",
+     "cms": "siyuan",
+     "label": "科研动态"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/xshd/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "http://sme.ustc.edu.cn/bszn/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/pyfa/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/wdxz/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "http://sme.ustc.edu.cn/dtgg/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/zsgz/list.htm",
+     "cms": "siyuan",
+     "label": "招生工作"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/pyfa_37909/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/jypy/list.htm",
+     "cms": "siyuan",
+     "label": "学籍规定"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/wdxz_30880/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "http://sme.ustc.edu.cn/djdt/list.htm",
+     "cms": "siyuan",
+     "label": "党建园地"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/djdt/list.htm",
+     "cms": "siyuan",
+     "label": "党建动态"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/wdxz_30885/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "http://sme.ustc.edu.cn/bthd/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/gzzd/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://sme.ustc.edu.cn/wdxz_30888/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "sse": {
+   "name": "软件学院",
+   "base": "https://sse.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/sse",
+   "columns": [
+    {
+     "url": "https://sse.ustc.edu.cn/19739/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19745/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19747/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19748/list.htm",
+     "cms": "siyuan",
+     "label": "机构设置"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19749/list.htm",
+     "cms": "siyuan",
+     "label": "历史回顾"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19740/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19741/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19742/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19870/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19873/list.htm",
+     "cms": "siyuan",
+     "label": "教学环境"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19743/list.htm",
+     "cms": "siyuan",
+     "label": "招生就业"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19888/list.htm",
+     "cms": "siyuan",
+     "label": "招生信息"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/wdxz_19877/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19878/list.htm",
+     "cms": "siyuan",
+     "label": "教学管理"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/19879/list.htm",
+     "cms": "siyuan",
+     "label": "招生管理"
+    },
+    {
+     "url": "https://sse.ustc.edu.cn/zcwj/list.htm",
+     "cms": "siyuan",
+     "label": "政策文件"
+    },
+    {
+     "url": "http://sse.ustc.edu.cn/19745/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "http://sse.ustc.edu.cn/19747/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    }
+   ],
+   "contact": ""
+  },
+  "ess": {
+   "name": "地球和空间科学学院",
+   "base": "https://ess.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/ess",
+   "columns": [
+    {
+     "url": "http://ess.ustc.edu.cn/xyjj_39989/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://ess.ustc.edu.cn/xyjj_39989/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "http://ess.ustc.edu.cn/ydw/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "http://ess.ustc.edu.cn/xwdt_40033/list.htm",
+     "cms": "siyuan",
+     "label": "新闻公告"
+    },
+    {
+     "url": "https://ess.ustc.edu.cn/xwdt_40033/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://ess.ustc.edu.cn/xtzgg/list.htm",
+     "cms": "siyuan",
+     "label": "新通知公告"
+    },
+    {
+     "url": "http://ess.ustc.edu.cn/ys_40122/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "http://ess.ustc.edu.cn/bksjygk/list.htm",
+     "cms": "siyuan",
+     "label": "人才培养"
+    },
+    {
+     "url": "http://ess.ustc.edu.cn/yjsgk_40177/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://ess.ustc.edu.cn/kyjg_40084/list.htm",
+     "cms": "siyuan",
+     "label": "科研机构"
+    },
+    {
+     "url": "https://ess.ustc.edu.cn/djgz_39985/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "https://ess.ustc.edu.cn/jcjz/list.htm",
+     "cms": "siyuan",
+     "label": "杰出讲座"
+    },
+    {
+     "url": "https://ess.ustc.edu.cn/xsbg/list.htm",
+     "cms": "siyuan",
+     "label": "学术报告"
+    },
+    {
+     "url": "https://ess.ustc.edu.cn/xyml/list.htm",
+     "cms": "siyuan",
+     "label": "本科校友名录"
+    }
+   ],
+   "contact": ""
+  },
+  "biomed": {
+   "name": "生命科学与医学部",
+   "base": "https://biomed.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/biomed",
+   "columns": [
+    {
+     "url": "http://biomed.ustc.edu.cn/xbjj/list.htm",
+     "cms": "siyuan",
+     "label": "学部概况"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/xbjj/list.htm",
+     "cms": "siyuan",
+     "label": "学部简介"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/zzjg/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/xwgg_25482/list.htm",
+     "cms": "siyuan",
+     "label": "新闻公告"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/xwgg/list.htm",
+     "cms": "siyuan",
+     "label": "新闻公告"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/kydt/list.htm",
+     "cms": "siyuan",
+     "label": "科研动态"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/xsbg/list.htm",
+     "cms": "siyuan",
+     "label": "学术报告"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/gjkyjg/list.htm",
+     "cms": "siyuan",
+     "label": "科研机构"
+    },
+    {
+     "url": "http://biomed.ustc.edu.cn/bks/list.htm",
+     "cms": "siyuan",
+     "label": "教学研究"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/bks/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教学"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/yjsjx/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教学"
+    },
+    {
+     "url": "http://biomed.ustc.edu.cn/smkxy/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "http://biomed.ustc.edu.cn/djdt/list.htm",
+     "cms": "siyuan",
+     "label": "党建思政"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/djdt/list.htm",
+     "cms": "siyuan",
+     "label": "党建动态"
+    },
+    {
+     "url": "http://biomed.ustc.edu.cn/txdt/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://biomed.ustc.edu.cn/txdt/list.htm",
+     "cms": "siyuan",
+     "label": "团学动态"
+    },
+    {
+     "url": "http://biomed.ustc.edu.cn/xzbg/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "biox": {
+   "name": "生命科学学院",
+   "base": "https://biox.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/biox",
+   "columns": [
+    {
+     "url": "http://biox.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://biox.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://biox.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://biox.ustc.edu.cn/lrld/list.htm",
+     "cms": "siyuan",
+     "label": "历任领导"
+    },
+    {
+     "url": "http://biox.ustc.edu.cn/jdxw/list.htm",
+     "cms": "siyuan",
+     "label": "学院新闻"
+    },
+    {
+     "url": "https://biox.ustc.edu.cn/jdxw/list.htm",
+     "cms": "siyuan",
+     "label": "综合新闻"
+    },
+    {
+     "url": "https://biox.ustc.edu.cn/xsbg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://biox.ustc.edu.cn/kydt/list.htm",
+     "cms": "siyuan",
+     "label": "学术科研"
+    },
+    {
+     "url": "https://biox.ustc.edu.cn/zthd/list.htm",
+     "cms": "siyuan",
+     "label": "人才培养"
+    },
+    {
+     "url": "https://biox.ustc.edu.cn/gjkyjg/list.htm",
+     "cms": "siyuan",
+     "label": "各级科研机构"
+    },
+    {
+     "url": "http://biox.ustc.edu.cn/bksjx/list.htm",
+     "cms": "siyuan",
+     "label": "教学工作"
+    },
+    {
+     "url": "https://biox.ustc.edu.cn/bksjx/list.htm",
+     "cms": "siyuan",
+     "label": "教学工作"
+    },
+    {
+     "url": "https://biox.ustc.edu.cn/djsz/list.htm",
+     "cms": "siyuan",
+     "label": "党建思政"
+    },
+    {
+     "url": "https://biox.ustc.edu.cn/lxwm_24263/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "jcyx": {
+   "name": "基础医学院",
+   "base": "https://jcyx.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/jcyx",
+   "columns": [
+    {
+     "url": "http://jcyx.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://jcyx.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://jcyx.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "学院领导"
+    },
+    {
+     "url": "https://jcyx.ustc.edu.cn/kyjg/list.htm",
+     "cms": "siyuan",
+     "label": "科研机构"
+    },
+    {
+     "url": "http://jcyx.ustc.edu.cn/tzxw_27948/list.htm",
+     "cms": "siyuan",
+     "label": "教学工作"
+    },
+    {
+     "url": "https://jcyx.ustc.edu.cn/tzxw_27948/list.htm",
+     "cms": "siyuan",
+     "label": "通知新闻"
+    },
+    {
+     "url": "https://jcyx.ustc.edu.cn/jxpt/list.htm",
+     "cms": "siyuan",
+     "label": "教学平台"
+    },
+    {
+     "url": "http://jcyx.ustc.edu.cn/lyys/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "http://jcyx.ustc.edu.cn/djxw_27951/list.htm",
+     "cms": "siyuan",
+     "label": "党建思政"
+    },
+    {
+     "url": "https://jcyx.ustc.edu.cn/djxw_27951/list.htm",
+     "cms": "siyuan",
+     "label": "党建新闻"
+    },
+    {
+     "url": "https://jcyx.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://jcyx.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    }
+   ],
+   "contact": ""
+  },
+  "lcyx": {
+   "name": "临床医学院",
+   "base": "https://lcyx.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/lcyx",
+   "columns": [
+    {
+     "url": "http://lcyx.ustc.edu.cn/xyjj_27572/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://lcyx.ustc.edu.cn/xyjj_27572/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://lcyx.ustc.edu.cn/xyld/list.htm",
+     "cms": "siyuan",
+     "label": "学院领导"
+    },
+    {
+     "url": "https://lcyx.ustc.edu.cn/bmzz/list.htm",
+     "cms": "siyuan",
+     "label": "部门职责"
+    },
+    {
+     "url": "https://lcyx.ustc.edu.cn/gljg/list.htm",
+     "cms": "siyuan",
+     "label": "管理机构"
+    },
+    {
+     "url": "http://lcyx.ustc.edu.cn/bksjy/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://lcyx.ustc.edu.cn/bksjy/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://lcyx.ustc.edu.cn/yjspy/list.htm",
+     "cms": "siyuan",
+     "label": "研究生培养"
+    },
+    {
+     "url": "http://lcyx.ustc.edu.cn/ysfc/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://lcyx.ustc.edu.cn/lcjnzx_34362/list.htm",
+     "cms": "siyuan",
+     "label": "临床技能培训中心"
+    },
+    {
+     "url": "http://lcyx.ustc.edu.cn/djsz/list.htm",
+     "cms": "siyuan",
+     "label": "党建学工"
+    },
+    {
+     "url": "https://lcyx.ustc.edu.cn/djsz/list.htm",
+     "cms": "siyuan",
+     "label": "党建思政"
+    }
+   ],
+   "contact": ""
+  },
+  "bme": {
+   "name": "生物医学工程学院",
+   "base": "https://bme.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/bme",
+   "columns": [
+    {
+     "url": "http://bme.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "http://bme.ustc.edu.cn/xyxw/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "http://bme.ustc.edu.cn/zysz/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "http://bme.ustc.edu.cn/js/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://bme.ustc.edu.cn/zsxx/list.htm",
+     "cms": "siyuan",
+     "label": "招生招聘"
+    },
+    {
+     "url": "https://bme.ustc.edu.cn/xsgz/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    }
+   ],
+   "contact": ""
+  },
+  "som": {
+   "name": "科技商学院、管理学院",
+   "base": "https://som.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/som",
+   "columns": [
+    {
+     "url": "https://som.ustc.edu.cn/school/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/about_us/list.htm",
+     "cms": "siyuan",
+     "label": "关于我们"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/xyld/list.htm",
+     "cms": "siyuan",
+     "label": "学院领导"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/depcenter/list.htm",
+     "cms": "siyuan",
+     "label": "系与教育中心"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/organization/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/cultureresources/list.htm",
+     "cms": "siyuan",
+     "label": "教学环境"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/contact/list.htm",
+     "cms": "siyuan",
+     "label": "联系方式"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/jxxm/list.htm",
+     "cms": "siyuan",
+     "label": "教学项目"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/edu_gk/list.htm",
+     "cms": "siyuan",
+     "label": "学位点概况"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/ug/list.htm",
+     "cms": "siyuan",
+     "label": "本科"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/xssb/list.htm",
+     "cms": "siyuan",
+     "label": "学术硕博"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/aljx/list.htm",
+     "cms": "siyuan",
+     "label": "案例教学"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/djxg/list.htm",
+     "cms": "siyuan",
+     "label": "党建学工"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/djgz/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/xsgz/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/zs/list.htm",
+     "cms": "siyuan",
+     "label": "招生"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/kxxwzs/list.htm",
+     "cms": "siyuan",
+     "label": "学术硕博"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/gzdt/list.htm",
+     "cms": "siyuan",
+     "label": "工作动态"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/pac/list.htm",
+     "cms": "siyuan",
+     "label": "招生与品牌中心"
+    },
+    {
+     "url": "https://som.ustc.edu.cn/dba/list.htm",
+     "cms": "siyuan",
+     "label": "系所中心"
+    }
+   ],
+   "contact": ""
+  },
+  "sppm": {
+   "name": "公共管理学院",
+   "base": "https://sppm.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/sppm",
+   "columns": [
+    {
+     "url": "https://sppm.ustc.edu.cn/10030/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/szdw_35641/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/xwjy/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/zsdt/list.htm",
+     "cms": "siyuan",
+     "label": "招生动态"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/yjsjysjjd/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育实践基地"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/kydt/list.htm",
+     "cms": "siyuan",
+     "label": "科研动态"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/djtd/list.htm",
+     "cms": "siyuan",
+     "label": "党建思政"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/zbdt/list.htm",
+     "cms": "siyuan",
+     "label": "支部动态"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/wdxz/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/xsgz/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/yyjsh/list.htm",
+     "cms": "siyuan",
+     "label": "院研究生会"
+    },
+    {
+     "url": "https://sppm.ustc.edu.cn/xydt/list.htm",
+     "cms": "siyuan",
+     "label": "校友动态"
+    }
+   ],
+   "contact": ""
+  },
+  "hsss": {
+   "name": "人文与社会科学学院",
+   "base": "https://hsss.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/hsss",
+   "columns": [
+    {
+     "url": "https://hsss.ustc.edu.cn/wlxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/xygk/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/lrld/list.htm",
+     "cms": "siyuan",
+     "label": "历任领导"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/wyx/list.htm",
+     "cms": "siyuan",
+     "label": "语言科学交叉研究中心"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/ysykxyjzx_24014/list.htm",
+     "cms": "siyuan",
+     "label": "艺术与科学研究中心"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/szdw/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/24x/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/xsky/list.htm",
+     "cms": "siyuan",
+     "label": "学术科研"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/xshd/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/zszx/list.htm",
+     "cms": "siyuan",
+     "label": "招生培养"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/zssd/list.htm",
+     "cms": "siyuan",
+     "label": "招生速递"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/bkspyfa/list.htm",
+     "cms": "siyuan",
+     "label": "本科生培养方案"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/yjspyfa/list.htm",
+     "cms": "siyuan",
+     "label": "研究生培养方案"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/xyfc_22442/list.htm",
+     "cms": "siyuan",
+     "label": "校友简介"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/djhd_20433/list.htm",
+     "cms": "siyuan",
+     "label": "党建活动"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/djhd/list.htm",
+     "cms": "siyuan",
+     "label": "党建活动"
+    },
+    {
+     "url": "https://hsss.ustc.edu.cn/djcl/list.htm",
+     "cms": "siyuan",
+     "label": "党建材料"
+    },
+    {
+     "url": "http://hsss.ustc.edu.cn/llxx/list.htm",
+     "cms": "siyuan",
+     "label": "党建与精神传达"
+    }
+   ],
+   "contact": ""
+  },
+  "hsta": {
+   "name": "科技史与科技考古系",
+   "base": "https://hsta.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/hsta",
+   "columns": [
+    {
+     "url": "https://hsta.ustc.edu.cn/2786/list.htm",
+     "cms": "siyuan",
+     "label": "本系概况"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/2784/list.htm",
+     "cms": "siyuan",
+     "label": "学术委员会"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/rdxw/list.htm",
+     "cms": "siyuan",
+     "label": "新闻资讯"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/2779/list.htm",
+     "cms": "siyuan",
+     "label": "学术新闻"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/2777/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/2770/list.htm",
+     "cms": "siyuan",
+     "label": "学术队伍"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/zsxx/list.htm",
+     "cms": "siyuan",
+     "label": "人才培养"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/gzzd/list.htm",
+     "cms": "siyuan",
+     "label": "科学技术史研究生培养"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/kgx/list.htm",
+     "cms": "siyuan",
+     "label": "考古学研究生培养"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/wwybwgzyss/list.htm",
+     "cms": "siyuan",
+     "label": "文物与博物馆研究生培养"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/pygcgl/list.htm",
+     "cms": "siyuan",
+     "label": "研究生培养过程管理"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/ltjz/list.htm",
+     "cms": "siyuan",
+     "label": "论坛讲座"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/2764/list.htm",
+     "cms": "siyuan",
+     "label": "学术平台"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/yjzx/list.htm",
+     "cms": "siyuan",
+     "label": "研究中心"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/xsqk/list.htm",
+     "cms": "siyuan",
+     "label": "学术期刊"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/djhd/list.htm",
+     "cms": "siyuan",
+     "label": "党建学工"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/xsgz/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/xspj/list.htm",
+     "cms": "siyuan",
+     "label": "学术普及"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/xsfw/list.htm",
+     "cms": "siyuan",
+     "label": "学术服务"
+    },
+    {
+     "url": "https://hsta.ustc.edu.cn/xsjz/list.htm",
+     "cms": "siyuan",
+     "label": "学术兼职"
+    }
+   ],
+   "contact": ""
+  },
+  "stc": {
+   "name": "科技传播系",
+   "base": "https://stc.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/stc",
+   "columns": [
+    {
+     "url": "https://stc.ustc.edu.cn/4520/list.htm",
+     "cms": "siyuan",
+     "label": "概况简介"
+    },
+    {
+     "url": "https://stc.ustc.edu.cn/4498/list.htm",
+     "cms": "siyuan",
+     "label": "资源中心"
+    },
+    {
+     "url": "https://stc.ustc.edu.cn/4500/list.htm",
+     "cms": "siyuan",
+     "label": "师资科研"
+    },
+    {
+     "url": "https://stc.ustc.edu.cn/4514/list.htm",
+     "cms": "siyuan",
+     "label": "新闻公告"
+    },
+    {
+     "url": "https://stc.ustc.edu.cn/4516/list.htm",
+     "cms": "siyuan",
+     "label": "新闻通告"
+    },
+    {
+     "url": "https://stc.ustc.edu.cn/4499/list.htm",
+     "cms": "siyuan",
+     "label": "招生培养"
+    },
+    {
+     "url": "https://stc.ustc.edu.cn/zs/list.htm",
+     "cms": "siyuan",
+     "label": "招生信息"
+    },
+    {
+     "url": "https://stc.ustc.edu.cn/jy/list.htm",
+     "cms": "siyuan",
+     "label": "本科生培养方案"
+    },
+    {
+     "url": "https://stc.ustc.edu.cn/yjspyfa/list.htm",
+     "cms": "siyuan",
+     "label": "研究生培养方案"
+    },
+    {
+     "url": "https://stc.ustc.edu.cn/yjssjjd/list.htm",
+     "cms": "siyuan",
+     "label": "研究生实践基地"
+    },
+    {
+     "url": "http://stc.ustc.edu.cn/4520/list.htm",
+     "cms": "siyuan",
+     "label": "概况简介"
+    },
+    {
+     "url": "http://stc.ustc.edu.cn/4519/list.htm",
+     "cms": "siyuan",
+     "label": "本科生课程设计"
+    },
+    {
+     "url": "http://stc.ustc.edu.cn/4518/list.htm",
+     "cms": "siyuan",
+     "label": "研究生课程与工作"
+    },
+    {
+     "url": "http://stc.ustc.edu.cn/lscj/list.htm",
+     "cms": "siyuan",
+     "label": "历史成就"
+    },
+    {
+     "url": "http://stc.ustc.edu.cn/4498/list.htm",
+     "cms": "siyuan",
+     "label": "资源中心"
+    },
+    {
+     "url": "http://stc.ustc.edu.cn/4500/list.htm",
+     "cms": "siyuan",
+     "label": "师资科研"
+    },
+    {
+     "url": "http://stc.ustc.edu.cn/4514/list.htm",
+     "cms": "siyuan",
+     "label": "新闻公告"
+    },
+    {
+     "url": "http://stc.ustc.edu.cn/4516/list.htm",
+     "cms": "siyuan",
+     "label": "新闻通告"
+    },
+    {
+     "url": "http://stc.ustc.edu.cn/4499/list.htm",
+     "cms": "siyuan",
+     "label": "招生就业"
+    },
+    {
+     "url": "http://stc.ustc.edu.cn/zs/list.htm",
+     "cms": "siyuan",
+     "label": "招生"
+    }
+   ],
+   "contact": ""
+  },
+  "sts": {
+   "name": "科技哲学系",
+   "base": "https://sts.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/sts",
+   "columns": [
+    {
+     "url": "https://sts.ustc.edu.cn/bxgk/list.htm",
+     "cms": "siyuan",
+     "label": "本系概况"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/bxjj/list.htm",
+     "cms": "siyuan",
+     "label": "本系简介"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/bbyjs/list.htm",
+     "cms": "siyuan",
+     "label": "本系研究生"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/xwdt_27914/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/szdw/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/zsxx/list.htm",
+     "cms": "siyuan",
+     "label": "招生信息"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/yjspy/list.htm",
+     "cms": "siyuan",
+     "label": "研究生培养"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/jxzx/list.htm",
+     "cms": "siyuan",
+     "label": "教学在线"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/zgkdyjsggzzkzxjxpt/list.htm",
+     "cms": "siyuan",
+     "label": "中国科大研究生公共政..."
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/xsky/list.htm",
+     "cms": "siyuan",
+     "label": "教学科研"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/whlt/list.htm",
+     "cms": "siyuan",
+     "label": "学术论坛"
+    },
+    {
+     "url": "https://sts.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "psy": {
+   "name": "心理学系（筹）",
+   "base": "https://psy.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/psy",
+   "columns": [
+    {
+     "url": "https://psy.ustc.edu.cn/gywm/list.htm",
+     "cms": "siyuan",
+     "label": "关于我们"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/xbgk/list.htm",
+     "cms": "siyuan",
+     "label": "系部概况"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻公告"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/hdyg/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/tzgg_26256/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/szdw/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/rcpy/list.htm",
+     "cms": "siyuan",
+     "label": "学生培养"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/rcpy_26261/list.htm",
+     "cms": "siyuan",
+     "label": "本科生"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/jlxm/list.htm",
+     "cms": "siyuan",
+     "label": "学术报告"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/djgh/list.htm",
+     "cms": "siyuan",
+     "label": "党建活动"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/djsz/list.htm",
+     "cms": "siyuan",
+     "label": "党建思政"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://psy.ustc.edu.cn/yyzx/list.htm",
+     "cms": "siyuan",
+     "label": "应用中心"
+    }
+   ],
+   "contact": ""
+  },
+  "marx": {
+   "name": "马克思主义学院",
+   "base": "https://marx.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/marx",
+   "columns": [
+    {
+     "url": "https://marx.ustc.edu.cn/xygk/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/xyld/list.htm",
+     "cms": "siyuan",
+     "label": "学院领导"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/zzjg/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/szdw1/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/rcpy1/list.htm",
+     "cms": "siyuan",
+     "label": "人才培养"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/zsjy/list.htm",
+     "cms": "siyuan",
+     "label": "招生就业"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/pyfa/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/pydt/list.htm",
+     "cms": "siyuan",
+     "label": "培养动态"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/xkjj/list.htm",
+     "cms": "siyuan",
+     "label": "学科简介"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/xscz/list.htm",
+     "cms": "siyuan",
+     "label": "学术传真"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/djtx1/list.htm",
+     "cms": "siyuan",
+     "label": "党建团学"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/djzx/list.htm",
+     "cms": "siyuan",
+     "label": "党建资讯"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/txdt/list.htm",
+     "cms": "siyuan",
+     "label": "团学动态"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/gzzd/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/jxky/list.htm",
+     "cms": "siyuan",
+     "label": "教学科研"
+    },
+    {
+     "url": "https://marx.ustc.edu.cn/xsgz/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    }
+   ],
+   "contact": ""
+  },
+  "soe": {
+   "name": "环境学院",
+   "base": "https://soe.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/soe",
+   "columns": [
+    {
+     "url": "http://soe.ustc.edu.cn/bxjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://soe.ustc.edu.cn/bxjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://soe.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "http://soe.ustc.edu.cn/jxwyh/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://soe.ustc.edu.cn/gzzd/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "http://soe.ustc.edu.cn/xwdt_26731/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://soe.ustc.edu.cn/xwdt_26731/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://soe.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "http://soe.ustc.edu.cn/ys_31333/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://soe.ustc.edu.cn/djdt/list.htm",
+     "cms": "siyuan",
+     "label": "党建动态"
+    },
+    {
+     "url": "http://soe.ustc.edu.cn/xgdt/list.htm",
+     "cms": "siyuan",
+     "label": "学生工作"
+    },
+    {
+     "url": "https://soe.ustc.edu.cn/xgdt/list.htm",
+     "cms": "siyuan",
+     "label": "学工动态"
+    },
+    {
+     "url": "http://soe.ustc.edu.cn/pyfa/list.htm",
+     "cms": "siyuan",
+     "label": "教育培养"
+    },
+    {
+     "url": "http://soe.ustc.edu.cn/pyfx/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教育"
+    },
+    {
+     "url": "https://soe.ustc.edu.cn/xshd/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://soe.ustc.edu.cn/wdxz_26766/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "snst": {
+   "name": "核科学技术学院",
+   "base": "https://snst.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/snst",
+   "columns": [],
+   "contact": ""
+  },
+  "set": {
+   "name": "未来技术学院",
+   "base": "https://set.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/set",
+   "columns": [
+    {
+     "url": "https://set.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://set.ustc.edu.cn/xygk/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://set.ustc.edu.cn/szdw/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "http://set.ustc.edu.cn/ggtz/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://set.ustc.edu.cn/ggtz/list.htm",
+     "cms": "siyuan",
+     "label": "公告通知"
+    },
+    {
+     "url": "https://set.ustc.edu.cn/wdxz/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://set.ustc.edu.cn/xwzx/list.htm",
+     "cms": "siyuan",
+     "label": "新闻资讯"
+    },
+    {
+     "url": "http://set.ustc.edu.cn/tspy_42077/list.htm",
+     "cms": "siyuan",
+     "label": "本科生教育"
+    },
+    {
+     "url": "https://set.ustc.edu.cn/tspy_42077/list.htm",
+     "cms": "siyuan",
+     "label": "特色培养"
+    },
+    {
+     "url": "https://set.ustc.edu.cn/zsxx/list.htm",
+     "cms": "siyuan",
+     "label": "招生信息"
+    },
+    {
+     "url": "https://set.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "see": {
+   "name": "国家卓越工程师学院",
+   "base": "https://see.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/see",
+   "columns": [
+    {
+     "url": "https://see.ustc.edu.cn/xygk/list.htm",
+     "cms": "siyuan",
+     "label": "学院概况"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/xyjj/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/zzjg/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/xwyhd/list.htm",
+     "cms": "siyuan",
+     "label": "新闻与活动"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/xydt/list.htm",
+     "cms": "siyuan",
+     "label": "学院动态"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/xshd/list.htm",
+     "cms": "siyuan",
+     "label": "学术活动"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/szdw/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/szdwqk/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍情况"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/zsxx/list.htm",
+     "cms": "siyuan",
+     "label": "招生信息"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/ptzs/list.htm",
+     "cms": "siyuan",
+     "label": "普通招生"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/zxzs/list.htm",
+     "cms": "siyuan",
+     "label": "专项招生"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/rcpy/list.htm",
+     "cms": "siyuan",
+     "label": "人才培养"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/pymb/list.htm",
+     "cms": "siyuan",
+     "label": "培养目标"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/pyms/list.htm",
+     "cms": "siyuan",
+     "label": "培养模式"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/pyfa/list.htm",
+     "cms": "siyuan",
+     "label": "培养方案"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/zdwj/list.htm",
+     "cms": "siyuan",
+     "label": "制度文件"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/gcsjszx/list.htm",
+     "cms": "siyuan",
+     "label": "工程师技术中心"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/sxzx/list.htm",
+     "cms": "siyuan",
+     "label": "实训中心"
+    },
+    {
+     "url": "https://see.ustc.edu.cn/xgzcwj/list.htm",
+     "cms": "siyuan",
+     "label": "相关政策文件"
+    }
+   ],
+   "contact": ""
+  },
+  "env": {
+   "name": "环境科学与光电技术学院（科教融合学院）",
+   "base": "https://env.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/env",
+   "columns": [
+    {
+     "url": "https://env.ustc.edu.cn/9584/list.htm",
+     "cms": "siyuan",
+     "label": "院况简介"
+    },
+    {
+     "url": "https://env.ustc.edu.cn/9583/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://env.ustc.edu.cn/9578/list.htm",
+     "cms": "siyuan",
+     "label": "联系方式"
+    },
+    {
+     "url": "https://env.ustc.edu.cn/9572/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://env.ustc.edu.cn/9571/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://env.ustc.edu.cn/9570/list.htm",
+     "cms": "siyuan",
+     "label": "学术报告"
+    },
+    {
+     "url": "https://env.ustc.edu.cn/9568/list.htm",
+     "cms": "siyuan",
+     "label": "图片新闻"
+    },
+    {
+     "url": "https://env.ustc.edu.cn/9562/list.htm",
+     "cms": "siyuan",
+     "label": "专业设置"
+    },
+    {
+     "url": "https://env.ustc.edu.cn/9561/list.htm",
+     "cms": "siyuan",
+     "label": "实验中心"
+    },
+    {
+     "url": "https://env.ustc.edu.cn/9558/list.htm",
+     "cms": "siyuan",
+     "label": "研究生招生"
+    },
+    {
+     "url": "https://env.ustc.edu.cn/9553/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://env.ustc.edu.cn/9550/list.htm",
+     "cms": "siyuan",
+     "label": "表格下载"
+    }
+   ],
+   "contact": ""
+  },
+  "sz": {
+   "name": "苏州高等研究院",
+   "base": "https://sz.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/sz",
+   "columns": [],
+   "contact": ""
+  },
+  "sias": {
+   "name": "上海研究院",
+   "base": "https://sias.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/sias",
+   "columns": [
+    {
+     "url": "https://sias.ustc.edu.cn/dwgk/list.htm",
+     "cms": "siyuan",
+     "label": "研究院概况"
+    },
+    {
+     "url": "https://sias.ustc.edu.cn/xwgg/list.htm",
+     "cms": "siyuan",
+     "label": "新闻公告"
+    },
+    {
+     "url": "https://sias.ustc.edu.cn/lzzx/list.htm",
+     "cms": "siyuan",
+     "label": "量子中心"
+    },
+    {
+     "url": "https://sias.ustc.edu.cn/djgz/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "https://sias.ustc.edu.cn/wdxz/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://sias.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3135/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3133/list.htm",
+     "cms": "siyuan",
+     "label": "科大简介"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3125/list.htm",
+     "cms": "siyuan",
+     "label": "机构设置"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3123/list.htm",
+     "cms": "siyuan",
+     "label": "学院动态"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3122/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3118/list.htm",
+     "cms": "siyuan",
+     "label": "中心简介"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3113/list.htm",
+     "cms": "siyuan",
+     "label": "招生信息"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3112/list.htm",
+     "cms": "siyuan",
+     "label": "师资力量"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3110/list.htm",
+     "cms": "siyuan",
+     "label": "教学管理"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3107/list.htm",
+     "cms": "siyuan",
+     "label": "招生信息"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3106/list.htm",
+     "cms": "siyuan",
+     "label": "师资力量"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3104/list.htm",
+     "cms": "siyuan",
+     "label": "教学管理"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3102/list.htm",
+     "cms": "siyuan",
+     "label": "招生信息"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3101/list.htm",
+     "cms": "siyuan",
+     "label": "师资力量"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3099/list.htm",
+     "cms": "siyuan",
+     "label": "教学管理"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3097/list.htm",
+     "cms": "siyuan",
+     "label": "招生信息"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3096/list.htm",
+     "cms": "siyuan",
+     "label": "师资力量"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3094/list.htm",
+     "cms": "siyuan",
+     "label": "教学管理"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3091/list.htm",
+     "cms": "siyuan",
+     "label": "沙龙简介"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/xwtg/list.htm",
+     "cms": "siyuan",
+     "label": "新闻通告"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/zzjg/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "http://sias.ustc.edu.cn/3086/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    }
+   ],
+   "contact": ""
+  },
+  "ustc-bj": {
+   "name": "北京研究院",
+   "base": "https://ustc-bj.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/ustc-bj",
+   "columns": [
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34595/list.htm",
+     "cms": "siyuan",
+     "label": "研究院概况"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34602/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34605/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34596/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34607/list.htm",
+     "cms": "siyuan",
+     "label": "校内新闻"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34608/list.htm",
+     "cms": "siyuan",
+     "label": "本院动态"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34597/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34609/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34622/list.htm",
+     "cms": "siyuan",
+     "label": "学术论文"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34625/list.htm",
+     "cms": "siyuan",
+     "label": "学术荣誉"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34614/list.htm",
+     "cms": "siyuan",
+     "label": "管理制度"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34615/list.htm",
+     "cms": "siyuan",
+     "label": "文件下载"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34600/list.htm",
+     "cms": "siyuan",
+     "label": "人才培养"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34616/list.htm",
+     "cms": "siyuan",
+     "label": "学生学术"
+    },
+    {
+     "url": "https://ustc-bj.ustc.edu.cn/34601/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "http://ustc-bj.ustc.edu.cn/34607/list.htm",
+     "cms": "siyuan",
+     "label": "校内新闻"
+    },
+    {
+     "url": "http://ustc-bj.ustc.edu.cn/34609/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "http://ustc-bj.ustc.edu.cn/34602/list.htm",
+     "cms": "siyuan",
+     "label": "研究院简介"
+    },
+    {
+     "url": "http://ustc-bj.ustc.edu.cn/34605/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "http://ustc-bj.ustc.edu.cn/34608/list.htm",
+     "cms": "siyuan",
+     "label": "本院动态"
+    }
+   ],
+   "contact": ""
+  },
+  "iat": {
+   "name": "先进技术研究院",
+   "base": "https://iat.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/iat",
+   "columns": [],
+   "contact": ""
+  },
+  "iif": {
+   "name": "国际金融研究院",
+   "base": "https://iif.ustc.edu.cn",
+   "kind": "college",
+   "topic": "colleges/iif",
+   "columns": [
+    {
+     "url": "https://iif.ustc.edu.cn/xwzx/list.htm",
+     "cms": "siyuan",
+     "label": "新闻资讯"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/gywm/list.htm",
+     "cms": "siyuan",
+     "label": "关于我们"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/yjyjj/list.htm",
+     "cms": "siyuan",
+     "label": "研究院简介"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/gwwyh/list.htm",
+     "cms": "siyuan",
+     "label": "行政部门"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/djxx/list.htm",
+     "cms": "siyuan",
+     "label": "党建学习"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/37554/list.htm",
+     "cms": "siyuan",
+     "label": "党建活动"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/szll/list.htm",
+     "cms": "siyuan",
+     "label": "师资力量"
+    },
+    {
+     "url": "http://iif.ustc.edu.cn/yjy/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/yjjg/list.htm",
+     "cms": "siyuan",
+     "label": "研究机构"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/ggjyzx/list.htm",
+     "cms": "siyuan",
+     "label": "高管教育中心"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/xxyfjg/list.htm",
+     "cms": "siyuan",
+     "label": "新型研发机构"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/gjdcjjfhjd/list.htm",
+     "cms": "siyuan",
+     "label": "科技创业中心"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/cxcyfhzx/list.htm",
+     "cms": "siyuan",
+     "label": "创新创业孵化中心"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/xjryjzx/list.htm",
+     "cms": "siyuan",
+     "label": "新金融研究中心"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/szjjyjzx/list.htm",
+     "cms": "siyuan",
+     "label": "商业智能研究中心"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/jraqyjzx/list.htm",
+     "cms": "siyuan",
+     "label": "金融安全研究中心"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/szhsyjzx/list.htm",
+     "cms": "siyuan",
+     "label": "数智政企研究中心"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/szcyyjzx/list.htm",
+     "cms": "siyuan",
+     "label": "数字产业研究中心"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/zzyrlzyglyjs/list.htm",
+     "cms": "siyuan",
+     "label": "四业融合研究中心"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/xsfw/list.htm",
+     "cms": "siyuan",
+     "label": "学术服务"
+    },
+    {
+     "url": "https://iif.ustc.edu.cn/zcwj/list.htm",
+     "cms": "siyuan",
+     "label": "制度文件"
+    }
+   ],
+   "contact": ""
+  },
+  "po": {
+   "name": "党政办公室、",
+   "base": "https://po.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/po",
+   "columns": [
+    {
+     "url": "https://po.ustc.edu.cn/14684/list.htm",
+     "cms": "siyuan",
+     "label": "部门概况"
+    },
+    {
+     "url": "https://po.ustc.edu.cn/14690/list.htm",
+     "cms": "siyuan",
+     "label": "部门职能"
+    },
+    {
+     "url": "https://po.ustc.edu.cn/gzdt/list.htm",
+     "cms": "siyuan",
+     "label": "工作动态"
+    },
+    {
+     "url": "https://po.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://po.ustc.edu.cn/ggtz_19253/list.htm",
+     "cms": "siyuan",
+     "label": "公告通知"
+    },
+    {
+     "url": "https://po.ustc.edu.cn/gzzd/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://po.ustc.edu.cn/14685/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "https://po.ustc.edu.cn/14695/list.htm",
+     "cms": "siyuan",
+     "label": "支部动态"
+    },
+    {
+     "url": "https://po.ustc.edu.cn/cyxz/list.htm",
+     "cms": "siyuan",
+     "label": "常用下载"
+    }
+   ],
+   "contact": ""
+  },
+  "wxb": {
+   "name": "网络安全和信息化办公室（合署办公）",
+   "base": "https://wxb.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/wxb",
+   "columns": [
+    {
+     "url": "https://wxb.ustc.edu.cn/30553/list.htm",
+     "cms": "siyuan",
+     "label": "部门概况"
+    },
+    {
+     "url": "https://wxb.ustc.edu.cn/30569/list.htm",
+     "cms": "siyuan",
+     "label": "部门职能"
+    },
+    {
+     "url": "https://wxb.ustc.edu.cn/30554/list.htm",
+     "cms": "siyuan",
+     "label": "工作动态"
+    },
+    {
+     "url": "https://wxb.ustc.edu.cn/30555/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://wxb.ustc.edu.cn/30572/list.htm",
+     "cms": "siyuan",
+     "label": "学校规章制度"
+    },
+    {
+     "url": "https://wxb.ustc.edu.cn/30556/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "zzb": {
+   "name": "党委组织部（党校）",
+   "base": "https://zzb.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/zzb",
+   "columns": [
+    {
+     "url": "https://zzb.ustc.edu.cn/35894/list.htm",
+     "cms": "siyuan",
+     "label": "部门概况"
+    },
+    {
+     "url": "https://zzb.ustc.edu.cn/36152/list.htm",
+     "cms": "siyuan",
+     "label": "部门职责"
+    },
+    {
+     "url": "https://zzb.ustc.edu.cn/36153/list.htm",
+     "cms": "siyuan",
+     "label": "组织架构"
+    },
+    {
+     "url": "https://zzb.ustc.edu.cn/35895/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "https://zzb.ustc.edu.cn/jcdj/list.htm",
+     "cms": "siyuan",
+     "label": "基层党建"
+    },
+    {
+     "url": "https://zzb.ustc.edu.cn/djsc/list.htm",
+     "cms": "siyuan",
+     "label": "党建双创"
+    },
+    {
+     "url": "https://zzb.ustc.edu.cn/pxdt/list.htm",
+     "cms": "siyuan",
+     "label": "培训动态"
+    },
+    {
+     "url": "https://zzb.ustc.edu.cn/zbdt/list.htm",
+     "cms": "siyuan",
+     "label": "支部动态"
+    },
+    {
+     "url": "https://zzb.ustc.edu.cn/6106/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://zzb.ustc.edu.cn/djgz_23624/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "https://zzb.ustc.edu.cn/6101/list.htm",
+     "cms": "siyuan",
+     "label": "资料下载"
+    },
+    {
+     "url": "https://zzb.ustc.edu.cn/djgz/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    }
+   ],
+   "contact": ""
+  },
+  "tzb": {
+   "name": "党委统战部（合署办公）",
+   "base": "https://tzb.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/tzb",
+   "columns": [
+    {
+     "url": "https://tzb.ustc.edu.cn/7326/list.htm",
+     "cms": "siyuan",
+     "label": "部门简介"
+    },
+    {
+     "url": "https://tzb.ustc.edu.cn/7325/list.htm",
+     "cms": "siyuan",
+     "label": "统战动态"
+    },
+    {
+     "url": "https://tzb.ustc.edu.cn/7301/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    }
+   ],
+   "contact": ""
+  },
+  "xcb": {
+   "name": "党委宣传部",
+   "base": "https://xcb.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/xcb",
+   "columns": [],
+   "contact": ""
+  },
+  "jgdw": {
+   "name": "机关党委办公室",
+   "base": "https://jgdw.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/jgdw",
+   "columns": [
+    {
+     "url": "https://jgdw.ustc.edu.cn/19301/list.htm",
+     "cms": "siyuan",
+     "label": "概况"
+    },
+    {
+     "url": "https://jgdw.ustc.edu.cn/41221/list.htm",
+     "cms": "siyuan",
+     "label": "部门职责"
+    },
+    {
+     "url": "https://jgdw.ustc.edu.cn/19309/list.htm",
+     "cms": "siyuan",
+     "label": "支部设置"
+    },
+    {
+     "url": "https://jgdw.ustc.edu.cn/19303/list.htm",
+     "cms": "siyuan",
+     "label": "支部动态"
+    },
+    {
+     "url": "https://jgdw.ustc.edu.cn/19304/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://jgdw.ustc.edu.cn/19305/list.htm",
+     "cms": "siyuan",
+     "label": "群团组织"
+    },
+    {
+     "url": "https://jgdw.ustc.edu.cn/19306/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    }
+   ],
+   "contact": ""
+  },
+  "xuncha": {
+   "name": "党委巡视工作办公室",
+   "base": "https://xuncha.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/xuncha",
+   "columns": [
+    {
+     "url": "https://xuncha.ustc.edu.cn/18474/list.htm",
+     "cms": "siyuan",
+     "label": "机构职能"
+    },
+    {
+     "url": "https://xuncha.ustc.edu.cn/18475/list.htm",
+     "cms": "siyuan",
+     "label": "工作动态"
+    },
+    {
+     "url": "https://xuncha.ustc.edu.cn/18476/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://xuncha.ustc.edu.cn/18477/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    }
+   ],
+   "contact": ""
+  },
+  "bm": {
+   "name": "保密办公室（合署办公）",
+   "base": "https://bm.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/bm",
+   "columns": [
+    {
+     "url": "https://bm.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://bm.ustc.edu.cn/gzdt/list.htm",
+     "cms": "siyuan",
+     "label": "工作动态"
+    },
+    {
+     "url": "https://bm.ustc.edu.cn/xzzx/list.htm",
+     "cms": "siyuan",
+     "label": "下载中心"
+    },
+    {
+     "url": "https://bm.ustc.edu.cn/cybg/list.htm",
+     "cms": "siyuan",
+     "label": "常用表格"
+    }
+   ],
+   "contact": ""
+  },
+  "jgb": {
+   "name": "党委教师工作部",
+   "base": "https://jgb.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/jgb",
+   "columns": [
+    {
+     "url": "https://jgb.ustc.edu.cn/34031/list.htm",
+     "cms": "siyuan",
+     "label": "关于我们"
+    },
+    {
+     "url": "https://jgb.ustc.edu.cn/34037/list.htm",
+     "cms": "siyuan",
+     "label": "工作职责"
+    },
+    {
+     "url": "https://jgb.ustc.edu.cn/34038/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://jgb.ustc.edu.cn/34032/list.htm",
+     "cms": "siyuan",
+     "label": "制度建设"
+    },
+    {
+     "url": "https://jgb.ustc.edu.cn/34039/list.htm",
+     "cms": "siyuan",
+     "label": "上级文件"
+    },
+    {
+     "url": "https://jgb.ustc.edu.cn/34040/list.htm",
+     "cms": "siyuan",
+     "label": "校内文件"
+    },
+    {
+     "url": "https://jgb.ustc.edu.cn/gjjxms/list.htm",
+     "cms": "siyuan",
+     "label": "国家教学名师"
+    },
+    {
+     "url": "https://jgb.ustc.edu.cn/34035/list.htm",
+     "cms": "siyuan",
+     "label": "培养培训"
+    },
+    {
+     "url": "http://jgb.ustc.edu.cn/34038/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "hr": {
+   "name": "人力资源部（合署办公）",
+   "base": "https://hr.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/hr",
+   "columns": [],
+   "contact": ""
+  },
+  "rwb": {
+   "name": "党委人民武装部（合署办公）",
+   "base": "https://rwb.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/rwb",
+   "columns": [
+    {
+     "url": "https://rwb.ustc.edu.cn/7295/list.htm",
+     "cms": "siyuan",
+     "label": "部门概况"
+    },
+    {
+     "url": "https://rwb.ustc.edu.cn/19817/list.htm",
+     "cms": "siyuan",
+     "label": "职能简介"
+    },
+    {
+     "url": "https://rwb.ustc.edu.cn/7293/list.htm",
+     "cms": "siyuan",
+     "label": "本科生军训"
+    },
+    {
+     "url": "https://rwb.ustc.edu.cn/7286/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://rwb.ustc.edu.cn/7285/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "jjjc": {
+   "name": "纪检监察机构",
+   "base": "https://jjjc.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/jjjc",
+   "columns": [],
+   "contact": ""
+  },
+  "fc": {
+   "name": "发展和改革办公室、发展规划处（合署办公）",
+   "base": "https://fc.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/fc",
+   "columns": [
+    {
+     "url": "https://fc.ustc.edu.cn/14569/list.htm",
+     "cms": "siyuan",
+     "label": "机构设置"
+    },
+    {
+     "url": "https://fc.ustc.edu.cn/14576/list.htm",
+     "cms": "siyuan",
+     "label": "组织架构"
+    },
+    {
+     "url": "https://fc.ustc.edu.cn/14577/list.htm",
+     "cms": "siyuan",
+     "label": "联系方式"
+    },
+    {
+     "url": "https://fc.ustc.edu.cn/14587/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://fc.ustc.edu.cn/14586/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://fc.ustc.edu.cn/14597/list.htm",
+     "cms": "siyuan",
+     "label": "校内文件"
+    },
+    {
+     "url": "https://fc.ustc.edu.cn/14573/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    }
+   ],
+   "contact": ""
+  },
+  "ge": {
+   "name": "通识教育中心",
+   "base": "https://ge.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/ge",
+   "columns": [
+    {
+     "url": "http://ge.ustc.edu.cn/tsln/list.htm",
+     "cms": "siyuan",
+     "label": "中心简介"
+    },
+    {
+     "url": "https://ge.ustc.edu.cn/zzjg/list.htm",
+     "cms": "siyuan",
+     "label": "组织架构"
+    },
+    {
+     "url": "https://ge.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://ge.ustc.edu.cn/jzbg/list.htm",
+     "cms": "siyuan",
+     "label": "讲座报告"
+    }
+   ],
+   "contact": ""
+  },
+  "le": {
+   "name": "外语教学中心",
+   "base": "https://le.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/le",
+   "columns": [
+    {
+     "url": "http://le.ustc.edu.cn/zxjj/list.htm",
+     "cms": "siyuan",
+     "label": "中心介绍ABOUT US"
+    },
+    {
+     "url": "https://le.ustc.edu.cn/zxjj/list.htm",
+     "cms": "siyuan",
+     "label": "中心简介"
+    },
+    {
+     "url": "http://le.ustc.edu.cn/qzjs/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "http://le.ustc.edu.cn/xw/list.htm",
+     "cms": "siyuan",
+     "label": "新闻通知UPDATES"
+    },
+    {
+     "url": "https://le.ustc.edu.cn/xw/list.htm",
+     "cms": "siyuan",
+     "label": "新闻"
+    },
+    {
+     "url": "https://le.ustc.edu.cn/tz/list.htm",
+     "cms": "siyuan",
+     "label": "通知"
+    },
+    {
+     "url": "http://le.ustc.edu.cn/bksyy/list.htm",
+     "cms": "siyuan",
+     "label": "外语教学COURSES"
+    },
+    {
+     "url": "https://le.ustc.edu.cn/bksyy/list.htm",
+     "cms": "siyuan",
+     "label": "本科生英语"
+    },
+    {
+     "url": "https://le.ustc.edu.cn/yjsyy/list.htm",
+     "cms": "siyuan",
+     "label": "研究生英语"
+    },
+    {
+     "url": "https://le.ustc.edu.cn/jxzy/list.htm",
+     "cms": "siyuan",
+     "label": "教学资源iLEARNING"
+    }
+   ],
+   "contact": ""
+  },
+  "tj": {
+   "name": "体育教学中心",
+   "base": "https://tj.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/tj",
+   "columns": [],
+   "contact": ""
+  },
+  "arts": {
+   "name": "艺术教学中心",
+   "base": "https://arts.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/arts",
+   "columns": [
+    {
+     "url": "http://arts.ustc.edu.cn/zxjj_31149/list.htm",
+     "cms": "siyuan",
+     "label": "中心简介"
+    },
+    {
+     "url": "https://arts.ustc.edu.cn/zxjj_31149/list.htm",
+     "cms": "siyuan",
+     "label": "中心简介"
+    },
+    {
+     "url": "https://arts.ustc.edu.cn/gzzd/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://arts.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://arts.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://arts.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "http://arts.ustc.edu.cn/qzjs/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://arts.ustc.edu.cn/jyjx/list.htm",
+     "cms": "siyuan",
+     "label": "艺术教学"
+    },
+    {
+     "url": "https://arts.ustc.edu.cn/ycbg/list.htm",
+     "cms": "siyuan",
+     "label": "演出报告"
+    },
+    {
+     "url": "https://arts.ustc.edu.cn/jz/list.htm",
+     "cms": "siyuan",
+     "label": "讲座"
+    },
+    {
+     "url": "http://arts.ustc.edu.cn/zxjj/list.htm",
+     "cms": "siyuan",
+     "label": "中心简介"
+    },
+    {
+     "url": "http://arts.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "http://arts.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "http://arts.ustc.edu.cn/szdw/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "http://arts.ustc.edu.cn/jyjx/list.htm",
+     "cms": "siyuan",
+     "label": "教育教学"
+    },
+    {
+     "url": "http://arts.ustc.edu.cn/ycbg/list.htm",
+     "cms": "siyuan",
+     "label": "演出报告"
+    }
+   ],
+   "contact": ""
+  },
+  "job": {
+   "name": "就业处",
+   "base": "https://job.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/job",
+   "columns": [],
+   "contact": ""
+  },
+  "kyb": {
+   "name": "科研部",
+   "base": "https://kyb.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/kyb",
+   "columns": [
+    {
+     "url": "https://kyb.ustc.edu.cn/6081/list.htm",
+     "cms": "siyuan",
+     "label": "部门介绍"
+    },
+    {
+     "url": "https://kyb.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://kyb.ustc.edu.cn/6018/list.htm",
+     "cms": "siyuan",
+     "label": "学术委员会"
+    }
+   ],
+   "contact": ""
+  },
+  "techtrans": {
+   "name": "科技成果转化院",
+   "base": "https://techtrans.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/techtrans",
+   "columns": [
+    {
+     "url": "https://techtrans.ustc.edu.cn/39369/list.htm",
+     "cms": "siyuan",
+     "label": "部门概况"
+    },
+    {
+     "url": "https://techtrans.ustc.edu.cn/39375/list.htm",
+     "cms": "siyuan",
+     "label": "部门简介"
+    },
+    {
+     "url": "https://techtrans.ustc.edu.cn/39376/list.htm",
+     "cms": "siyuan",
+     "label": "机构设置"
+    },
+    {
+     "url": "https://techtrans.ustc.edu.cn/39377/list.htm",
+     "cms": "siyuan",
+     "label": "联系方式"
+    },
+    {
+     "url": "https://techtrans.ustc.edu.cn/39370/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://techtrans.ustc.edu.cn/39371/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://techtrans.ustc.edu.cn/39387/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://techtrans.ustc.edu.cn/39380/list.htm",
+     "cms": "siyuan",
+     "label": "组织构架"
+    }
+   ],
+   "contact": ""
+  },
+  "zhb": {
+   "name": "科技成果转化处",
+   "base": "https://zhb.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/zhb",
+   "columns": [
+    {
+     "url": "https://zhb.ustc.edu.cn/18531/list.htm",
+     "cms": "siyuan",
+     "label": "部门介绍"
+    },
+    {
+     "url": "https://zhb.ustc.edu.cn/bmzz/list.htm",
+     "cms": "siyuan",
+     "label": "部门职责"
+    },
+    {
+     "url": "https://zhb.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://zhb.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://zhb.ustc.edu.cn/18532/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://zhb.ustc.edu.cn/18534/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "oic": {
+   "name": "国际合作与交流部（含港澳台办公室）、国际学院（合署办公）",
+   "base": "https://oic.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/oic",
+   "columns": [
+    {
+     "url": "https://oic.ustc.edu.cn/news-category/latest-news/",
+     "cms": "wordpress",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://oic.ustc.edu.cn/news-category/information/",
+     "cms": "wordpress",
+     "label": "公告通知"
+    },
+    {
+     "url": "https://oic.ustc.edu.cn/news-category/project-news/",
+     "cms": "wordpress",
+     "label": "项目信息"
+    },
+    {
+     "url": "https://oic.ustc.edu.cn/download/",
+     "cms": "wordpress",
+     "label": "下载中心"
+    }
+   ],
+   "contact": ""
+  },
+  "lfo": {
+   "name": "对外联络与基金事务处",
+   "base": "https://lfo.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/lfo",
+   "columns": [],
+   "contact": ""
+  },
+  "ef": {
+   "name": "教育基金会",
+   "base": "https://ef.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/ef",
+   "columns": [],
+   "contact": ""
+  },
+  "aga": {
+   "name": "校友总会",
+   "base": "https://aga.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/aga",
+   "columns": [],
+   "contact": ""
+  },
+  "lt": {
+   "name": "离退休干部工作处",
+   "base": "https://lt.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/lt",
+   "columns": [
+    {
+     "url": "http://lt.ustc.edu.cn/bmjj/list.htm",
+     "cms": "siyuan",
+     "label": "部门概况"
+    },
+    {
+     "url": "https://lt.ustc.edu.cn/bmjj/list.htm",
+     "cms": "siyuan",
+     "label": "部门简介"
+    },
+    {
+     "url": "https://lt.ustc.edu.cn/jgsz/list.htm",
+     "cms": "siyuan",
+     "label": "机构设置"
+    },
+    {
+     "url": "http://lt.ustc.edu.cn/gzdt_33407/list.htm",
+     "cms": "siyuan",
+     "label": "工作动态"
+    },
+    {
+     "url": "https://lt.ustc.edu.cn/gzdt_33407/list.htm",
+     "cms": "siyuan",
+     "label": "工作动态"
+    },
+    {
+     "url": "http://lt.ustc.edu.cn/tzgg_33408/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://lt.ustc.edu.cn/tzgg_33408/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "http://lt.ustc.edu.cn/bmwj/list.htm",
+     "cms": "siyuan",
+     "label": "政策规章"
+    },
+    {
+     "url": "https://lt.ustc.edu.cn/xxwj/list.htm",
+     "cms": "siyuan",
+     "label": "学校文件"
+    },
+    {
+     "url": "http://lt.ustc.edu.cn/zzsz/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "https://lt.ustc.edu.cn/zzsz/list.htm",
+     "cms": "siyuan",
+     "label": "组织设置"
+    },
+    {
+     "url": "https://lt.ustc.edu.cn/dtxx/list.htm",
+     "cms": "siyuan",
+     "label": "动态信息"
+    },
+    {
+     "url": "https://lt.ustc.edu.cn/lndxjj/list.htm",
+     "cms": "siyuan",
+     "label": "老年大学简介"
+    },
+    {
+     "url": "https://lt.ustc.edu.cn/kcsz/list.htm",
+     "cms": "siyuan",
+     "label": "课程设置"
+    },
+    {
+     "url": "https://lt.ustc.edu.cn/zzjg/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://lt.ustc.edu.cn/ggdt/list.htm",
+     "cms": "siyuan",
+     "label": "关工动态"
+    }
+   ],
+   "contact": ""
+  },
+  "sjc": {
+   "name": "审计处",
+   "base": "https://sjc.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/sjc",
+   "columns": [
+    {
+     "url": "https://sjc.ustc.edu.cn/zzjg/list.htm",
+     "cms": "siyuan",
+     "label": "部门概况"
+    },
+    {
+     "url": "https://sjc.ustc.edu.cn/jgzn/list.htm",
+     "cms": "siyuan",
+     "label": "部门职责"
+    },
+    {
+     "url": "https://sjc.ustc.edu.cn/gwsz/list.htm",
+     "cms": "siyuan",
+     "label": "内设机构"
+    },
+    {
+     "url": "https://sjc.ustc.edu.cn/dwzl/list.htm",
+     "cms": "siyuan",
+     "label": "党建专栏"
+    },
+    {
+     "url": "https://sjc.ustc.edu.cn/dtxx/list.htm",
+     "cms": "siyuan",
+     "label": "工作动态"
+    },
+    {
+     "url": "https://sjc.ustc.edu.cn/sjgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://sjc.ustc.edu.cn/zcfg/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://sjc.ustc.edu.cn/18437/list.htm",
+     "cms": "siyuan",
+     "label": "上级规章"
+    },
+    {
+     "url": "https://sjc.ustc.edu.cn/18439/list.htm",
+     "cms": "siyuan",
+     "label": "学校制度"
+    }
+   ],
+   "contact": ""
+  },
+  "zhc": {
+   "name": "资产与后勤保障处",
+   "base": "https://zhc.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/zhc",
+   "columns": [
+    {
+     "url": "https://zhc.ustc.edu.cn/bmgkn/list.htm",
+     "cms": "siyuan",
+     "label": "部门概况"
+    },
+    {
+     "url": "https://zhc.ustc.edu.cn/wdxzn/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://zhc.ustc.edu.cn/ryfg/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "jjc": {
+   "name": "基本建设处",
+   "base": "https://jjc.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/jjc",
+   "columns": [
+    {
+     "url": "https://jjc.ustc.edu.cn/5542/list.htm",
+     "cms": "siyuan",
+     "label": "部门概况"
+    },
+    {
+     "url": "https://jjc.ustc.edu.cn/5545/list.htm",
+     "cms": "siyuan",
+     "label": "部门简介"
+    },
+    {
+     "url": "https://jjc.ustc.edu.cn/jgzn/list.htm",
+     "cms": "siyuan",
+     "label": "机构职能"
+    },
+    {
+     "url": "https://jjc.ustc.edu.cn/5541/list.htm",
+     "cms": "siyuan",
+     "label": "新闻信息"
+    },
+    {
+     "url": "https://jjc.ustc.edu.cn/5537/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://jjc.ustc.edu.cn/zbgg/list.htm",
+     "cms": "siyuan",
+     "label": "招标公告"
+    },
+    {
+     "url": "https://jjc.ustc.edu.cn/jggg/list.htm",
+     "cms": "siyuan",
+     "label": "结果公告"
+    },
+    {
+     "url": "https://jjc.ustc.edu.cn/5534/list.htm",
+     "cms": "siyuan",
+     "label": "表格下载"
+    }
+   ],
+   "contact": ""
+  },
+  "labsafety": {
+   "name": "实验室安全办公室（合署办公）",
+   "base": "https://labsafety.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/labsafety",
+   "columns": [
+    {
+     "url": "https://labsafety.ustc.edu.cn/bmgk/list.htm",
+     "cms": "siyuan",
+     "label": "部门概况"
+    },
+    {
+     "url": "https://labsafety.ustc.edu.cn/bmzn/list.htm",
+     "cms": "siyuan",
+     "label": "部门职能"
+    },
+    {
+     "url": "https://labsafety.ustc.edu.cn/aqgzdt/list.htm",
+     "cms": "siyuan",
+     "label": "工作动态"
+    },
+    {
+     "url": "https://labsafety.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://labsafety.ustc.edu.cn/gjfl/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://labsafety.ustc.edu.cn/bmgz/list.htm",
+     "cms": "siyuan",
+     "label": "部门规章"
+    },
+    {
+     "url": "https://labsafety.ustc.edu.cn/xxglzd/list.htm",
+     "cms": "siyuan",
+     "label": "学校管理制度"
+    },
+    {
+     "url": "https://labsafety.ustc.edu.cn/wdxz/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "sie": {
+   "name": "创新创业学院",
+   "base": "https://sie.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/sie",
+   "columns": [
+    {
+     "url": "http://sie.ustc.edu.cn/collegeInfo/list.htm",
+     "cms": "siyuan",
+     "label": "学院简介"
+    },
+    {
+     "url": "http://sie.ustc.edu.cn/contact/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "http://sie.ustc.edu.cn/jxl/list.htm",
+     "cms": "siyuan",
+     "label": "教学类通知"
+    },
+    {
+     "url": "http://sie.ustc.edu.cn/jsl/list.htm",
+     "cms": "siyuan",
+     "label": "竞赛类通知"
+    },
+    {
+     "url": "http://sie.ustc.edu.cn/xml/list.htm",
+     "cms": "siyuan",
+     "label": "项目类通知"
+    },
+    {
+     "url": "http://sie.ustc.edu.cn/fwl/list.htm",
+     "cms": "siyuan",
+     "label": "服务类通知"
+    },
+    {
+     "url": "https://sie.ustc.edu.cn/faculty/list.htm",
+     "cms": "siyuan",
+     "label": "专业师资"
+    }
+   ],
+   "contact": ""
+  },
+  "gonghui": {
+   "name": "工会",
+   "base": "https://gonghui.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/gonghui",
+   "columns": [
+    {
+     "url": "https://gonghui.ustc.edu.cn/7505/list.htm",
+     "cms": "siyuan",
+     "label": "工会概况"
+    },
+    {
+     "url": "https://gonghui.ustc.edu.cn/7507/list.htm",
+     "cms": "siyuan",
+     "label": "工会组织"
+    },
+    {
+     "url": "https://gonghui.ustc.edu.cn/jdhjg/list.htm",
+     "cms": "siyuan",
+     "label": "教代会机构"
+    },
+    {
+     "url": "https://gonghui.ustc.edu.cn/stzz/list.htm",
+     "cms": "siyuan",
+     "label": "协会组织"
+    },
+    {
+     "url": "https://gonghui.ustc.edu.cn/7502/list.htm",
+     "cms": "siyuan",
+     "label": "校内规章"
+    },
+    {
+     "url": "https://gonghui.ustc.edu.cn/7504/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://gonghui.ustc.edu.cn/7466/list.htm",
+     "cms": "siyuan",
+     "label": "公告通知"
+    },
+    {
+     "url": "https://gonghui.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://gonghui.ustc.edu.cn/22457/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "https://gonghui.ustc.edu.cn/22459/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "lab": {
+   "name": "公共实验中心",
+   "base": "https://lab.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/lab",
+   "columns": [
+    {
+     "url": "https://lab.ustc.edu.cn/304/list.htm",
+     "cms": "siyuan",
+     "label": "中心概况"
+    },
+    {
+     "url": "https://lab.ustc.edu.cn/302/list.htm",
+     "cms": "siyuan",
+     "label": "机构设置"
+    },
+    {
+     "url": "https://lab.ustc.edu.cn/311/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://lab.ustc.edu.cn/309/list.htm",
+     "cms": "siyuan",
+     "label": "公告通知"
+    },
+    {
+     "url": "https://lab.ustc.edu.cn/xyzx/list.htm",
+     "cms": "siyuan",
+     "label": "行业资讯"
+    },
+    {
+     "url": "https://lab.ustc.edu.cn/287/list.htm",
+     "cms": "siyuan",
+     "label": "联系方式"
+    }
+   ],
+   "contact": ""
+  },
+  "arch": {
+   "name": "档案文博院",
+   "base": "https://arch.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/arch",
+   "columns": [
+    {
+     "url": "https://arch.ustc.edu.cn/ykjj/list.htm",
+     "cms": "siyuan",
+     "label": "院况简介"
+    },
+    {
+     "url": "https://arch.ustc.edu.cn/byjj/list.htm",
+     "cms": "siyuan",
+     "label": "本院简介"
+    },
+    {
+     "url": "https://arch.ustc.edu.cn/zzjg_30487/list.htm",
+     "cms": "siyuan",
+     "label": "组织架构"
+    },
+    {
+     "url": "https://arch.ustc.edu.cn/bmry/list.htm",
+     "cms": "siyuan",
+     "label": "部门人员"
+    },
+    {
+     "url": "https://arch.ustc.edu.cn/wdxz_30505/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "https://arch.ustc.edu.cn/jzzx/list.htm",
+     "cms": "siyuan",
+     "label": "捐赠资讯"
+    },
+    {
+     "url": "https://arch.ustc.edu.cn/dazj/list.htm",
+     "cms": "siyuan",
+     "label": "征集公告"
+    },
+    {
+     "url": "https://arch.ustc.edu.cn/jzxw/list.htm",
+     "cms": "siyuan",
+     "label": "捐赠新闻"
+    },
+    {
+     "url": "https://arch.ustc.edu.cn/gzzd_30494/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://arch.ustc.edu.cn/xzzd/list.htm",
+     "cms": "siyuan",
+     "label": "制度规范"
+    },
+    {
+     "url": "https://arch.ustc.edu.cn/xnzd/list.htm",
+     "cms": "siyuan",
+     "label": "校内制度"
+    },
+    {
+     "url": "https://arch.ustc.edu.cn/gkjj_30517/list.htm",
+     "cms": "siyuan",
+     "label": "馆况简介"
+    }
+   ],
+   "contact": ""
+  },
+  "press": {
+   "name": "出版社",
+   "base": "https://press.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/press",
+   "columns": [
+    {
+     "url": "https://press.ustc.edu.cn/gywm/list.htm",
+     "cms": "siyuan",
+     "label": "关于我们"
+    },
+    {
+     "url": "https://press.ustc.edu.cn/xwzx/list.htm",
+     "cms": "siyuan",
+     "label": "新闻中心"
+    },
+    {
+     "url": "https://press.ustc.edu.cn/djgz/list.htm",
+     "cms": "siyuan",
+     "label": "党建工作"
+    },
+    {
+     "url": "https://press.ustc.edu.cn/tszx/list.htm",
+     "cms": "siyuan",
+     "label": "图书中心"
+    },
+    {
+     "url": "https://press.ustc.edu.cn/xzzq/list.htm",
+     "cms": "siyuan",
+     "label": "下载专区"
+    },
+    {
+     "url": "https://press.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "hospital": {
+   "name": "医院",
+   "base": "https://hospital.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/hospital",
+   "columns": [
+    {
+     "url": "http://hospital.ustc.edu.cn/yyjs/list.htm",
+     "cms": "siyuan",
+     "label": "关于医院"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "http://hospital.ustc.edu.cn/xxgg/list.htm",
+     "cms": "siyuan",
+     "label": "新闻中心"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/xxgg/list.htm",
+     "cms": "siyuan",
+     "label": "信息公告"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/yyxw/list.htm",
+     "cms": "siyuan",
+     "label": "医院新闻"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/wjxz/list.htm",
+     "cms": "siyuan",
+     "label": "文件下载"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/kssz/list.htm",
+     "cms": "siyuan",
+     "label": "科室设置"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35137/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35162/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35167/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35172/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35178/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35183/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35188/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35258/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35193/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35198/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35203/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35208/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35213/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35218/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35223/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35228/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35233/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35238/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35243/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35248/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35253/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    },
+    {
+     "url": "https://hospital.ustc.edu.cn/ksdt_35406/list.htm",
+     "cms": "siyuan",
+     "label": "科室动态"
+    }
+   ],
+   "contact": ""
+  },
+  "jcjy": {
+   "name": "基础教育集团",
+   "base": "https://jcjy.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/jcjy",
+   "columns": [
+    {
+     "url": "https://jcjy.ustc.edu.cn/jtjs/list.htm",
+     "cms": "siyuan",
+     "label": "集团概况"
+    },
+    {
+     "url": "https://jcjy.ustc.edu.cn/jtjs_21114/list.htm",
+     "cms": "siyuan",
+     "label": "集团简介"
+    },
+    {
+     "url": "https://jcjy.ustc.edu.cn/41408/list.htm",
+     "cms": "siyuan",
+     "label": "集团领导"
+    },
+    {
+     "url": "https://jcjy.ustc.edu.cn/jgsz/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://jcjy.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://jcjy.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://jcjy.ustc.edu.cn/jxky/list.htm",
+     "cms": "siyuan",
+     "label": "教学教研"
+    },
+    {
+     "url": "https://jcjy.ustc.edu.cn/sdjs/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://jcjy.ustc.edu.cn/djdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "http://jcjy.ustc.edu.cn/jtjs/list.htm",
+     "cms": "siyuan",
+     "label": "集团概况"
+    },
+    {
+     "url": "http://jcjy.ustc.edu.cn/jtjs_21114/list.htm",
+     "cms": "siyuan",
+     "label": "集团简介"
+    },
+    {
+     "url": "http://jcjy.ustc.edu.cn/41408/list.htm",
+     "cms": "siyuan",
+     "label": "集团领导"
+    },
+    {
+     "url": "http://jcjy.ustc.edu.cn/jgsz/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "http://jcjy.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "http://jcjy.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "http://jcjy.ustc.edu.cn/jxky/list.htm",
+     "cms": "siyuan",
+     "label": "教学科研"
+    },
+    {
+     "url": "http://jcjy.ustc.edu.cn/sdjs/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "http://jcjy.ustc.edu.cn/djdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    }
+   ],
+   "contact": ""
+  },
+  "ysjt": {
+   "name": "饮食服务集团",
+   "base": "https://ysjt.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/ysjt",
+   "columns": [
+    {
+     "url": "https://ysjt.ustc.edu.cn/18019/list.htm",
+     "cms": "siyuan",
+     "label": "集团概况"
+    },
+    {
+     "url": "https://ysjt.ustc.edu.cn/18025/list.htm",
+     "cms": "siyuan",
+     "label": "集团简介"
+    },
+    {
+     "url": "https://ysjt.ustc.edu.cn/18027/list.htm",
+     "cms": "siyuan",
+     "label": "集团领导"
+    },
+    {
+     "url": "https://ysjt.ustc.edu.cn/18028/list.htm",
+     "cms": "siyuan",
+     "label": "机构设置"
+    },
+    {
+     "url": "https://ysjt.ustc.edu.cn/18029/list.htm",
+     "cms": "siyuan",
+     "label": "部门介绍"
+    },
+    {
+     "url": "https://ysjt.ustc.edu.cn/18020/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://ysjt.ustc.edu.cn/18030/list.htm",
+     "cms": "siyuan",
+     "label": "工作动态"
+    },
+    {
+     "url": "https://ysjt.ustc.edu.cn/18032/list.htm",
+     "cms": "siyuan",
+     "label": "党建园地"
+    },
+    {
+     "url": "https://ysjt.ustc.edu.cn/18021/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://ysjt.ustc.edu.cn/18033/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    }
+   ],
+   "contact": ""
+  },
+  "epc-ietc": {
+   "name": "工程实践与创新创业教学中心",
+   "base": "https://epc-ietc.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/epc-ietc",
+   "columns": [
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/zxgk/list.htm",
+     "cms": "siyuan",
+     "label": "中心概况"
+    },
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/zxjj/list.htm",
+     "cms": "siyuan",
+     "label": "中心简介"
+    },
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/gzzd/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/xwxx/list.htm",
+     "cms": "siyuan",
+     "label": "新闻信息"
+    },
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/jxap/list.htm",
+     "cms": "siyuan",
+     "label": "双创教学"
+    },
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/jzylt/list.htm",
+     "cms": "siyuan",
+     "label": "讲座与论坛"
+    },
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/pxdt/list.htm",
+     "cms": "siyuan",
+     "label": "培训动态"
+    },
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/szdw/list.htm",
+     "cms": "siyuan",
+     "label": "师资队伍"
+    },
+    {
+     "url": "https://epc-ietc.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "institution": {
+   "name": "实验室主页",
+   "base": "https://institution.ustc.edu.cn",
+   "kind": "admin",
+   "topic": "orgs/institution",
+   "columns": [],
+   "contact": ""
+  },
+  "sklfs": {
+   "name": "火灾安全全国重点实验室",
+   "base": "https://sklfs.ustc.edu.cn",
+   "kind": "research",
+   "topic": "research/sklfs",
+   "columns": [
+    {
+     "url": "https://sklfs.ustc.edu.cn/5903/list.htm",
+     "cms": "siyuan",
+     "label": "实验室概况"
+    },
+    {
+     "url": "https://sklfs.ustc.edu.cn/5890/list.htm",
+     "cms": "siyuan",
+     "label": "新闻中心"
+    },
+    {
+     "url": "https://sklfs.ustc.edu.cn/5884/list.htm",
+     "cms": "siyuan",
+     "label": "研究部门"
+    },
+    {
+     "url": "https://sklfs.ustc.edu.cn/5827/list.htm",
+     "cms": "siyuan",
+     "label": "人才培养"
+    },
+    {
+     "url": "https://sklfs.ustc.edu.cn/5897/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "nelslip": {
+   "name": "语音及语言信息处理国家工程研究中心",
+   "base": "https://nelslip.ustc.edu.cn",
+   "kind": "research",
+   "topic": "research/nelslip",
+   "columns": [
+    {
+     "url": "https://nelslip.ustc.edu.cn/26914/list.htm",
+     "cms": "siyuan",
+     "label": "科研动态"
+    },
+    {
+     "url": "https://nelslip.ustc.edu.cn/26915/list.htm",
+     "cms": "siyuan",
+     "label": "公告通知"
+    },
+    {
+     "url": "https://nelslip.ustc.edu.cn/26925/list.htm",
+     "cms": "siyuan",
+     "label": "招生培养"
+    },
+    {
+     "url": "https://nelslip.ustc.edu.cn/26901/list.htm",
+     "cms": "siyuan",
+     "label": "中心概况"
+    },
+    {
+     "url": "https://nelslip.ustc.edu.cn/26902/list.htm",
+     "cms": "siyuan",
+     "label": "新闻中心"
+    },
+    {
+     "url": "https://nelslip.ustc.edu.cn/26906/list.htm",
+     "cms": "siyuan",
+     "label": "资源中心"
+    }
+   ],
+   "contact": ""
+  },
+  "leinao": {
+   "name": "类脑智能技术及应用国家工程实验室",
+   "base": "https://leinao.ustc.edu.cn",
+   "kind": "research",
+   "topic": "research/leinao",
+   "columns": [
+    {
+     "url": "https://leinao.ustc.edu.cn/25856/list.htm",
+     "cms": "siyuan",
+     "label": "关于我们"
+    },
+    {
+     "url": "https://leinao.ustc.edu.cn/25885/list.htm",
+     "cms": "siyuan",
+     "label": "实验室简介"
+    },
+    {
+     "url": "https://leinao.ustc.edu.cn/25887/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://leinao.ustc.edu.cn/25921/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "https://leinao.ustc.edu.cn/25857/list.htm",
+     "cms": "siyuan",
+     "label": "动态中心"
+    },
+    {
+     "url": "https://leinao.ustc.edu.cn/25889/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://leinao.ustc.edu.cn/25892/list.htm",
+     "cms": "siyuan",
+     "label": "学术交流"
+    },
+    {
+     "url": "https://leinao.ustc.edu.cn/25893/list.htm",
+     "cms": "siyuan",
+     "label": "综合新闻"
+    },
+    {
+     "url": "https://leinao.ustc.edu.cn/25911/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "http://leinao.ustc.edu.cn/25857/list.htm",
+     "cms": "siyuan",
+     "label": "新闻"
+    },
+    {
+     "url": "http://leinao.ustc.edu.cn/25885/list.htm",
+     "cms": "siyuan",
+     "label": "实验室简介"
+    },
+    {
+     "url": "http://leinao.ustc.edu.cn/25887/list.htm",
+     "cms": "siyuan",
+     "label": "组织机构"
+    },
+    {
+     "url": "http://leinao.ustc.edu.cn/25911/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "ceni": {
+   "name": "未来网络试验设施",
+   "base": "https://ceni.ustc.edu.cn",
+   "kind": "research",
+   "topic": "research/ceni",
+   "columns": [],
+   "contact": ""
+  },
+  "immune": {
+   "name": "免疫应答与免疫治疗全国重点实验室",
+   "base": "https://immune.ustc.edu.cn",
+   "kind": "research",
+   "topic": "research/immune",
+   "columns": [
+    {
+     "url": "https://immune.ustc.edu.cn/sysgk/list.htm",
+     "cms": "siyuan",
+     "label": "实验室概况"
+    },
+    {
+     "url": "https://immune.ustc.edu.cn/zzjg/list.htm",
+     "cms": "siyuan",
+     "label": "组织结构"
+    },
+    {
+     "url": "https://immune.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://immune.ustc.edu.cn/gzzd/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    },
+    {
+     "url": "https://immune.ustc.edu.cn/kygk/list.htm",
+     "cms": "siyuan",
+     "label": "科研概况"
+    },
+    {
+     "url": "https://immune.ustc.edu.cn/xsjl/list.htm",
+     "cms": "siyuan",
+     "label": "学术交流"
+    },
+    {
+     "url": "https://immune.ustc.edu.cn/xsbg/list.htm",
+     "cms": "siyuan",
+     "label": "学术报告预告"
+    },
+    {
+     "url": "https://immune.ustc.edu.cn/djdt/list.htm",
+     "cms": "siyuan",
+     "label": "党建思政"
+    },
+    {
+     "url": "https://immune.ustc.edu.cn/xwbl/list.htm",
+     "cms": "siyuan",
+     "label": "新闻中心"
+    },
+    {
+     "url": "https://immune.ustc.edu.cn/tpxw1/list.htm",
+     "cms": "siyuan",
+     "label": "图片新闻"
+    },
+    {
+     "url": "https://immune.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    }
+   ],
+   "contact": ""
+  },
+  "pichem": {
+   "name": "精准智能化学全国重点实验室",
+   "base": "https://pichem.ustc.edu.cn",
+   "kind": "research",
+   "topic": "research/pichem",
+   "columns": [
+    {
+     "url": "http://pichem.ustc.edu.cn/sysjj/list.htm",
+     "cms": "siyuan",
+     "label": "实验室概况"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/sysjj/list.htm",
+     "cms": "siyuan",
+     "label": "实验室简介"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/zzjg_38018/list.htm",
+     "cms": "siyuan",
+     "label": "组织架构"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/xrld_38019/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/wdxz_38022/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    },
+    {
+     "url": "http://pichem.ustc.edu.cn/sysxw_38045/list.htm",
+     "cms": "siyuan",
+     "label": "新闻公告"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/sysxw_38045/list.htm",
+     "cms": "siyuan",
+     "label": "实验室新闻"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/tpxw_38047/list.htm",
+     "cms": "siyuan",
+     "label": "图片新闻"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/tzgg_38048/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "http://pichem.ustc.edu.cn/jzjtw/list.htm",
+     "cms": "siyuan",
+     "label": "学术交流"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/jzqnjz/list.htm",
+     "cms": "siyuan",
+     "label": "菁致青年讲座"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/xsbg_37573/list.htm",
+     "cms": "siyuan",
+     "label": "学术报告"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/yjszs/list.htm",
+     "cms": "siyuan",
+     "label": "研究生招生"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/yjspy/list.htm",
+     "cms": "siyuan",
+     "label": "研究生培养"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/bkskysjjljh/list.htm",
+     "cms": "siyuan",
+     "label": "本科生科研实践激励计划"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/yjsjxglwdxz/list.htm",
+     "cms": "siyuan",
+     "label": "研究生教学管理文档下载"
+    },
+    {
+     "url": "http://pichem.ustc.edu.cn/drhd/list.htm",
+     "cms": "siyuan",
+     "label": "党建思政"
+    },
+    {
+     "url": "https://pichem.ustc.edu.cn/xzgz/list.htm",
+     "cms": "siyuan",
+     "label": "规章制度"
+    }
+   ],
+   "contact": ""
+  },
+  "erctst": {
+   "name": "热安全技术国家地方联合工程研究中心",
+   "base": "https://erctst.ustc.edu.cn",
+   "kind": "research",
+   "topic": "research/erctst",
+   "columns": [
+    {
+     "url": "https://erctst.ustc.edu.cn/zxgk/list.htm",
+     "cms": "siyuan",
+     "label": "中心概况"
+    },
+    {
+     "url": "https://erctst.ustc.edu.cn/zxjs/list.htm",
+     "cms": "siyuan",
+     "label": "中心介绍"
+    },
+    {
+     "url": "https://erctst.ustc.edu.cn/xrld/list.htm",
+     "cms": "siyuan",
+     "label": "现任领导"
+    },
+    {
+     "url": "https://erctst.ustc.edu.cn/zzjg/list.htm",
+     "cms": "siyuan",
+     "label": "组织架构"
+    },
+    {
+     "url": "https://erctst.ustc.edu.cn/lsyg/list.htm",
+     "cms": "siyuan",
+     "label": "历史沿革"
+    },
+    {
+     "url": "https://erctst.ustc.edu.cn/xwdt/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://erctst.ustc.edu.cn/tzgg/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://erctst.ustc.edu.cn/zhxw/list.htm",
+     "cms": "siyuan",
+     "label": "综合新闻"
+    },
+    {
+     "url": "https://erctst.ustc.edu.cn/xsbg/list.htm",
+     "cms": "siyuan",
+     "label": "学术报告"
+    },
+    {
+     "url": "https://erctst.ustc.edu.cn/lxwm/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://erctst.ustc.edu.cn/bmxx/list.htm",
+     "cms": "siyuan",
+     "label": "部门信息"
+    },
+    {
+     "url": "https://erctst.ustc.edu.cn/wdxz/list.htm",
+     "cms": "siyuan",
+     "label": "文档下载"
+    }
+   ],
+   "contact": ""
+  },
+  "quantum": {
+   "name": "量子物理与量子信息研究部",
+   "base": "https://quantum.ustc.edu.cn",
+   "kind": "research",
+   "topic": "research/quantum",
+   "columns": [],
+   "contact": ""
+  },
+  "journals": {
+   "name": "中国科学技术大学期刊中心",
+   "base": "https://journals.ustc.edu.cn",
+   "kind": "research",
+   "topic": "research/journals",
+   "columns": [
+    {
+     "url": "https://journals.ustc.edu.cn/23252/list.htm",
+     "cms": "siyuan",
+     "label": "关于我们"
+    },
+    {
+     "url": "https://journals.ustc.edu.cn/23256/list.htm",
+     "cms": "siyuan",
+     "label": "中心简介"
+    },
+    {
+     "url": "https://journals.ustc.edu.cn/23258/list.htm",
+     "cms": "siyuan",
+     "label": "联系我们"
+    },
+    {
+     "url": "https://journals.ustc.edu.cn/23254/list.htm",
+     "cms": "siyuan",
+     "label": "新闻中心"
+    },
+    {
+     "url": "https://journals.ustc.edu.cn/23263/list.htm",
+     "cms": "siyuan",
+     "label": "通知公告"
+    },
+    {
+     "url": "https://journals.ustc.edu.cn/23264/list.htm",
+     "cms": "siyuan",
+     "label": "新闻动态"
+    },
+    {
+     "url": "https://journals.ustc.edu.cn/23255/list.htm",
+     "cms": "siyuan",
+     "label": "资料中心"
+    },
+    {
+     "url": "https://journals.ustc.edu.cn/23266/list.htm",
+     "cms": "siyuan",
+     "label": "管理文件"
+    }
+   ],
+   "contact": ""
+  }
+ }
+}

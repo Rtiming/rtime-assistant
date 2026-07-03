@@ -1,0 +1,54 @@
+# QQ bridge M1 spike — NapCat (QQ 协议端) + qq-bridge (echo).
+#
+# ISOLATED: 独立 compose,**不**并入 compose.prod.yml,不碰飞书桥/在产服务。
+# 跑在 orange pi。登录需扫码(NapCat WebUI http://127.0.0.1:6099)——这一步要 owner 亲自做。
+#
+# 用法(在本目录):
+#   QQ_OWNER_IDS=<专用小号QQ号> docker compose -f compose.spike.yml up -d --build
+#   # 浏览器开 http://127.0.0.1:6099 扫码登录小号,并把 reverse-WS 指向 ws://qq-bridge:8080/onebot/v11
+#   # 然后用小号私聊机器人 "ping",应收到 "ping"。
+#   docker compose -f compose.spike.yml logs -f qq-bridge
+
+services:
+  napcat:
+    image: mlikiowa/napcat-docker:latest   # 部署前确认 ARM64 镜像可用(orange pi 是 arm64)
+    container_name: qqbr-napcat
+    environment:
+      - NAPCAT_UID=1000
+      - NAPCAT_GID=1000
+      # Avoid inheriting Docker client proxy settings into QQ login traffic.
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - FTP_PROXY=
+      - ALL_PROXY=
+      - http_proxy=
+      - https_proxy=
+      - ftp_proxy=
+      - all_proxy=
+      - NO_PROXY=*
+      - no_proxy=*
+    ports:
+      - "127.0.0.1:6099:6099"               # WebUI:扫码 + 配 reverse-WS;仅本机可达
+    volumes:
+      - ./state/napcat/qq:/app/.config/QQ           # NTQQ 登录态持久卷(免重扫)
+      - ./state/napcat/config:/app/napcat/config    # NapCat / onebot 配置
+    networks: [qqbr]
+    restart: unless-stopped
+
+  qq-bridge:
+    build:
+      context: ../../..                     # repo root,使 packages/ 可被 COPY
+      dockerfile: apps/qq-bridge/deploy/Dockerfile.spike
+    container_name: qqbr-bridge
+    environment:
+      - QQ_OWNER_IDS=${QQ_OWNER_IDS:?set QQ_OWNER_IDS to your dedicated burner QQ id}
+      - QQ_BRIDGE_WS_HOST=0.0.0.0
+      - QQ_BRIDGE_WS_PORT=8080
+      - QQ_BRIDGE_WS_PATH=/onebot/v11
+    expose: ["8080"]                         # 仅 compose 内网;NapCat 连 ws://qq-bridge:8080/onebot/v11
+    networks: [qqbr]
+    restart: unless-stopped
+
+networks:
+  qqbr:
+    driver: bridge

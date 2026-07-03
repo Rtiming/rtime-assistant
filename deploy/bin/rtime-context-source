@@ -1,0 +1,336 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 rtime-assistant contributors (see NOTICE)
+"""Manage rtime dynamic context-source registry metadata.
+
+The registry is JSONL under brain/_system/rtime-context-sources.jsonl. This
+tool never prints source file bodies.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
+
+
+DEFAULT_TZ = timezone(timedelta(hours=8))
+EXCLUDED_TOP_DIRS = {"personal-data"}
+STATUSES = {"active", "inactive", "cancelled"}
+KINDS = {"preference", "study-plan", "project-plan", "routine", "policy", "note", "context"}
+
+
+def _die(message: str, code: int = 2) -> None:
+    print(f"error: {message}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def _print(data: dict[str, Any]) -> None:
+    print(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+
+
+def _default_brain_roots() -> list[Path]:
+    paths: list[Path] = []
+    env_root = os.environ.get("BRAIN_ROOT")
+    if env_root:
+        paths.append(Path(env_root).expanduser())
+    paths.extend(
+        [
+            Path("/mnt/brain"),
+            Path.home() / "brain",
+            Path.home() / "OrangePi-Store" / "sync" / "brain",
+        ]
+    )
+    unique: list[Path] = []
+    seen: set[str] = set()
+    for path in paths:
+        key = str(path)
+        if key not in seen:
+            seen.add(key)
+            unique.append(path)
+    return unique
+
+
+def _brain_root(raw: str | None) -> Path:
+    if raw:
+        return Path(raw).expanduser()
+    for path in _default_brain_roots():
+        if path.exists():
+            return path
+    return _default_brain_roots()[0]
+
+
+def _manifest_path(raw: str | None, brain_root: Path) -> Path:
+    if raw:
+        return Path(raw).expanduser()
+    env_path = os.environ.get("RTIME_CONTEXT_SOURCES_PATH")
+    if env_path:
+        return Path(env_path).expanduser()
+    return brain_root / "_system/rtime-context-sources.jsonl"
+
+
+def _now_iso() -> str:
+    return datetime.now(DEFAULT_TZ).isoformat(timespec="seconds")
+
+
+def _today() -> str:
+    return datetime.now(DEFAULT_TZ).date().isoformat()
+
+
+def _date_value(value: Any) -> str:
+    text = str(value or "").strip()
+    return text[:10] if re.match(r"^\d{4}-\d{2}-\d{2}", text) else ""
+
+
+def _tags(value: str | list[str] | None) -> list[str]:
+    raw = value if isinstance(value, list) else re.split(r"[,，\s]+", str(value or ""))
+    result: list[str] = []
+    for item in raw:
+        tag = str(item).strip()
+        if tag and tag not in result:
+            result.append(tag)
+    return result
+
+
+def _safe_source_path(raw: str, brain_root: Path, *, require_exists: bool = True) -> tuple[str | None, str | None]:
+    rel_text = str(raw or "").strip()
+    if not rel_text:
+        return None, "path is required"
+    if rel_text.startswith(("http://", "https://", "zotero://")):
+        return None, "external paths are not allowed"
+    rel_path = Path(rel_text)
+    if rel_path.is_absolute():
+        return None, "absolute paths are not allowed"
+    try:
+        resolved = (brain_root / rel_path).resolve()
+        root = brain_root.resolve()
+    except OSError as exc:
+        return None, f"path cannot be resolved: {exc}"
+    if not resolved.is_relative_to(root):
+        return None, "path escapes brain root"
+    rel = resolved.relative_to(root)
+    if rel.parts and rel.parts[0] in EXCLUDED_TOP_DIRS:
+        return None, "personal-data is not allowed"
+    if require_exists and not resolved.is_file():
+        return None, "source path does not exist"
+    return rel.as_posix(), None
+
+
+def _load_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    records: list[dict[str, Any]] = []
+    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            item = json.loads(line)
+        except json.JSONDecodeError as exc:
+            _die(f"invalid JSONL at line {line_no}: {exc.msg}")
+        if not isinstance(item, dict):
+            _die(f"invalid JSONL at line {line_no}: record must be an object")
+        records.append(item)
+    return records
+
+
+def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    text = "".join(json.dumps(item, ensure_ascii=False, separators=(",", ":")) + "\n" for item in records)
+    path.write_text(text, encoding="utf-8")
+
+
+def _record_meta(item: dict[str, Any], brain_root: Path) -> dict[str, Any]:
+    rel, error = _safe_source_path(str(item.get("path") or ""), brain_root, require_exists=True)
+    expires = _date_value(item.get("expires"))
+    active_from = _date_value(item.get("active_from"))
+    today = _today()
+    return {
+        "id": item.get("id"),
+        "status": item.get("status"),
+        "kind": item.get("kind"),
+        "title": item.get("title"),
+        "path": item.get("path"),
+        "tags": _tags(item.get("tags")),
+        "priority": item.get("priority", 0),
+        "active_from": active_from,
+        "expires": expires,
+        "max_chars": item.get("max_chars"),
+        "active_now": item.get("status") == "active" and not error and (not active_from or active_from <= today) and (not expires or expires >= today),
+        "path_valid": error is None and rel is not None,
+        "path_error": error or "",
+    }
+
+
+def list_sources(args: argparse.Namespace) -> int:
+    brain_root = _brain_root(args.brain_root)
+    path = _manifest_path(args.manifest, brain_root)
+    records = _load_jsonl(path)
+    items = [_record_meta(item, brain_root) for item in records]
+    if args.status:
+        items = [item for item in items if item.get("status") == args.status]
+    _print(
+        {
+            "ok": True,
+            "action": "list",
+            "path": str(path),
+            "count": len(items),
+            "items": items[-args.limit :],
+            "privacy": {"source_body_returned": False},
+        }
+    )
+    return 0
+
+
+def check_sources(args: argparse.Namespace) -> int:
+    brain_root = _brain_root(args.brain_root)
+    path = _manifest_path(args.manifest, brain_root)
+    records = _load_jsonl(path)
+    items = [_record_meta(item, brain_root) for item in records]
+    invalid = [item for item in items if not item["path_valid"] or item.get("status") not in STATUSES]
+    active = [item for item in items if item["active_now"]]
+    expired = [item for item in items if item.get("expires") and item["expires"] < _today()]
+    ids = [str(item.get("id") or "") for item in items if item.get("id")]
+    duplicate_ids = sorted({item for item in ids if ids.count(item) > 1})
+    ok = not invalid and not duplicate_ids
+    _print(
+        {
+            "ok": ok,
+            "action": "check",
+            "path": str(path),
+            "count": len(items),
+            "active_count": len(active),
+            "expired_count": len(expired),
+            "invalid_count": len(invalid),
+            "duplicate_ids": duplicate_ids,
+            "invalid_items": invalid[:20],
+            "privacy": {"source_body_returned": False},
+        }
+    )
+    return 0 if ok else 1
+
+
+def add_source(args: argparse.Namespace) -> int:
+    source_id = args.id.strip()
+    if not source_id:
+        _die("--id is required")
+    if not re.match(r"^[A-Za-z0-9][A-Za-z0-9_.-]{1,80}$", source_id):
+        _die("--id must be stable ASCII letters, digits, dots, dashes, or underscores")
+    kind = args.kind.strip()
+    if kind not in KINDS:
+        _die(f"--kind must be one of: {', '.join(sorted(KINDS))}")
+    status = args.status.strip()
+    if status not in STATUSES:
+        _die(f"--status must be one of: {', '.join(sorted(STATUSES))}")
+    brain_root = _brain_root(args.brain_root)
+    path = _manifest_path(args.manifest, brain_root)
+    rel, error = _safe_source_path(args.source_path, brain_root, require_exists=True)
+    if error:
+        _die(error)
+    records = _load_jsonl(path)
+    if any(str(item.get("id") or "") == source_id for item in records):
+        _die(f"duplicate source id: {source_id}")
+    record = {
+        "id": source_id,
+        "status": status,
+        "kind": kind,
+        "title": args.title.strip() or source_id,
+        "path": rel,
+        "tags": _tags(args.tags),
+        "priority": args.priority,
+        "active_from": args.active_from or _today(),
+        "expires": args.expires or "",
+        "max_chars": args.max_chars,
+        "created_at": _now_iso(),
+    }
+    if not args.dry_run:
+        records.append(record)
+        _write_jsonl(path, records)
+    _print(
+        {
+            "ok": True,
+            "action": "add",
+            "dry_run": bool(args.dry_run),
+            "path": str(path),
+            "source": _record_meta(record, brain_root),
+            "privacy": {"source_body_returned": False},
+        }
+    )
+    return 0
+
+
+def deactivate_source(args: argparse.Namespace) -> int:
+    source_id = args.id.strip()
+    if not source_id:
+        _die("--id is required")
+    brain_root = _brain_root(args.brain_root)
+    path = _manifest_path(args.manifest, brain_root)
+    records = _load_jsonl(path)
+    changed = 0
+    for item in records:
+        if str(item.get("id") or "") == source_id and item.get("status") != args.status:
+            item["status"] = args.status
+            item["deactivated_at"] = _now_iso()
+            if args.reason:
+                item["deactivation_reason"] = args.reason
+            changed += 1
+    if changed and not args.dry_run:
+        _write_jsonl(path, records)
+    _print(
+        {
+            "ok": bool(changed),
+            "action": "deactivate",
+            "dry_run": bool(args.dry_run),
+            "id": source_id,
+            "path": str(path),
+            "changed": changed,
+        }
+    )
+    return 0 if changed else 1
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="List/add/deactivate/check rtime context sources.")
+    parser.add_argument("--manifest", help="context-source JSONL path; defaults to brain/_system/rtime-context-sources.jsonl")
+    parser.add_argument("--brain-root", help="brain root for safe path validation")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    list_parser = subparsers.add_parser("list", help="list source metadata")
+    list_parser.add_argument("--status", choices=sorted(STATUSES))
+    list_parser.add_argument("--limit", type=int, default=50)
+    list_parser.set_defaults(func=list_sources)
+
+    check_parser = subparsers.add_parser("check", help="validate source metadata and paths")
+    check_parser.set_defaults(func=check_sources)
+
+    add_parser = subparsers.add_parser("add", help="add an active context source")
+    add_parser.add_argument("--id", required=True)
+    add_parser.add_argument("--kind", required=True)
+    add_parser.add_argument("--title", required=True)
+    add_parser.add_argument("--source-path", required=True)
+    add_parser.add_argument("--tags", default="")
+    add_parser.add_argument("--priority", type=int, default=0)
+    add_parser.add_argument("--status", default="active", choices=sorted(STATUSES))
+    add_parser.add_argument("--active-from", default="")
+    add_parser.add_argument("--expires", default="")
+    add_parser.add_argument("--max-chars", type=int, default=4000)
+    add_parser.add_argument("--dry-run", action="store_true")
+    add_parser.set_defaults(func=add_source)
+
+    deactivate_parser = subparsers.add_parser("deactivate", help="mark a source inactive/cancelled")
+    deactivate_parser.add_argument("--id", required=True)
+    deactivate_parser.add_argument("--status", default="inactive", choices=["inactive", "cancelled"])
+    deactivate_parser.add_argument("--reason", default="")
+    deactivate_parser.add_argument("--dry-run", action="store_true")
+    deactivate_parser.set_defaults(func=deactivate_source)
+
+    args = parser.parse_args(argv)
+    return int(args.func(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

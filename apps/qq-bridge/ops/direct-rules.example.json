@@ -1,0 +1,31 @@
+[
+  {
+    "name": "campus-bus",
+    "patterns": [
+      "班车.*(时刻|时间|几点|班次|时刻表)",
+      "(几点|啥时候|什么时候).*(班车|校车)",
+      "校车.*(时刻|时间|几点)",
+      "^班车$",
+      "^班车时刻表?$"
+    ],
+    "type": "bus_timetable",
+    "params": {
+      "category": "校园班车",
+      "startpoint": "东区",
+      "week": "工作日"
+    },
+    "ttl_seconds": 21600
+  },
+  {
+    "name": "faq-help",
+    "patterns": ["^(/?help|帮助|你能干(什么|啥))$"],
+    "type": "text",
+    "reply": "我是你的 QQ 助手,直接说事儿就行。常用命令:\n/new 开新对话\n/model <名> 切模型(opus/sonnet/kimi…)\n/stream on|off 流式输出开关\n发图片/文件/语音我也能看(能不能读图取决于当前模型)。"
+  },
+  {
+    "name": "faq-ping",
+    "patterns": ["^(在吗|在不在|在么)[?？!！。.~]*$"],
+    "type": "text",
+    "reply": "在的,直接说事儿就行。"
+  }
+]

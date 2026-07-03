@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rtime 控制面板</title>
+<!--
+  控制面板骨架(T7)。运维工具,仅 127.0.0.1 可达,永不公网。
+  纪律与 apps/web-chat 一致:无 npm / 无构建步骤;唯一外部依赖 DOMPurify 走
+  pinned-version CDN + SRI,且仅用于清洗要写进 innerHTML 的少量文本。CDN 不可达
+  (纯内网)时降级为 textContent,面板全部功能仍可用(表单/diff/回滚/审计不依赖它)。
+  静态外壳本身无鉴权(浏览器要先加载页面才能粘贴 token);所有 /v1/* 调用一律带
+  Authorization: Bearer <token>,由 admin-api 鉴权。token 只放 sessionStorage,
+  从不落盘 localStorage。
+-->
+<script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"
+        integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
+        crossorigin="anonymous"></script>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --line: #e3e6ea;
+    --text: #1c1f23; --muted: #7a828c; --accent: #2f6fed;
+    --ok: #1f8a4c; --warn: #b26a00; --err: #c0392b;
+    --prov-env: #8e44ad; --prov-store: #2f6fed; --prov-profile: #1f8a4c; --prov-default: #7a828c;
+    --code-bg: #f2f4f7;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.6 -apple-system, "PingFang SC", "Microsoft YaHei",
+          "Noto Sans CJK SC", system-ui, sans-serif;
+  }
+  #app { display: flex; flex-direction: column; min-height: 100%; max-width: 1040px; margin: 0 auto; }
+  header {
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px; flex-wrap: wrap;
+    background: var(--panel); border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 5;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  header .sep { flex: 1; }
+  input, select, button, textarea { font: inherit; color: inherit; }
+  #token {
+    padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+    min-width: 240px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .btn {
+    padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--panel); cursor: pointer;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.primary:hover { opacity: .9; color: #fff; }
+  .btn.danger { border-color: #e2a0a0; color: var(--err); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  #whoami { font-size: 12px; color: var(--muted); }
+  #whoami.ok { color: var(--ok); }
+  #whoami.err { color: var(--err); }
+  nav { display: flex; gap: 4px; padding: 8px 16px 0; background: var(--panel); border-bottom: 1px solid var(--line); }
+  nav .tab {
+    padding: 8px 14px; border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0;
+    background: transparent; cursor: pointer; color: var(--muted);
+  }
+  nav .tab.active { background: var(--bg); color: var(--text); border-color: var(--line); font-weight: 600; }
+  main { padding: 16px; flex: 1; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; margin: 0 0 14px;
+  }
+  .card h2 { margin: 0 0 10px; font-size: 15px; }
+  .muted { color: var(--muted); }
+  .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .toolbar .grow { flex: 1; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid var(--line); padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: var(--bg); font-weight: 600; }
+  td.path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
+  td.val { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-word; }
+  .badge {
+    display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px;
+    color: #fff; white-space: nowrap;
+  }
+  .badge.env { background: var(--prov-env); }
+  .badge.store { background: var(--prov-store); }
+  .badge.profile { background: var(--prov-profile); }
+  .badge.default { background: var(--prov-default); }
+  .badge.secret { background: #555; }
+  .badge.hot { background: var(--ok); }
+  .badge.restart { background: var(--warn); }
+  .badge.shadowed { background: #b45309; }
+  .unset-btn { font-size: 0.85em; padding: 2px 8px; cursor: pointer; }
+  .field-row { display: flex; gap: 10px; align-items: center; margin: 8px 0; flex-wrap: wrap; }
+  .field-row label { min-width: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  .field-row .ctl { flex: 1; min-width: 200px; }
+  .field-row input[type=text], .field-row input[type=number], .field-row textarea, .field-row select {
+    width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+  }
+  .field-hint { font-size: 12px; color: var(--muted); margin: 0 0 2px 230px; }
+  details.module { margin-bottom: 10px; }
+  details.module > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+  pre.diff { background: var(--code-bg); border-radius: 8px; padding: 10px; overflow-x: auto; margin: 0; }
+  .diff .before { color: var(--err); }
+  .diff .after { color: var(--ok); }
+  .flash { padding: 10px 12px; border-radius: 8px; margin: 0 0 12px; }
+  .flash.ok { background: #eaf6ee; border: 1px solid #bfe3ca; color: var(--ok); }
+  .flash.warn { background: #fdf3e3; border: 1px solid #f0d6a6; color: var(--warn); }
+  .flash.err { background: #fbf0f0; border: 1px solid #e2a0a0; color: var(--err); }
+  .flash.hidden { display: none; }
+  .placeholder { color: var(--muted); padding: 20px; text-align: center; border: 1px dashed var(--line); border-radius: 8px; }
+  .audit-entry { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; white-space: pre-wrap; word-break: break-word; }
+  dialog {
+    border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; max-width: 480px;
+  }
+  dialog::backdrop { background: rgba(0,0,0,.35); }
+  dialog .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  code.inline { background: var(--code-bg); border-radius: 4px; padding: 1px 5px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>rtime 控制面板</h1>
+    <input id="token" type="password" placeholder="粘贴 Bearer token" autocomplete="off" spellcheck="false">
+    <button id="connect" class="btn primary">连接</button>
+    <button id="forget" class="btn" title="从本页清除 token">清除</button>
+    <span class="sep"></span>
+    <span id="whoami" class="muted">未连接</span>
+  </header>
+  <nav>
+    <button class="tab active" data-view="tree">配置树</button>
+    <button class="tab" data-view="edit">编辑 / diff / 提交</button>
+    <button class="tab" data-view="history">历史 / 快照 / 回滚</button>
+    <button class="tab" data-view="audit">审计 / 漂移</button>
+    <button class="tab" data-view="modules">模块</button>
+  </nav>
+  <main>
+    <div id="flash" class="flash hidden"></div>
+
+    <!-- ============ 配置树 ============ -->
+    <section id="view-tree" class="view active">
+      <div class="card">
+        <div class="toolbar">
+          <button id="tree-refresh" class="btn">刷新</button>
+          <label><input type="checkbox" id="tree-reveal"> 显示密文（需 read:sensitive）</label>
+          <span class="grow"></span>
+          <span class="muted">来源徽标：
+            <span class="badge env">env</span>
+            <span class="badge store">store</span>
+            <span class="badge profile">profile</span>
+            <span class="badge default">default</span>
+          </span>
+        </div>
+        <div id="tree-body"><p class="placeholder">连接后自动加载。</p></div>
+      </div>
+    </section>
+
+    <!-- ============ 编辑 / diff / 提交 ============ -->
+    <section id="view-edit" class="view">
+      <div class="card">
+        <h2>schema 生成的表单</h2>
+        <p class="muted">
+          表单字段 100% 由 <code class="inline">GET /v1/schema</code> 生成（设计要求，不手写字段）。
+          改动某个值后点“预演 diff”走 dry-run 校验，确认无误再“提交”（带 If-Match，遇 412 会自动重取 ETag 并提示）。
+          密文字段显示 <code class="inline">***</code>，留空表示不改动。
+        </p>
+        <div class="toolbar">
+          <button id="form-load" class="btn">加载 / 重置表单</button>
+          <button id="form-diff" class="btn">预演 diff（dry-run）</button>
+          <button id="form-apply" class="btn primary">提交改动</button>
+        </div>
+        <div id="form-body"><p class="placeholder">连接后点“加载 / 重置表单”。</p></div>
+      </div>
+      <div class="card" id="diff-card" style="display:none">
+        <h2>改动预览</h2>
+        <div id="diff-body"></div>
+      </div>
+    </section>
+
+    <!-- ============ 历史 / 快照 / 回滚 ============ -->
+    <section id="view-history" class="view">
+      <div class="card">
+        <div class="toolbar">
+          <button id="history-refresh" class="btn">刷新</button>
+          <button id="history-snapshot" class="btn" title="当前 admin-api 未提供手动打快照端点">手动打快照</button>
+          <span class="muted">回滚仅作用于 store 层；profile 回滚 = git revert。</span>
+        </div>
+        <div id="history-body"><p class="placeholder">连接后自动加载。</p></div>
+      </div>
+    </section>
+
+    <!-- ============ 模块总览(K5) ============ -->
+    <section id="view-modules" class="view">
+      <div class="card">
+        <div class="toolbar">
+          <button id="modules-refresh" class="btn">刷新</button>
+          <span class="grow"></span>
+          <span class="muted">清单真相：<code class="inline">deploy/modules.json</code>（GET /v1/modules）；“配置”跳到 schema 表单细配。</span>
+        </div>
+        <div id="modules-body"><p class="placeholder">连接后自动加载。</p></div>
+      </div>
+    </section>
+
+    <!-- ============ 审计 / 漂移 ============ -->
+    <section id="view-audit" class="view">
+      <div class="card">
+        <div class="toolbar">
+          <button id="audit-refresh" class="btn">刷新</button>
+          <label>条数 <input type="number" id="audit-limit" value="50" min="1" max="1000" style="width:80px"></label>
+        </div>
+        <div id="audit-body"><p class="placeholder">连接后自动加载。</p></div>
+      </div>
+      <div class="card">
+        <h2>漂移 / shadowed-keys</h2>
+        <div id="drift-body"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<dialog id="confirm-dialog">
+  <div id="confirm-text"></div>
+  <div class="actions">
+    <button id="confirm-cancel" class="btn">取消</button>
+    <button id="confirm-ok" class="btn danger">确认</button>
+  </div>
+</dialog>
+
+<script src="panel.schema.js"></script>
+<script src="panel.js"></script>
+</body>
+</html>

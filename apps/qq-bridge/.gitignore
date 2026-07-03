@@ -1,0 +1,9 @@
+# Local secrets / runtime state — never commit
+.env
+*.env
+!*.env.example
+deploy/state/
+*.log
+*.jsonl
+__pycache__/
+.pytest_cache/
