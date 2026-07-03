@@ -28,6 +28,8 @@
     "compose.dev.yml",
     "docs/README.zh-CN.md",
     "docs/architecture-overview.zh-CN.md",
+    "docs/design/qq-feature-roadmap-2026-07.zh-CN.md",
+    "docs/design/admin-panel-roadmap-2026-07.zh-CN.md",
     "docs/reference/",
     "docs/config/",
     "docs/connect-your-own.zh-CN.md",

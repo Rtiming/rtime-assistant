@@ -37,6 +37,10 @@ reference/README.zh-CN.md)。
 | design/module-system-and-open-source-2026-07.zh-CN.md | 模块系统+开源模块化:模块分类/manifest单一真相/三层配置(装机选装+面板细配+CLI-API)/OB·notes·同步通用可选模块/开源打包/K泳道(充分模块化) |
 | design/config-and-access-architecture-2026-07.zh-CN.md | 配置与访问架构:RBAC两层正交(平台超管/项目角色)+多管理员+配置入口全覆盖+人和AI双入口+开源setup/边界+库共享grant一等对象(泳道J,5维度行业调研) |
 | design/admin-console-ops-2026-07.zh-CN.md | 运营面板三台(Profile运营台/库管理台/接入审核台)+权限模型确认(owner与开发助手同为超管)+外部MCP接入grant审核流 |
+| design/admin-panel-roadmap-2026-07.zh-CN.md | 管理面板演进:配置字段编辑器→operator控制台;提示词/群聊/名单友好管理(P1头等)+切QQ号/加模块/切模型快捷动作(封装底层写路径不开第二写口)+P1-P4分期。规划 |
+| design/qq-feature-roadmap-2026-07.zh-CN.md | QQ功能扩展:拍一拍/表情包回复/QQ自带表情解析,做成channel-qq可开关子能力。规划,交后续开发者 |
+| design/open-source-risk-register-2026-07.zh-CN.md | 开源风险台账:87项资产审计的21条(密钥/第三方PII/身份/群号/内网IP/机器路径)清洗状态+打包硬约束+发布演练实测(gitleaks clean) |
+| architecture-overview.zh-CN.md | 架构总览(新贡献者先读):分层数据流+包职责+三条不可违背原则+权限模型+新人第一天 |
 | specs/README.zh-CN.md | 实施规格目录:执行契约+当前规格清单(A1.5/A2/H-M1/I-Q2),给任何执行助手零偏离照做 |
 | open-source-update-goals.zh-CN.md | 开源准备目的、更新软件目标、owner/学生会/下游实例边界、v0.1 基线清单 |
 | design/chat-archive-storage-2026-07.zh-CN.md | 聊天全量归档:raw/normalized/media/index 四层存储合同+分类字典+doctor+验收 |
@@ -58,6 +62,8 @@ reference/README.zh-CN.md)。
 |---|---|
 | reference/README.zh-CN.md | reference 目录约定(每功能一份 reference + 链回设计) |
 | reference/modules.zh-CN.md | 模块清单manifest(deploy/modules.json):字段/doctor校验/三层配置定位/加模块步骤(K1) |
+| reference/library-maintain.zh-CN.md | 库维护写动词(H M1/M2/M3):annotate/edit/revisions/revert/move/retire/restore——两段式+修订链+墓碑+引用完整性+索引移除,超管专用 |
+| reference/setup-wizard.zh-CN.md | 安装向导(deploy/setup-wizard.py):list/plan/init+依赖闭包+COMPOSE_PROFILES拼装+INSTALL_LOCK(K4,RPi实测) |
 | reference/rbac.zh-CN.md | RBAC两层正交(平台超管is_platform_super/项目角色owner·admin·user·readonly-guest)+超管独占能力+只增权限位+委托护栏(J3) |
 | reference/admin-core.zh-CN.md | ConfigStore API + Registry + x-secret/x-reload/x-scope(开发者加模块) |
 | reference/admin-api.zh-CN.md | /v1 全端点 + scope 模型 + ETag/If-Match + 运行服务 + 安全姿态 |
